@@ -1,0 +1,72 @@
+import { Schema, model, InferSchemaType, Types } from "mongoose";
+
+const schema = new Schema(
+  {
+    currency: {
+      type: String,
+      trim: true,
+      default: "BDT",
+    },
+    taxAmount: {
+      type: Number,
+      default: 0,
+    },
+    shippingAmount: {
+      type: Number,
+      default: 0,
+    },
+    codAmount: {
+      type: Number,
+      default: 0,
+    },
+    siteName: {
+      type: String,
+      trim: true,
+      default: "My Store",
+    },
+    siteDescription: {
+      type: String,
+      trim: true,
+    },
+    siteLogo: {
+      type: Types.ObjectId,
+      ref: "Asset",
+    },
+    siteFavicon: {
+      type: Types.ObjectId,
+      ref: "Asset",
+    },
+    siteEmail: {
+      type: String,
+      trim: true,
+    },
+    sitePhone: {
+      type: String,
+      trim: true,
+    },
+    siteAddress: {
+      type: String,
+      trim: true,
+    },
+    siteUrl: {
+      type: String,
+      trim: true,
+    },
+    socials: {
+      type: Map,
+      of: new Schema(
+        {
+          name: { type: String, trim: true },
+          url: { type: String, trim: true },
+        },
+        { _id: false },
+      ),
+    },
+  },
+  { timestamps: true },
+);
+
+export const Config = model("Config", schema);
+export type Config = InferSchemaType<typeof schema> & {
+  _id: Types.ObjectId;
+};

@@ -1,0 +1,24 @@
+import { z } from "zod";
+
+const socialEntrySchema = z.object({
+  name: z.string().trim(),
+  url: z.string().trim().optional(),
+});
+
+export const updateConfigSchema = z.object({
+  currency: z.string().trim().max(10).nullish(),
+  taxAmount: z.number().min(0).nullish(),
+  shippingAmount: z.number().min(0).nullish(),
+  codAmount: z.number().min(0).max(100).nullish(),
+  siteName: z.string().trim().nullish(),
+  siteDescription: z.string().trim().nullish(),
+  siteLogo: z.string().trim().nullish(),
+  siteFavicon: z.string().trim().nullish(),
+  siteEmail: z.string().trim().nullish(),
+  sitePhone: z.string().trim().nullish(),
+  siteAddress: z.string().trim().nullish(),
+  siteUrl: z.string().trim().nullish(),
+  socials: z.record(z.string(), socialEntrySchema).nullish(),
+});
+
+export type UpdateConfigSchemaType = z.infer<typeof updateConfigSchema>;
