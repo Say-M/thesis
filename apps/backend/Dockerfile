@@ -2,17 +2,17 @@ FROM oven/bun:1 AS base
 
 WORKDIR /usr/src/app
 
-# Copy workspace metadata first for better cache
+# Copy workspace metadata and packages
 COPY package.json bun.lock ./
 COPY packages ./packages
-COPY . .
+COPY apps ./apps
 
-RUN bunx turbo prune auth-service --docker
+# Install all dependencies (workspace-aware)
+RUN bun install
 
-RUN bun install --frozen-lockfile
-
-WORKDIR /usr/src/app/apps/auth-service
+# Backend service
+WORKDIR /usr/src/app/apps/backend
 
 EXPOSE 9000
 
-CMD ["bun", "run", "src/index.ts"]
+CMD ["bun", "run", "start"]

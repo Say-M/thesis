@@ -14,12 +14,6 @@ import { pino } from "pino";
 import { PinoPretty } from "pino-pretty";
 import { requestId } from "hono/request-id";
 import { User } from "./models/user";
-import { prometheus } from "@hono/prometheus";
-import { collectDefaultMetrics, register } from "prom-client";
-
-const { printMetrics, registerMetrics } = prometheus();
-
-collectDefaultMetrics({ register });
 
 export interface AppBindings {
   Variables: {
@@ -30,17 +24,14 @@ export interface AppBindings {
 
 const app = new Hono<AppBindings>();
 
-app.use("*", registerMetrics);
-app.get("/metrics", printMetrics);
-
 app.use(requestId());
 app.use(
   pinoLogger({
     pino: pino(
       process.env.NODE_ENV === "production"
         ? { level: process.env.LOG_LEVEL || "info" }
-        : undefined,
-      // : PinoPretty(),
+        : // : undefined,
+          PinoPretty(),
     ),
   }),
 );
