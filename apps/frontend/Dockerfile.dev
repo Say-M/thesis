@@ -1,0 +1,23 @@
+# Development Dockerfile for hot reloading
+FROM oven/bun:1
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json bun.lock ./
+
+# Install dependencies
+RUN bun install
+
+# Copy source code
+COPY . .
+
+# Expose development port
+EXPOSE 3000
+
+# Set environment to development
+ENV NODE_ENV=development
+
+# Start development server with hot reload
+CMD ["bun", "run", "dev"]
+
