@@ -1,4 +1,4 @@
-import { Config } from "@/models/config";
+import { Config } from "@repo/common/models/config";
 
 /**
  * Gets the latest config from the database.
@@ -6,10 +6,8 @@ import { Config } from "@/models/config";
  * @returns The latest config document or null if none exists
  */
 export const getLatestConfig = async () => {
-  const config = await Config.findOne()
-    .sort({ createdAt: -1 })
-    .lean();
-  
+  const config = await Config.findOne().sort({ createdAt: -1 }).lean();
+
   return config;
 };
 
@@ -25,7 +23,7 @@ export const getConfigValue = async <T>(
 ): Promise<T> => {
   const config = await getLatestConfig();
   if (!config) return defaultValue;
-  
+
   const value = config[key as keyof typeof config];
   return (value !== undefined && value !== null ? value : defaultValue) as T;
 };

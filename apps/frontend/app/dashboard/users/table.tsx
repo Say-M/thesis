@@ -25,7 +25,7 @@ import {
 import { MoreHorizontal } from "lucide-react";
 import { useListUsers, useUpdateUser } from "@/hooks/api/users";
 import type { UserListItem } from "@/hooks/api/users";
-import { Role } from "@app/backend/enums/role";
+import { Role } from "@repo/common/enums/role";
 import { useEffect, useMemo } from "react";
 import { useInView } from "react-intersection-observer";
 import { Skeleton } from "@/components/ui/skeleton";

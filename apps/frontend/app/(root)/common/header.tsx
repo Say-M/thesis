@@ -28,13 +28,14 @@ import {
   SearchIcon,
   ShoppingCartIcon,
 } from "lucide-react";
-import { DiscountType } from "@app/backend/enums/discount";
+import { DiscountType } from "@repo/common/enums/discount";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuthContext } from "@/contexts/auth";
 import { useCartWishlist } from "@/contexts/cart-wishlist";
-import { Role } from "@app/backend/enums/role";
+import { Role } from "@repo/common/enums/role";
 import Image from "next/image";
+import { useConfigContext } from "@/contexts/config";
 
 const SEARCH_DEBOUNCE_MS = 300;
 const SEARCH_MIN_LENGTH = 2;
@@ -114,7 +115,8 @@ function SearchResultItem({
 export default function Header() {
   const router = useRouter();
   const { user } = useContext(AuthContext);
-  const { cart, wishlistIds } = useCartWishlist();
+  const { config } = useConfigContext();
+  const { cart, wishlist } = useCartWishlist();
   const cartCount = cart.reduce((sum, line) => sum + line.quantity, 0);
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -204,7 +206,16 @@ export default function Header() {
       <div className="border-b">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between gap-6">
           <Link href="/">
-            <h1 className="text-2xl font-bold">DesignBookBD</h1>
+            {config?.siteLogo ? (
+              <Image
+                src={config.siteLogo.path}
+                alt={config.siteName}
+                width={100}
+                height={100}
+              />
+            ) : (
+              <h1 className="text-2xl font-bold">{config?.siteName}</h1>
+            )}
           </Link>
           <div className="max-w-xl w-full mx-auto">
             <Popover open={searchOpen} onOpenChange={setSearchOpen}>
@@ -311,12 +322,12 @@ export default function Header() {
             <Button variant="ghost" size="icon-sm" className="relative" asChild>
               <Link
                 href="/wishlist"
-                aria-label={`Wishlist${wishlistIds.length > 0 ? ` (${wishlistIds.length} items)` : ""}`}
+                aria-label={`Wishlist${wishlist?.length ? ` (${wishlist.length} items)` : ""}`}
               >
                 <HeartIcon />
-                {wishlistIds.length > 0 && (
+                {!!wishlist?.length && (
                   <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
-                    {wishlistIds.length > 99 ? "99+" : wishlistIds.length}
+                    {wishlist?.length > 99 ? "99+" : wishlist?.length}
                   </span>
                 )}
               </Link>

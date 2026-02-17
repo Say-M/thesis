@@ -11,8 +11,8 @@ import type {
   CreateCategorySchemaType,
   UpdateCategorySchemaType,
   ListCategoryQuerySchemaType,
-} from "@app/backend/schemas/category";
-import type { Category } from "@app/backend/models/category";
+} from "@repo/common/schemas/category";
+import type { Category } from "@repo/common/models/category";
 import type { ResponseType } from "@repo/common/schemas/response";
 
 const CATEGORIES_QUERY_KEY = ["categories"] as const;
@@ -90,17 +90,7 @@ export const useCreateCategory = () => {
     },
     onSuccess: (data) => {
       toast.success(data?.message ?? "Category created");
-      queryClient.setQueriesData(
-        { queryKey: [...CATEGORIES_QUERY_KEY, "list"] },
-        (oldData: { data: { categories: Category[] } }) => {
-          return {
-            ...oldData,
-            data: {
-              categories: [...oldData?.data?.categories, data?.data?.category],
-            },
-          };
-        },
-      );
+      queryClient.invalidateQueries({ queryKey: CATEGORIES_QUERY_KEY });
     },
     onError: (error: AxiosError<{ message?: string }>) => {
       toast.error(error.response?.data?.message ?? "Failed to create category");
@@ -124,22 +114,7 @@ export const useUpdateCategory = () => {
     },
     onSuccess: (data, { id }) => {
       toast.success(data?.message ?? "Category updated");
-      queryClient.setQueriesData(
-        { queryKey: [...CATEGORIES_QUERY_KEY] },
-        (oldData: { data: { categories: CategoryDetail[] } }) => {
-          const categories = oldData.data.categories.map((c) => {
-            if (c._id === id) {
-              return { ...c, ...data?.data?.category };
-            }
-            return c;
-          });
-          console.log({ categories });
-          return {
-            ...oldData,
-            data: { categories },
-          };
-        },
-      );
+      queryClient.invalidateQueries({ queryKey: CATEGORIES_QUERY_KEY });
     },
     onError: (error: AxiosError<{ message?: string }>) => {
       toast.error(error.response?.data?.message ?? "Failed to update category");

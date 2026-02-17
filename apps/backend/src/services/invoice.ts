@@ -1,27 +1,28 @@
 import { HTTPException } from "hono/http-exception";
 import mongoose, { QueryFilter, Types } from "mongoose";
-import { Invoice } from "@/models/invoice";
-import { Coupon } from "@/models/coupon";
-import { Product } from "@/models/product";
-import { Transaction } from "@/models/transaction";
+import { Invoice } from "@repo/common/models/invoice";
+import { Coupon } from "@repo/common/models/coupon";
+import { Product } from "@repo/common/models/product";
+import { Transaction } from "@repo/common/models/transaction";
 import type { ResponseType } from "@repo/common/schemas/response";
 import type {
   CreateInvoiceSchemaType,
   ListInvoiceQuerySchemaType,
   UpdateInvoiceSchemaType,
-} from "@/schemas/invoice";
-import { User } from "@/models/user";
+} from "@repo/common/schemas/invoice";
+import { User } from "@repo/common/models/user";
 import { getCouponByCodeService } from "./coupon";
 import { generateIDBasedOnDate } from "@/utils/customIdHelper";
-import { DiscountType } from "@/enums/discount";
+import { DiscountType } from "@repo/common/enums/discount";
 import {
   InvoiceStatus,
   InvoiceType,
   TransactionStatus,
   TransactionType,
-} from "@/enums/invoice";
+} from "@repo/common/enums/invoice";
 import { getLatestConfig } from "@/utils/config-helper";
-import { Role } from "@/enums/role";
+import { Role } from "@repo/common/enums/role";
+import { roundTo2 } from "@repo/common/utils/round-to-2";
 
 export const createInvoiceService = async (
   user: User | null | undefined,
@@ -42,12 +43,14 @@ export const createInvoiceService = async (
     } = payload;
 
     // Fetch all products
-    const productIds = items.map((item) => item.product);
-    const products = await Product.find({ _id: { $in: productIds } })
+    const productIds = new Set(items.map((item) => item.product));
+    const products = await Product.find({
+      _id: { $in: Array.from(productIds) },
+    })
       .session(session)
       .lean();
 
-    if (products.length !== productIds.length) {
+    if (products.length !== productIds.size) {
       throw new HTTPException(400, {
         message: "One or more products not found",
       });
@@ -127,7 +130,7 @@ export const createInvoiceService = async (
             });
           }
 
-          unitPrice = product.sellingPrice ?? 0;
+          unitPrice = roundTo2(product.sellingPrice ?? 0);
           if (unitPrice <= 0) {
             throw new HTTPException(400, {
               message: `Invalid price for "${product.name}"`,
@@ -149,6 +152,7 @@ export const createInvoiceService = async (
         let discountAmount = 0;
 
         if (discountValue > 0) {
+          discountValue = roundTo2(discountValue);
           if (discountType === DiscountType.PERCENTAGE) {
             discountAmount = (unitPrice * discountValue) / 100;
           } else {
@@ -156,7 +160,11 @@ export const createInvoiceService = async (
           }
         }
 
-        const itemTotal = (unitPrice - discountAmount) * item.quantity;
+        discountAmount = roundTo2(discountAmount);
+
+        const itemTotal = roundTo2(
+          (unitPrice - discountAmount) * item.quantity,
+        );
         subtotal += itemTotal;
 
         return {
@@ -177,9 +185,9 @@ export const createInvoiceService = async (
     // Get latest config for default values
     const config = await getLatestConfig();
     const defaultCurrency = config?.currency || "BDT";
-    const defaultTaxAmount = config?.taxAmount || 0;
-    const defaultShippingAmount = config?.shippingAmount || 0;
-    const defaultCodAmount = config?.codAmount ?? 0;
+    const defaultTaxAmount = roundTo2(config?.taxAmount || 0);
+    const defaultShippingAmount = roundTo2(config?.shippingAmount || 0);
+    const defaultCodAmount = roundTo2(config?.codAmount ?? 0);
 
     // Validate and apply coupon
     let couponId = null;
@@ -246,6 +254,7 @@ export const createInvoiceService = async (
         } else {
           couponDiscountAmount = value;
         }
+        couponDiscountAmount = roundTo2(couponDiscountAmount);
 
         // Apply free shipping if applicable
         if (isFreeShipping) {
@@ -264,13 +273,13 @@ export const createInvoiceService = async (
     const taxAmount = defaultTaxAmount;
 
     // Calculate total before COD, then COD fee and final total
-    const totalBeforeCod =
-      subtotal - couponDiscountAmount + shippingAmount + taxAmount;
-    const codFee =
-      defaultCodAmount > 0
-        ? Math.round(((totalBeforeCod * defaultCodAmount) / 100) * 100) / 100
-        : 0;
-    const total = Math.round((totalBeforeCod + codFee) * 100) / 100;
+    const totalBeforeCod = roundTo2(
+      subtotal - couponDiscountAmount + shippingAmount + taxAmount,
+    );
+    const codAmount = roundTo2(
+      defaultCodAmount > 0 ? (totalBeforeCod * defaultCodAmount) / 100 : 0,
+    );
+    const total = roundTo2(totalBeforeCod + codAmount);
 
     // Determine invoice type and customer user
     // If the authenticated user has role USER, it's an online invoice and use their ID
@@ -296,7 +305,8 @@ export const createInvoiceService = async (
           items: lineItems,
           subtotal,
           coupon: couponId,
-          discountAmount: couponDiscountAmount,
+          codAmount,
+          couponDiscountAmount,
           shippingAmount,
           taxAmount,
           total,
@@ -492,7 +502,7 @@ export const listInvoicesService = async (
 ): Promise<ResponseType> => {
   const { limit = 24, cursor, status, search, type, userId, ...rest } = query;
   const filter: QueryFilter<Invoice> = { ...rest };
-  if (cursor) filter._id = { $lt: cursor };
+  if (cursor) filter._id = { $gt: cursor };
   if (status?.length) filter.status = { $in: status };
   if (type?.length) filter.type = { $in: type };
   if (userId) filter["customer.user"] = userId;
@@ -638,7 +648,7 @@ export const listInvoicesService = async (
       status: 200,
       message: "OK",
       timestamp: new Date().toISOString(),
-      data: { invoices: invoicesWithTransactions },
+      data: { invoices: invoicesWithTransactions || [] },
       pagination: {
         limit,
         hasMore,
@@ -651,7 +661,7 @@ export const listInvoicesService = async (
     status: 200,
     message: "OK",
     timestamp: new Date().toISOString(),
-    data: invoices,
+    data: { invoices },
     pagination: {
       limit,
       hasMore,
@@ -754,7 +764,7 @@ export const updateInvoiceService = async (
         status: 200,
         message: "Invoice updated",
         timestamp: new Date().toISOString(),
-        data: invoice,
+        data: { invoice },
       };
     } catch (err) {
       await session.abortTransaction();
@@ -777,7 +787,7 @@ export const updateInvoiceService = async (
     status: 200,
     message: "Invoice updated",
     timestamp: new Date().toISOString(),
-    data: invoice,
+    data: { invoice },
   };
 };
 

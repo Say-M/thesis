@@ -1,18 +1,18 @@
-import { User } from "@/models/user";
+import { User } from "@repo/common/models/user";
 import {
   LoginSchemaType,
   RegisterSchemaType,
   UpdatePasswordSchemaType,
   UpdateProfileSchemaType,
-} from "@/schemas/auth";
+} from "@repo/common/schemas/auth";
 import { generateToken } from "@repo/common/utils/token";
 import { HTTPException } from "hono/http-exception";
 import { ResponseType } from "@repo/common/schemas/response";
 import { deleteCookie, setCookie } from "hono/cookie";
 import { Context } from "hono";
 import { AppBindings } from "@/app";
-import { ACCESS_TOKEN_MAX_AGE, REFRESH_TOKEN_MAX_AGE } from "@/constants";
-import { Role } from "@/enums/role";
+import { ACCESS_TOKEN_MAX_AGE, REFRESH_TOKEN_MAX_AGE } from "@repo/common/constants/token";
+import { Role } from "@repo/common/enums/role";
 
 export const registerService = async (
   c: Context<AppBindings>,

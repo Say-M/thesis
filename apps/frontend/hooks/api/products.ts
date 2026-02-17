@@ -11,10 +11,11 @@ import type {
   CreateProductSchemaType,
   UpdateProductSchemaType,
   ListProductQuerySchemaType,
-} from "@app/backend/schemas/product";
-import type { Product } from "@app/backend/models/product";
+} from "@repo/common/schemas/product";
+import type { Product } from "@repo/common/models/product";
 import { ResponseType } from "@repo/common/schemas/response";
-import { DiscountType } from "@app/backend/enums/discount";
+import { DiscountType } from "@repo/common/enums/discount";
+import { roundTo2 } from "@repo/common/utils/round-to-2";
 
 const PRODUCTS_QUERY_KEY = ["products"] as const;
 
@@ -58,6 +59,7 @@ export type ListProductsResponseType = Omit<ResponseType, "data"> & {
 export function productListItemToCardProps(p: ProductDetail): {
   price: number;
   oldPrice: number | null;
+  discountAmount: number;
   stock: number;
   variantId?: string;
 } {
@@ -67,43 +69,48 @@ export function productListItemToCardProps(p: ProductDetail): {
   const sellingPrice = v ? (v.sellingPrice ?? 0) : (p.sellingPrice ?? 0);
   const discountValue = v ? (v.discountValue ?? 0) : (p.discountValue ?? 0);
   const discountType = v ? v.discountType : p.discountType;
+  let discountAmount = 0;
+  if (discountValue > 0) {
+    if (discountType === DiscountType.PERCENTAGE) {
+      discountAmount = (sellingPrice * discountValue) / 100;
+    } else {
+      discountAmount = discountValue;
+    }
+  }
+  discountAmount = roundTo2(discountAmount);
+
   const stock = v ? (v.stock ?? 0) : (p.stock ?? 0);
 
-  const price = sellingPrice;
-  const oldPrice =
-    discountValue > 0 && discountType === DiscountType.PERCENTAGE
-      ? Math.round(price / (1 - discountValue / 100))
-      : discountValue > 0 && discountType === DiscountType.FIXED
-        ? price + discountValue
-        : null;
+  const oldPrice = discountAmount ? roundTo2(sellingPrice) : null;
+  const price = roundTo2(sellingPrice - discountAmount);
 
-  return { price, oldPrice, stock, variantId: v?._id };
+  return { price, oldPrice, discountAmount, stock, variantId: v?._id };
 }
 
 /** Get unit price and stock for a product line, optionally for a specific variant. */
 export function productListItemUnitPriceAndStock(
   p: ProductDetail,
   variantId?: string,
-): { unitPrice: number; stock: number } {
+): { unitPrice: number; unitOldPrice: number | null; stock: number } {
   if (variantId && p.variants?.length) {
     const v = p.variants.find((x) => x._id === variantId);
     if (v) {
-      const price = v.sellingPrice ?? 0;
-      const discountValue = v.discountValue ?? 0;
-      const discountType = v.discountType;
-      const unitPrice = price;
-      const stock = v.stock ?? 0;
-      return { unitPrice, stock };
+      const { price, stock, oldPrice } = productListItemToCardProps({
+        ...p,
+        variants: [v],
+      });
+
+      return { unitPrice: price, unitOldPrice: oldPrice, stock };
     }
   }
-  const { price, stock } = productListItemToCardProps(p);
-  return { unitPrice: price, stock };
+  const { price, stock, oldPrice } = productListItemToCardProps(p);
+  return { unitPrice: price, unitOldPrice: oldPrice, stock };
 }
 
 export type UseListProductsQuery = Partial<
   Omit<
     ListProductQuerySchemaType,
-    "status" | "featured" | "categories" | "subcategories"
+    "status" | "featured" | "categories" | "subcategories" | "productIds"
   >
 > & {
   limit?: number;
@@ -114,8 +121,7 @@ export type UseListProductsQuery = Partial<
   featured?: string;
   categories?: string;
   subcategories?: string;
-  /** Comma-separated product IDs or array; fetches only these products. */
-  productIds?: string | string[];
+  productIds?: string;
 };
 
 export const useListProducts = (params: UseListProductsQuery = {}) => {
@@ -127,7 +133,7 @@ export const useListProducts = (params: UseListProductsQuery = {}) => {
     queryFn: async ({ pageParam }) => {
       const { data } = await api.get(`/products`, {
         params: {
-          ...params,
+          ...rest,
           cursor: pageParam,
         },
       });

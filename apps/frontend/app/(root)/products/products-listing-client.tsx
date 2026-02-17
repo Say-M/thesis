@@ -34,7 +34,7 @@ const SORT_OPTIONS = [
 ];
 
 function toCardProps(p: ProductDetail): ProductCardProps {
-  const { price, oldPrice, stock } = productListItemToCardProps(p);
+  const { price, oldPrice, stock, variantId } = productListItemToCardProps(p);
   return {
     _id: p._id,
     name: p.name,
@@ -48,6 +48,7 @@ function toCardProps(p: ProductDetail): ProductCardProps {
     featured: p.featured,
     status: p.status,
     hasVariants: p.hasVariants,
+    variantId,
   };
 }
 

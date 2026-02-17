@@ -7,9 +7,9 @@ import {
   PaymentMethod,
   TransactionStatus,
   TransactionType,
-} from "@app/backend/enums/invoice";
-import type { CreateTransactionSchemaType } from "@app/backend/schemas/transaction";
-import type { Transaction } from "@app/backend/models/transaction";
+} from "@repo/common/enums/invoice";
+import type { CreateTransactionSchemaType } from "@repo/common/schemas/transaction";
+import type { Transaction } from "@repo/common/models/transaction";
 
 export type TransactionListItem = Omit<Transaction, "_id"> & {
   _id: string;
@@ -17,7 +17,9 @@ export type TransactionListItem = Omit<Transaction, "_id"> & {
 
 export function useListTransactions(invoiceId: string | null) {
   const api = useApi();
-  return useQuery<ResponseType & { data: TransactionListItem[] }>({
+  return useQuery<
+    ResponseType & { data: { transactions: TransactionListItem[] } }
+  >({
     queryKey: ["invoices", invoiceId, "transactions"],
     queryFn: async () => {
       const { data } = await api.get(`/invoices/${invoiceId}/transactions`);
@@ -86,9 +88,7 @@ export function useUpdateTransaction(invoiceId: string) {
       });
     },
     onError: (error: AxiosError<{ message?: string }>) => {
-      toast.error(
-        error.response?.data?.message ?? "Failed to update status",
-      );
+      toast.error(error.response?.data?.message ?? "Failed to update status");
     },
   });
 }

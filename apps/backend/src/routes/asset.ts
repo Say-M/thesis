@@ -5,7 +5,7 @@ import {
   createAssetSchema,
   createBulkAssetSchema,
   listAssetQuerySchema,
-} from "@/schemas/asset";
+} from "@repo/common/schemas/asset";
 import {
   createAssetService,
   getAssetByIdService,
@@ -13,7 +13,7 @@ import {
   deleteAssetService,
   createBulkAssetsService,
 } from "@/services/asset";
-import { Role } from "@/enums/role";
+import { Role } from "@repo/common/enums/role";
 
 const route = app.basePath("/api/assets");
 

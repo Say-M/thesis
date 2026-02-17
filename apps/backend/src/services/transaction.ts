@@ -1,18 +1,18 @@
 import { HTTPException } from "hono/http-exception";
 import mongoose from "mongoose";
-import { Transaction } from "@/models/transaction";
-import { Invoice } from "@/models/invoice";
+import { Transaction } from "@repo/common/models/transaction";
+import { Invoice } from "@repo/common/models/invoice";
 import type { ResponseType } from "@repo/common/schemas/response";
 import type {
   CreateTransactionSchemaType,
   UpdateTransactionSchemaType,
-} from "@/schemas/transaction";
+} from "@repo/common/schemas/transaction";
 import {
   InvoiceStatus,
   TransactionStatus,
   TransactionType,
   PaymentMethod,
-} from "@/enums/invoice";
+} from "@repo/common/enums/invoice";
 
 export const listTransactionsByInvoiceService = async (
   invoiceId: string,
@@ -28,7 +28,7 @@ export const listTransactionsByInvoiceService = async (
     status: 200,
     message: "OK",
     timestamp: new Date().toISOString(),
-    data: transactions,
+    data: { transactions },
   };
 };
 
@@ -119,7 +119,7 @@ export const updateTransactionService = async (
     status: 200,
     message: "Transaction updated",
     timestamp: new Date().toISOString(),
-    data: transaction,
+    data: { transaction },
   };
 };
 
@@ -248,7 +248,7 @@ export const createTransactionService = async (
         status: 201,
         message: "Refund recorded",
         timestamp: new Date().toISOString(),
-        data: created,
+        data: { transaction: created },
       };
     } catch (err) {
       await session.abortTransaction();
@@ -275,6 +275,6 @@ export const createTransactionService = async (
     status: 201,
     message: "Payment recorded",
     timestamp: new Date().toISOString(),
-    data: created,
+    data: { transaction: created },
   };
 };

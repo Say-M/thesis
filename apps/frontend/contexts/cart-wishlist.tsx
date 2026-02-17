@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import {
@@ -13,6 +14,7 @@ import {
   getWishlistFromStorage,
   setWishlistToStorage,
   type CartLineItem,
+  type WishlistItem,
 } from "@/lib/cart-wishlist-storage";
 
 type CartWishlistContextType = {
@@ -25,12 +27,15 @@ type CartWishlistContextType = {
     variantId?: string,
   ) => void;
   clearCart: () => void;
+  /** Distinct product IDs present in the wishlist (used for counts and querying). */
   wishlistIds: string[];
-  addToWishlist: (productId: string) => void;
-  removeFromWishlist: (productId: string) => void;
+  /** Raw wishlist entries including variant information. */
+  wishlist: WishlistItem[];
+  addToWishlist: (productId: string, variantId?: string) => void;
+  removeFromWishlist: (productId: string, variantId?: string) => void;
   clearWishlist: () => void;
-  isInWishlist: (productId: string) => boolean;
-  toggleWishlist: (productId: string) => void;
+  isInWishlist: (productId: string, variantId?: string) => boolean;
+  toggleWishlist: (productId: string, variantId?: string) => void;
 };
 
 const CartWishlistContext = createContext<CartWishlistContextType | null>(null);
@@ -41,12 +46,12 @@ export function CartWishlistProvider({
   children: React.ReactNode;
 }) {
   const [cart, setCart] = useState<CartLineItem[]>([]);
-  const [wishlistIds, setWishlistIds] = useState<string[]>([]);
+  const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setCart(getCartFromStorage());
-    setWishlistIds(getWishlistFromStorage());
+    setWishlist(getWishlistFromStorage());
     setMounted(true);
   }, []);
 
@@ -57,15 +62,21 @@ export function CartWishlistProvider({
 
   useEffect(() => {
     if (!mounted) return;
-    setWishlistToStorage(wishlistIds);
-  }, [wishlistIds, mounted]);
+    setWishlistToStorage(wishlist);
+  }, [wishlist, mounted]);
+
+  const wishlistIds = useMemo(
+    () => Array.from(new Set(wishlist.map((x) => x.productId))),
+    [wishlist],
+  );
 
   const addToCart = useCallback(
     (productId: string, quantity = 1, variantId?: string) => {
       setCart((prev) => {
         const key = variantId ? `${productId}:${variantId}` : productId;
         const existing = prev.find(
-          (x) => (variantId ? `${x.productId}:${x.variantId}` : x.productId) === key,
+          (x) =>
+            (variantId ? `${x.productId}:${x.variantId}` : x.productId) === key,
         );
         if (existing) {
           return prev.map((x) =>
@@ -84,7 +95,9 @@ export function CartWishlistProvider({
     (productId: string, variantId?: string) => {
       setCart((prev) =>
         prev.filter((x) => {
-          const key = x.variantId ? `${x.productId}:${x.variantId}` : x.productId;
+          const key = x.variantId
+            ? `${x.productId}:${x.variantId}`
+            : x.productId;
           const target = variantId ? `${productId}:${variantId}` : productId;
           return key !== target;
         }),
@@ -101,7 +114,9 @@ export function CartWishlistProvider({
       }
       setCart((prev) =>
         prev.map((x) => {
-          const key = x.variantId ? `${x.productId}:${x.variantId}` : x.productId;
+          const key = x.variantId
+            ? `${x.productId}:${x.variantId}`
+            : x.productId;
           const target = variantId ? `${productId}:${variantId}` : productId;
           return key === target ? { ...x, quantity } : x;
         }),
@@ -112,30 +127,67 @@ export function CartWishlistProvider({
 
   const clearCart = useCallback(() => setCart([]), []);
 
-  const addToWishlist = useCallback((productId: string) => {
-    setWishlistIds((prev) =>
-      prev.includes(productId) ? prev : [...prev, productId],
-    );
+  const addToWishlist = useCallback((productId: string, variantId?: string) => {
+    setWishlist((prev) => {
+      const exists = prev.some(
+        (item) => item.productId === productId && item.variantId === variantId,
+      );
+      if (exists) return prev;
+      return [...prev, { productId, variantId }];
+    });
   }, []);
 
-  const removeFromWishlist = useCallback((productId: string) => {
-    setWishlistIds((prev) => prev.filter((id) => id !== productId));
-  }, []);
-
-  const clearWishlist = useCallback(() => setWishlistIds([]), []);
-
-  const isInWishlist = useCallback(
-    (productId: string) => wishlistIds.includes(productId),
-    [wishlistIds],
+  const removeFromWishlist = useCallback(
+    (productId: string, variantId?: string) => {
+      setWishlist((prev) =>
+        prev.filter((item) => {
+          if (variantId) {
+            // Remove only this specific variant entry.
+            return !(item.variantId === variantId);
+          }
+          // Remove all wishlist entries for this product.
+          return item.productId !== productId;
+        }),
+      );
+    },
+    [],
   );
 
-  const toggleWishlist = useCallback((productId: string) => {
-    setWishlistIds((prev) =>
-      prev.includes(productId)
-        ? prev.filter((id) => id !== productId)
-        : [...prev, productId],
-    );
-  }, []);
+  const clearWishlist = useCallback(() => setWishlist([]), []);
+
+  const isInWishlist = useCallback(
+    (productId: string, variantId?: string) => {
+      if (variantId) {
+        return wishlist.some(
+          (item) =>
+            item.productId === productId && item.variantId === variantId,
+        );
+      }
+      return wishlist.some((item) => item.productId === productId);
+    },
+    [wishlist],
+  );
+
+  const toggleWishlist = useCallback(
+    (productId: string, variantId?: string) => {
+      setWishlist((prev) => {
+        const exists = prev.some(
+          (item) =>
+            item.productId === productId && item.variantId === variantId,
+        );
+        if (exists) {
+          // Toggle off this specific (product, variant) pair.
+          return prev.filter(
+            (item) =>
+              !(item.productId === productId && item.variantId === variantId),
+          );
+        }
+        // Add this (product, variant) to the wishlist.
+        return [...prev, { productId, variantId }];
+      });
+    },
+    [],
+  );
 
   return (
     <CartWishlistContext.Provider
@@ -146,6 +198,7 @@ export function CartWishlistProvider({
         updateCartQuantity,
         clearCart,
         wishlistIds,
+        wishlist,
         addToWishlist,
         removeFromWishlist,
         clearWishlist,

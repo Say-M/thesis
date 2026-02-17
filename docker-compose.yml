@@ -3,14 +3,26 @@ services:
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
+    env_file:
+      - apps/backend/.env.production
     ports:
       - "9000:9000"
     restart: unless-stopped
+    networks:
+      - app-network
 
   frontend:
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
+    env_file:
+      - apps/frontend/.env.production
     ports:
       - "3000:3000"
     restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

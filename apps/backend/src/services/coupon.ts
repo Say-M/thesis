@@ -1,14 +1,14 @@
 import { HTTPException } from "hono/http-exception";
-import { Coupon } from "@/models/coupon";
+import { Coupon } from "@repo/common/models/coupon";
 import type { ResponseType } from "@repo/common/schemas/response";
 import type {
   CreateCouponSchemaType,
   UpdateCouponSchemaType,
   ListCouponQuerySchemaType,
-} from "@/schemas/coupon";
+} from "@repo/common/schemas/coupon";
 import { QueryFilter } from "mongoose";
-import { User } from "@/models/user";
-import { Invoice } from "@/models/invoice";
+import { User } from "@repo/common/models/user";
+import { Invoice } from "@repo/common/models/invoice";
 
 export const createCouponService = async (
   json: CreateCouponSchemaType,
@@ -156,7 +156,7 @@ export const listCouponsService = async (
 ): Promise<ResponseType> => {
   const { limit = 24, cursor, status, search, ...rest } = query;
   const filter: QueryFilter<Coupon> = { ...rest };
-  if (cursor) filter._id = { $lt: cursor };
+  if (cursor) filter._id = { $gt: cursor };
   if (status?.length) filter.status = { $in: status };
   if (search)
     filter.$or = [

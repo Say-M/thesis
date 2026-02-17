@@ -22,7 +22,7 @@ import { AssetSelectorField } from "@/components/ui/asset-selector";
 import {
   updateConfigSchema,
   type UpdateConfigSchemaType,
-} from "@app/backend/schemas/config";
+} from "@repo/common/schemas/config";
 import Image from "next/image";
 import {
   InputGroup,

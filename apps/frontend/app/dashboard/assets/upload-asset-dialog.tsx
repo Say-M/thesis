@@ -12,6 +12,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const MAX_UPLOAD_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -55,19 +56,19 @@ export function UploadAssetDialog({
               : "Select or drag one image. Max 5MB."}
           </DialogDescription>
         </DialogHeader>
-        <AssetUploader
-          multiple={multiple}
-          accept="image/*"
-          maxSize={MAX_UPLOAD_SIZE}
-          maxFiles={10}
-          value={
-            multiple ? pendingFiles : pendingFiles[0] ?? undefined
-          }
-          onChange={(v) =>
-            setPendingFiles(v ? (Array.isArray(v) ? v : [v]) : [])
-          }
-          disabled={isUploading}
-        />
+        <ScrollArea className="no-scrollbar -mx-4 max-h-[75vh] px-4">
+          <AssetUploader
+            multiple={multiple}
+            accept="image/*"
+            maxSize={MAX_UPLOAD_SIZE}
+            maxFiles={10}
+            value={multiple ? pendingFiles : (pendingFiles[0] ?? undefined)}
+            onChange={(v) =>
+              setPendingFiles(v ? (Array.isArray(v) ? v : [v]) : [])
+            }
+            disabled={isUploading}
+          />
+        </ScrollArea>
         <DialogFooter>
           <Button
             type="button"

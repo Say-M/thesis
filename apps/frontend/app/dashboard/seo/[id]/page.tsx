@@ -28,11 +28,11 @@ import {
 import {
   createOrUpdateSeoSchema,
   type CreateOrUpdateSeoSchemaType,
-} from "@app/backend/schemas/seo";
+} from "@repo/common/schemas/seo";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { useGetSeo, useCreateOrUpdateSeo } from "@/hooks/api/seo";
-import { TwitterCard } from "@app/backend/enums/seo";
+import { TwitterCard } from "@repo/common/enums/seo";
 import Image from "next/image";
 import { Trash2 } from "lucide-react";
 

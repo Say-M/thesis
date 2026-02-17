@@ -13,13 +13,18 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useListAssetsInfinite, useCreateBulkAssets } from "@/hooks/api/assets";
+import {
+  useListAssetsInfinite,
+  useCreateBulkAssets,
+  useCreateAsset,
+} from "@/hooks/api/assets";
 import type { AssetListItem } from "@/hooks/api/assets";
 import { Image as ImageIcon, Check, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "./scroll-area";
 import Image from "next/image";
 import { AspectRatio } from "./aspect-ratio";
+import { useInView } from "react-intersection-observer";
 
 const SEARCH_DEBOUNCE_MS = 300;
 const PAGE_SIZE = 24;
@@ -71,6 +76,7 @@ export function AssetSelectDialog({
   >({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const { mutate: createAsset, isPending: isUploading } = useCreateAsset();
   const { mutate: createBulkAssets, isPending: isBulkUploading } =
     useCreateBulkAssets();
 
@@ -95,7 +101,7 @@ export function AssetSelectDialog({
     }
   }, [open, value, multiple]);
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, status, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useListAssetsInfinite({
       search: searchQuery || undefined,
       limit: PAGE_SIZE,
@@ -104,6 +110,15 @@ export function AssetSelectDialog({
     () => data?.pages?.map((p) => p.assets).flat() ?? [],
     [data?.pages],
   );
+
+  const { ref, inView } = useInView();
+  useEffect(() => {
+    if (inView) {
+      fetchNextPage();
+    }
+  }, [inView, fetchNextPage]);
+
+  const isLoading = status === "pending" || isFetchingNextPage;
 
   const toggle = (assetId: string) => {
     setPendingIds((prev) => {
@@ -141,30 +156,46 @@ export function AssetSelectDialog({
   const handleBulkUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
+
     const fileList = Array.from(files);
-    createBulkAssets(
-      { files: fileList },
-      {
-        onSuccess: (res) => {
-          const created = (res as { data?: { assets?: { _id: string }[] } })
-            ?.data?.assets;
-          if (created?.length) {
-            const ids = created.map((a) => a._id.toString());
-            setPendingIds((prev) => {
-              const next = new Set(prev);
-              for (const id of ids) {
-                if (!multiple) {
-                  return new Set([id]);
-                }
-                if (next.size >= maxSelection) break;
-                next.add(id);
-              }
-              return next;
-            });
-          }
+    if (fileList.length === 1) {
+      createAsset(
+        { file: fileList[0] },
+        {
+          onSuccess: (res) => {
+            const created = (res as { data?: { asset?: { _id: string } } })
+              ?.data?.asset;
+            if (created) {
+              setPendingIds((prev) => new Set([created._id.toString()]));
+            }
+          },
         },
-      },
-    );
+      );
+    } else {
+      createBulkAssets(
+        { files: fileList },
+        {
+          onSuccess: (res) => {
+            const created = (res as { data?: { assets?: { _id: string }[] } })
+              ?.data?.assets;
+            if (created?.length) {
+              const ids = created.map((a) => a._id.toString());
+              setPendingIds((prev) => {
+                const next = new Set(prev);
+                for (const id of ids) {
+                  if (!multiple) {
+                    return new Set([id]);
+                  }
+                  if (next.size >= maxSelection) break;
+                  next.add(id);
+                }
+                return next;
+              });
+            }
+          },
+        },
+      );
+    }
     e.target.value = "";
   };
 
@@ -188,9 +219,9 @@ export function AssetSelectDialog({
             type="button"
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
-            disabled={isBulkUploading}
+            disabled={isBulkUploading || isUploading}
           >
-            {isBulkUploading ? (
+            {isBulkUploading || isUploading ? (
               <Spinner className="size-4" />
             ) : (
               <Upload className="size-4" />
@@ -300,22 +331,10 @@ export function AssetSelectDialog({
               </div>
             </ScrollArea>
           )}
-          {hasNextPage && !isLoading && assets.length > 0 && (
-            <div className="p-2 border-t">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="w-full"
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-              >
-                {isFetchingNextPage ? (
-                  <Spinner className="size-4" />
-                ) : (
-                  "Load more"
-                )}
-              </Button>
+          <div ref={ref} />
+          {isLoading && (
+            <div className="flex items-center justify-center min-h-[200px]">
+              <Spinner />
             </div>
           )}
         </div>

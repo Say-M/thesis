@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import useApi from "./use-api";
-import { Asset } from "@app/backend/models/asset";
+import { Asset } from "@repo/common/models/asset";
 
 export type ProductSearchOption = {
   _id: string;

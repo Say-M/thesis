@@ -6,7 +6,7 @@ import {
   listCouponQuerySchema,
   getCouponByCodeBodySchema,
   updateCouponSchema,
-} from "@/schemas/coupon";
+} from "@repo/common/schemas/coupon";
 import {
   createCouponService,
   getCouponByIdService,
@@ -15,7 +15,7 @@ import {
   updateCouponService,
   deleteCouponService,
 } from "@/services/coupon";
-import { Role } from "@/enums/role";
+import { Role } from "@repo/common/enums/role";
 
 const route = app.basePath("/api/coupons");
 
@@ -62,6 +62,8 @@ route.post(
   async (c) => {
     const user = c.get("user");
     const cartTotal = c.req.valid("json").cartTotal;
+    console.log({ ...c.req.valid("json") });
+
     const response = await getCouponByCodeService(
       c.req.param("code"),
       user,

@@ -4,12 +4,16 @@ import { Loader2Icon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useEffect, useState } from "react";
 import { useGetProfile } from "@/hooks/api/auth";
-import { User } from "@app/backend/models/user";
-import { Role } from "@app/backend/enums/role";
+import { User } from "@repo/common/models/user";
+import { Role } from "@repo/common/enums/role";
+
+type UserDetail = Omit<User, "_id" | "hashedPassword"> & {
+  _id: string;
+};
 
 interface AuthContextType {
-  user: User | null;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  user: UserDetail | null;
+  setUser: React.Dispatch<React.SetStateAction<UserDetail | null>>;
   isFetching: boolean;
   refetch: () => Promise<unknown>;
 }
@@ -26,7 +30,7 @@ export default function AuthProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserDetail | null>(null);
   const [isFetching, setFetching] = useState(true);
   const pathname = usePathname();
   const router = useRouter();

@@ -1,8 +1,8 @@
 import { Context } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { AppBindings } from "@/app";
-import { Role } from "@/enums/role";
-import type { User } from "@/models/user";
+import { Role } from "@repo/common/enums/role";
+import type { User } from "@repo/common/models/user";
 
 type Action = "create" | "read" | "update" | "delete";
 
@@ -21,9 +21,17 @@ function hasPermission(
   const modulePerms =
     perms instanceof Map
       ? perms.get(moduleName)
-      : (perms as Record<string, { create?: boolean; read?: boolean; update?: boolean; delete?: boolean }>)?.[
-          moduleName
-        ];
+      : (
+          perms as Record<
+            string,
+            {
+              create?: boolean;
+              read?: boolean;
+              update?: boolean;
+              delete?: boolean;
+            }
+          >
+        )?.[moduleName];
 
   return modulePerms?.[action] === true;
 }

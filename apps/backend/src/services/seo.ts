@@ -1,10 +1,10 @@
 import { HTTPException } from "hono/http-exception";
-import { Seo } from "@/models/seo";
+import { Seo } from "@repo/common/models/seo";
 import type { ResponseType } from "@repo/common/schemas/response";
-import type { CreateOrUpdateSeoSchemaType } from "@/schemas/seo";
-import { Category } from "@/models/category";
-import { Product } from "@/models/product";
-import { Page } from "@/models/page";
+import type { CreateOrUpdateSeoSchemaType } from "@repo/common/schemas/seo";
+import { Category } from "@repo/common/models/category";
+import { Product } from "@repo/common/models/product";
+import { Page } from "@repo/common/models/page";
 import mongoose from "mongoose";
 
 export const createOrUpdateSeoService = async (
@@ -113,15 +113,15 @@ export const getSeoByTypeIdService = async (
     seoId = page.seo;
   }
 
-  if (!seoId) throw new HTTPException(404, { message: "Seo not found" });
+  let seo;
 
-  const seo = await Seo.findById(seoId)
-    .populate([
-      { path: "ogImage", select: "name path" },
-      { path: "twitterImage", select: "name path" },
-    ])
-    .lean();
-  if (!seo) throw new HTTPException(404, { message: "Seo not found" });
+  if (seoId)
+    await Seo.findById(seoId)
+      .populate([
+        { path: "ogImage", select: "name path" },
+        { path: "twitterImage", select: "name path" },
+      ])
+      .lean();
 
   return {
     status: 200,

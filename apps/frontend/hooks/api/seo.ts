@@ -3,8 +3,8 @@ import { AxiosError } from "axios";
 import { toast } from "sonner";
 import useApi from "../use-api";
 import type { ResponseType } from "@repo/common/schemas/response";
-import type { CreateOrUpdateSeoSchemaType } from "@app/backend/schemas/seo";
-import type { Seo } from "@app/backend/models/seo";
+import type { CreateOrUpdateSeoSchemaType } from "@repo/common/schemas/seo";
+import type { Seo } from "@repo/common/models/seo";
 
 const SEO_QUERY_KEY = ["seo"] as const;
 
@@ -44,18 +44,9 @@ export const useCreateOrUpdateSeo = () => {
       const { data } = await api.patch("/seo", payload);
       return data as CreateOrUpdateSeoResponseType;
     },
-    onSuccess: (data, { id }) => {
+    onSuccess: (data) => {
       toast.success(data?.message ?? "SEO saved");
-      queryClient.setQueriesData(
-        { queryKey: [...SEO_QUERY_KEY, id] },
-        (oldData: GetSeoResponseType) => {
-          console.log({ oldData, data });
-          return {
-            ...oldData,
-            data: { seo: data?.data?.seo },
-          };
-        },
-      );
+      queryClient.invalidateQueries({ queryKey: [...SEO_QUERY_KEY] });
     },
     onError: (error: AxiosError<{ message?: string }>) => {
       toast.error(error.response?.data?.message ?? "Failed to save SEO");

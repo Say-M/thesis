@@ -71,7 +71,7 @@ export default function CategoriesPage() {
           </Select>
         </div>
         <div>
-          <AddEditCategoryDialog
+          {/* <AddEditCategoryDialog
             open={dialogOpen}
             onOpenChange={(open) => {
               setDialogOpen(open);
@@ -89,7 +89,7 @@ export default function CategoriesPage() {
                 Add Category
               </Button>
             }
-          />
+          /> */}
         </div>
       </div>
       <CategoriesTable

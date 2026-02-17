@@ -8,7 +8,7 @@ import {
   CreateProductSchemaType,
   updateProductSchema,
   UpdateProductSchemaType,
-} from "@app/backend/schemas/product";
+} from "@repo/common/schemas/product";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, Resolver, useFieldArray, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -49,8 +49,8 @@ import {
 } from "@/hooks/api/products";
 import type { ProductDetail } from "@/hooks/api/products";
 import { cn } from "@/lib/utils";
-import { Plus, RotateCcw, Trash2 } from "lucide-react";
-import { DiscountType } from "@app/backend/enums/discount";
+import { Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { DiscountType } from "@repo/common/enums/discount";
 import Image from "next/image";
 
 type ProductFormValues = Omit<
@@ -235,15 +235,13 @@ export default function AddEditProduct({ id }: { id: string }) {
 
   const searchParentCategories = useCategorySearch({
     type: "parent",
-    limit: 20,
+    limit: 10,
   });
   const searchSubcategories = useCategorySearch({
     type: "child",
-    limit: 50,
+    limit: 10,
     parentId: categoryId || null,
   });
-
-  console.log(form.formState.errors, form.watch());
 
   const onSubmit = (values: ProductFormValues) => {
     if (isCreate) {
@@ -294,10 +292,19 @@ export default function AddEditProduct({ id }: { id: string }) {
 
   return (
     <div className="p-4 space-y-4 max-w-7xl w-full mx-auto">
-      <h1 className="text-xl font-semibold">
-        {isCreate ? "Create Product" : "Edit Product"}
-      </h1>
-
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-xl font-semibold">
+          {isCreate ? "Create Product" : "Edit Product"}
+        </h1>
+        {!isCreate && (
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/dashboard/seo/${id}?type=product`}>
+              <Search className="mr-2 size-4" />
+              {product?.seo ? "Edit SEO" : "Add SEO"}
+            </Link>
+          </Button>
+        )}
+      </div>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>
           <FieldSet>

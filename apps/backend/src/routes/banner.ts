@@ -5,7 +5,7 @@ import {
   createBannerSchema,
   listBannerQuerySchema,
   updateBannerSchema,
-} from "@/schemas/banner";
+} from "@repo/common/schemas/banner";
 import {
   createBannerService,
   getBannerByIdService,
@@ -13,7 +13,7 @@ import {
   updateBannerService,
   deleteBannerService,
 } from "@/services/banner";
-import { Role } from "@/enums/role";
+import { Role } from "@repo/common/enums/role";
 
 const route = app.basePath("/api/banners");
 

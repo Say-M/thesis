@@ -1,12 +1,12 @@
-import { Invoice } from "@/models/invoice";
-import { Transaction } from "@/models/transaction";
+import { Invoice } from "@repo/common/models/invoice";
+import { Transaction } from "@repo/common/models/transaction";
 import type { ResponseType } from "@repo/common/schemas/response";
-import type { DashboardQuerySchemaType } from "@/schemas/dashboard";
+import type { DashboardQuerySchemaType } from "@repo/common/schemas/dashboard";
 import {
   InvoiceStatus,
   TransactionStatus,
   TransactionType,
-} from "@/enums/invoice";
+} from "@repo/common/enums/invoice";
 
 function getDateRange(period: "7d" | "30d") {
   const to = new Date();
@@ -96,7 +96,13 @@ export const getDashboardStatsService = async (
           createdAt: { $gte: from, $lte: to },
         },
       },
-      { $group: { _id: "$status", count: { $sum: 1 }, total: { $sum: "$total" } } },
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+          total: { $sum: "$total" },
+        },
+      },
     ]),
     Invoice.aggregate([
       {
@@ -133,13 +139,17 @@ export const getDashboardStatsService = async (
 
   const totalRevenue = totalRevenueResult[0]?.total ?? 0;
   const totalOrders = totalOrdersResult ?? 0;
-  const kpiOrders = (totalRevenueResult[0] as { count?: number } | undefined)
-    ?.count ?? totalOrders;
+  const kpiOrders =
+    (totalRevenueResult[0] as { count?: number } | undefined)?.count ??
+    totalOrders;
   const pendingOrders = pendingOrdersResult ?? 0;
   const paidAmount = paidResult[0]?.total ?? 0;
   const refundedAmount = refundedResult[0]?.total ?? 0;
 
-  const dayMap = new Map<string, { date: string; revenue: number; orders: number }>();
+  const dayMap = new Map<
+    string,
+    { date: string; revenue: number; orders: number }
+  >();
   const current = new Date(from);
   while (current <= to) {
     const d = current.toISOString().slice(0, 10);
@@ -163,15 +173,15 @@ export const getDashboardStatsService = async (
     a.date.localeCompare(b.date),
   );
 
-  const ordersByStatus = (ordersByStatusResult as { _id: string; count: number; total: number }[]).map(
-    (r) => ({ status: r._id, count: r.count, total: r.total }),
-  );
-  const revenueByType = (revenueByTypeResult as { _id: string; revenue: number; count: number }[]).map(
-    (r) => ({ type: r._id, revenue: r.revenue, count: r.count }),
-  );
-  const paymentByMethod = (paymentMethodResult as { _id: string; amount: number; count: number }[]).map(
-    (r) => ({ method: r._id, amount: r.amount, count: r.count }),
-  );
+  const ordersByStatus = (
+    ordersByStatusResult as { _id: string; count: number; total: number }[]
+  ).map((r) => ({ status: r._id, count: r.count, total: r.total }));
+  const revenueByType = (
+    revenueByTypeResult as { _id: string; revenue: number; count: number }[]
+  ).map((r) => ({ type: r._id, revenue: r.revenue, count: r.count }));
+  const paymentByMethod = (
+    paymentMethodResult as { _id: string; amount: number; count: number }[]
+  ).map((r) => ({ method: r._id, amount: r.amount, count: r.count }));
 
   return {
     status: 200,

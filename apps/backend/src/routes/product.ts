@@ -5,7 +5,7 @@ import {
   createProductSchema,
   listProductQuerySchema,
   updateProductSchema,
-} from "@/schemas/product";
+} from "@repo/common/schemas/product";
 import {
   createProductService,
   getProductByIdService,
@@ -14,7 +14,7 @@ import {
   updateProductService,
   deleteProductService,
 } from "@/services/product";
-import { Role } from "@/enums/role";
+import { Role } from "@repo/common/enums/role";
 
 const route = app.basePath("/api/products");
 

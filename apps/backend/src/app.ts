@@ -68,7 +68,7 @@ app.notFound((c) => {
 app.use(
   "*",
   bodyLimit({
-    maxSize: 1024 * 1024 * 10, // 10MB
+    maxSize: 1024 * 1024 * 50, // 50MB
     onError(c) {
       return c.json(
         {

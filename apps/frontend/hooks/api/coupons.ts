@@ -11,8 +11,8 @@ import type {
   CreateCouponSchemaType,
   UpdateCouponSchemaType,
   ListCouponQuerySchemaType,
-} from "@app/backend/schemas/coupon";
-import type { Coupon } from "@app/backend/models/coupon";
+} from "@repo/common/schemas/coupon";
+import type { Coupon } from "@repo/common/models/coupon";
 import type { ResponseType } from "@repo/common/schemas/response";
 
 const COUPONS_QUERY_KEY = ["coupons"] as const;
@@ -99,7 +99,7 @@ export const useValidateCoupon = () => {
     }) => {
       const { data } = await api.post(
         `/coupons/code/${encodeURIComponent(code.trim())}`,
-        { data: { cartTotal } },
+        { cartTotal },
       );
       return data as ValidateCouponResponse;
     },

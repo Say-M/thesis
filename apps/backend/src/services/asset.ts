@@ -1,14 +1,14 @@
 import { HTTPException } from "hono/http-exception";
-import { Asset, AssetProvider } from "@/models/asset";
+import { Asset, AssetProvider } from "@repo/common/models/asset";
 import type { ResponseType } from "@repo/common/schemas/response";
 import type {
   CreateAssetSchemaType,
   CreateBulkAssetSchemaType,
   ListAssetQuerySchemaType,
-} from "@/schemas/asset";
+} from "@repo/common/schemas/asset";
 import mongoose, { QueryFilter } from "mongoose";
-import { User } from "@/models/user";
-import { imagekit } from "@repo/utils/imagekit";
+import { User } from "@repo/common/models/user";
+import { imagekit } from "@repo/common/utils/imagekit";
 
 export const createAssetService = async (
   user: User,
@@ -21,7 +21,7 @@ export const createAssetService = async (
     const uploadedFile = await imagekit.files.upload({
       file: file,
       fileName: file.name,
-      folder: "/designbook/assets",
+      folder: `/${process.env.IMAGEKIT_FOLDER_NAME}/assets`,
       tags: tags ?? [],
     });
     const asset = (
@@ -65,6 +65,7 @@ export const createBulkAssetsService = async (
   session.startTransaction();
   try {
     const { files } = payload;
+
     let assets: (Omit<Asset, "_id" | "createdAt" | "updatedAt"> & {
       providedId: string;
     })[] = [];
@@ -72,7 +73,7 @@ export const createBulkAssetsService = async (
       const uploadedFile = await imagekit.files.upload({
         file: file,
         fileName: file.name,
-        folder: "/designbook/assets",
+        folder: `/${process.env.IMAGEKIT_FOLDER_NAME}/assets`,
       });
       if (!uploadedFile) continue;
       assets.push({
@@ -124,7 +125,7 @@ export const listAssetsService = async (
 ): Promise<ResponseType> => {
   const { limit = 24, cursor, search, ...rest } = query;
   const filter: QueryFilter<Asset> = { ...rest };
-  if (cursor) filter._id = { $lt: cursor };
+  if (cursor) filter._id = { $gt: cursor };
   if (search) {
     filter.$or = [{ name: { $regex: search, $options: "i" } }];
   }
@@ -155,27 +156,19 @@ export const listAssetsService = async (
 };
 
 export const deleteAssetService = async (id: string): Promise<ResponseType> => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-  try {
-    const asset = await Asset.findById(id, { session });
-    if (!asset) throw new HTTPException(404, { message: "Asset not found" });
+  const asset = await Asset.findById(id);
+  if (!asset) throw new HTTPException(404, { message: "Asset not found" });
 
-    if (asset.provider === AssetProvider.IMAGEKIT)
-      await imagekit.files.delete(asset.providedId!);
+  if (asset.provider === AssetProvider.IMAGEKIT)
+    imagekit.files.delete(asset.providedId!).catch((error) => {
+      console.error(error);
+    });
 
-    await asset.deleteOne({ session });
+  await asset.deleteOne();
 
-    await session.commitTransaction();
-    return {
-      status: 200,
-      message: "Asset deleted",
-      timestamp: new Date().toISOString(),
-    };
-  } catch (error) {
-    await session.abortTransaction();
-    throw error;
-  } finally {
-    await session.endSession();
-  }
+  return {
+    status: 200,
+    message: "Asset deleted",
+    timestamp: new Date().toISOString(),
+  };
 };

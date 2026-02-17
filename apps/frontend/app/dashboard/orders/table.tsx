@@ -21,7 +21,7 @@ import { MoreHorizontal } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useListOrders } from "@/hooks/api/orders";
 import { useFormatCurrency } from "@/lib/format-currency";
-import { InvoiceStatus } from "@app/backend/enums/invoice";
+import { InvoiceStatus } from "@repo/common/enums/invoice";
 import { useRouter } from "next/navigation";
 import { useInView } from "react-intersection-observer";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -40,10 +40,13 @@ export default function OrdersTable({
     fetchNextPage: fetchNextOrdersPage,
     isFetchingNextPage: isFetchingNextOrdersPage,
   } = useListOrders({ search, status });
+
   const orders = useMemo(
     () => ordersData?.pages?.map((page) => page.orders).flat() ?? [],
     [ordersData],
   );
+
+  console.log({ orders }, ordersData);
   const { ref, inView } = useInView({ threshold: 0.8 });
   useEffect(() => {
     if (inView) {
@@ -67,49 +70,49 @@ export default function OrdersTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {orders.map((order) => (
-            <TableRow key={order._id}>
+          {orders?.map((order) => (
+            <TableRow key={order?._id}>
               <TableCell className="font-mono font-medium">
-                {order.invoiceNumber}
+                {order?.invoiceNumber}
               </TableCell>
               <TableCell>
                 <div className="space-y-0.5">
-                  <p className="font-medium">{order.customer?.name ?? "—"}</p>
-                  {order.customer?.email && (
+                  <p className="font-medium">{order?.customer?.name ?? "—"}</p>
+                  {order?.customer?.email && (
                     <p className="text-xs text-muted-foreground">
-                      {order.customer.email}
+                      {order?.customer.email}
                     </p>
                   )}
-                  {order.customer?.phone && (
+                  {order?.customer?.phone && (
                     <p className="text-xs text-muted-foreground">
-                      {order.customer.phone}
+                      {order?.customer.phone}
                     </p>
                   )}
                 </div>
               </TableCell>
               <TableCell className="text-muted-foreground">
-                {formatCurrency(order.subtotal)}
+                {formatCurrency(order?.subtotal)}
               </TableCell>
               <TableCell className="font-medium">
-                {formatCurrency(order.total)}
+                {formatCurrency(order?.total)}
               </TableCell>
               <TableCell>
                 <Badge
                   variant={
-                    order.status === InvoiceStatus.DELIVERED
+                    order?.status === InvoiceStatus.DELIVERED
                       ? "default"
-                      : order.status === InvoiceStatus.CANCELLED ||
-                          order.status === InvoiceStatus.REFUNDED
+                      : order?.status === InvoiceStatus.CANCELLED ||
+                          order?.status === InvoiceStatus.REFUNDED
                         ? "destructive"
                         : "secondary"
                   }
                 >
-                  {order.status}
+                  {order?.status}
                 </Badge>
               </TableCell>
               <TableCell className="text-muted-foreground text-sm">
-                {order.createdAt
-                  ? format(new Date(order.createdAt), "PP hh:mm aa")
+                {order?.createdAt
+                  ? format(new Date(order?.createdAt), "PP hh:mm aa")
                   : "—"}
               </TableCell>
               <TableCell className="text-right">
@@ -123,7 +126,7 @@ export default function OrdersTable({
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
                       onSelect={() =>
-                        router.push(`/dashboard/invoices/${order._id}`)
+                        router.push(`/dashboard/invoices/${order?._id}`)
                       }
                     >
                       View Details

@@ -5,11 +5,11 @@ import {
   createInvoiceSchema,
   listInvoiceQuerySchema,
   updateInvoiceSchema,
-} from "@/schemas/invoice";
+} from "@repo/common/schemas/invoice";
 import {
   createTransactionSchema,
   updateTransactionSchema,
-} from "@/schemas/transaction";
+} from "@repo/common/schemas/transaction";
 import {
   createInvoiceService,
   getInvoiceByIdService,
@@ -22,13 +22,13 @@ import {
   createTransactionService,
   updateTransactionService,
 } from "@/services/transaction";
-import { Role } from "@/enums/role";
+import { Role } from "@repo/common/enums/role";
 
 const route = app.basePath("/api/invoices");
 
 route.post(
   "/",
-  roleGuard({ allowedRoles: -1 }),
+  roleGuard({ allowedRoles: -1, skipAuth: true }),
   describeRoute({
     tags: ["Invoices"],
     summary: "Create invoice",
@@ -55,6 +55,7 @@ route.get(
   async (c) => {
     const user = c.var.user;
     const query = c.req.valid("query");
+
     const response = await listInvoicesService(user, query);
     return c.json(response, response.status);
   },

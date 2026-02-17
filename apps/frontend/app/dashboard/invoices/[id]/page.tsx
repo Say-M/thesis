@@ -13,7 +13,7 @@ import {
 } from "@/hooks/api/transactions";
 import { useFormatCurrency } from "@/lib/format-currency";
 import { Badge } from "@/components/ui/badge";
-import { InvoiceStatus, TransactionType } from "@app/backend/enums/invoice";
+import { InvoiceStatus, TransactionType } from "@repo/common/enums/invoice";
 import {
   Select,
   SelectContent,
@@ -53,7 +53,7 @@ export default function InvoiceDetailPage() {
     useUpdateTransaction(invoiceId);
 
   const invoice = data?.data?.invoice;
-  const transactions = transactionsData?.data ?? [];
+  const transactions = transactionsData?.data?.transactions ?? [];
   const remainingBalance = invoice?.remainingBalance ?? invoice?.total ?? 0;
   const remainingRefundableBalance = Math.max(
     0,
@@ -279,7 +279,7 @@ export default function InvoiceDetailPage() {
                     Coupon ({invoice.coupon.code})
                   </span>
                   <span className="font-medium text-muted-foreground">
-                    -{formatCurrency(invoice.discountAmount)}
+                    -{formatCurrency(invoice.couponDiscountAmount ?? 0)}
                   </span>
                 </div>
               )}
@@ -511,7 +511,7 @@ export default function InvoiceDetailPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {transactions.map((tx) => (
+                {transactions?.map((tx) => (
                   <TableRow key={tx._id}>
                     <TableCell className="text-muted-foreground text-sm">
                       {tx.createdAt

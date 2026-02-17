@@ -67,11 +67,10 @@ const schema = new Schema(
     },
     subtotal: { type: Number, required: true, min: 0 },
     coupon: { type: Types.ObjectId, ref: "Coupon" },
-    discountAmount: { type: Number, min: 0, default: 0 },
+    couponDiscountAmount: { type: Number, min: 0, default: 0 },
     shippingAmount: { type: Number, min: 0, default: 0 },
     taxAmount: { type: Number, min: 0, default: 0 },
     codAmount: { type: Number, min: 0, max: 100, default: 0 },
-    codFee: { type: Number, min: 0, default: 0 },
     total: { type: Number, required: true, min: 0 },
     status: {
       type: String,

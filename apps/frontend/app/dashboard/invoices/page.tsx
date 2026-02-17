@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import InvoicesTable from "./table";
-import { InvoiceStatus, InvoiceType } from "@app/backend/enums/invoice";
+import { InvoiceStatus, InvoiceType } from "@repo/common/enums/invoice";
 
 const SEARCH_DEBOUNCE_MS = 300;
 

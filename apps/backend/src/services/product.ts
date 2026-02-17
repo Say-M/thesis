@@ -1,14 +1,14 @@
 import { HTTPException } from "hono/http-exception";
-import { Product } from "@/models/product";
+import { Product } from "@repo/common/models/product";
 import type { ResponseType } from "@repo/common/schemas/response";
 import type {
   CreateProductSchemaType,
   ListProductQuerySchemaType,
   UpdateProductSchemaType,
-} from "@/schemas/product";
+} from "@repo/common/schemas/product";
 import { QueryFilter, ProjectionType, QueryOptions } from "mongoose";
-import { User } from "@/models/user";
-import { Role } from "@/enums/role";
+import { User } from "@repo/common/models/user";
+import { Role } from "@repo/common/enums/role";
 
 export const createProductService = async (
   payload: CreateProductSchemaType,
@@ -119,7 +119,7 @@ export const listProductsService = async (
     ...rest
   } = query;
   const filter: QueryFilter<Product> = { ...rest };
-  if (cursor) filter._id = { $lt: cursor };
+  if (cursor) filter._id = { $gt: cursor };
   if (status?.length) filter.status = { $in: status };
   if (featured != null) filter.featured = featured;
   if (hasVariants?.length) filter.hasVariants = { $in: hasVariants };
@@ -233,21 +233,21 @@ export const updateProductService = async (
 
   payload.images = Array.from(images);
 
-  await product
-    .updateOne(payload, { new: true })
+  const updated = await Product.findByIdAndUpdate(id, payload, { new: true })
     .populate([
       { path: "seo" },
       { path: "thumbnail", select: "name path" },
       { path: "images", select: "name path" },
       { path: "category", select: "name" },
       { path: "subcategory", select: "name" },
-    ]);
+    ])
+    .lean();
 
   return {
     status: 200,
     message: "Product updated",
     timestamp: new Date().toISOString(),
-    data: { product },
+    data: { product: updated },
   };
 };
 

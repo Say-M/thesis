@@ -211,8 +211,8 @@ export function AssetUploader({
         id: `${Date.now()}-${Math.random()}`,
         file,
         preview,
-        progress: 0,
-        status: "uploading",
+        progress: 100,
+        status: "success",
       };
       validFiles.push(assetFile);
     }
@@ -229,38 +229,11 @@ export function AssetUploader({
       const fileObjects = updatedFiles.map((f) => f.file);
       notifyChange(fileObjects);
 
-      // Simulate upload progress
-      validFiles.forEach((assetFile) => {
-        simulateUpload(assetFile.id);
-      });
-
       // Call onUpload callback
       if (onUpload) {
         await onUpload(validFiles.map((f) => f.file));
       }
     }
-  };
-
-  const simulateUpload = (fileId: string) => {
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += Math.random() * 30;
-      if (progress >= 100) {
-        progress = 100;
-        setFiles((prev) =>
-          prev.map((f) =>
-            f.id === fileId
-              ? { ...f, progress: 100, status: "success" as const }
-              : f,
-          ),
-        );
-        clearInterval(interval);
-      } else {
-        setFiles((prev) =>
-          prev.map((f) => (f.id === fileId ? { ...f, progress } : f)),
-        );
-      }
-    }, 200);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -390,7 +363,12 @@ export function AssetUploader({
       {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
 
       {files.length > 0 && (
-        <div className="mt-4 space-y-2">
+        <div
+          className={cn(
+            "mt-4 space-y-2",
+            disabled && "opacity-50 pointer-events-none",
+          )}
+        >
           {files.map((assetFile) => {
             const Icon = getFileIcon(assetFile.file);
             return (

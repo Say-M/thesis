@@ -40,5 +40,5 @@ export const listCouponQuerySchema = cursorPaginationQuerySchema.extend({
 export type ListCouponQuerySchemaType = z.infer<typeof listCouponQuerySchema>;
 
 export const getCouponByCodeBodySchema = z.object({
-  cartTotal: z.number().int().min(0).nullish(),
+  cartTotal: z.number().min(0).nullish(),
 });

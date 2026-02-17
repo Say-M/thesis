@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { AssetProvider } from "../models/asset";
 import { cursorPaginationQuerySchema } from "./common";
-import { acceptedImageMimeTypes } from "../constants";
+import { acceptedImageMimeTypes } from "../constants/image";
 
 const parseJsonArray = (val: unknown): unknown => {
   if (typeof val === "string") {
@@ -22,10 +22,7 @@ export const createAssetSchema = z.object({
       { message: "Invalid image file" },
     ),
   name: z.string().trim().optional(),
-  tags: z.preprocess(
-    parseJsonArray,
-    z.array(z.string().trim()).optional(),
-  ),
+  tags: z.preprocess(parseJsonArray, z.array(z.string().trim()).optional()),
 });
 
 export type CreateAssetSchemaType = z.infer<typeof createAssetSchema>;

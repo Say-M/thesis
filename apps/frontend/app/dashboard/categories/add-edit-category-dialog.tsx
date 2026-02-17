@@ -32,7 +32,7 @@ import {
   createCategorySchema,
   CreateCategorySchemaType,
   updateCategorySchema,
-} from "@app/backend/schemas/category";
+} from "@repo/common/schemas/category";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, Resolver, useForm } from "react-hook-form";
 import { useEffect } from "react";

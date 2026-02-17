@@ -11,8 +11,8 @@ import type {
   CreateInvoiceSchemaType,
   UpdateInvoiceSchemaType,
   ListInvoiceQuerySchemaType,
-} from "@app/backend/schemas/invoice";
-import type { Invoice } from "@app/backend/models/invoice";
+} from "@repo/common/schemas/invoice";
+import type { Invoice } from "@repo/common/models/invoice";
 import type { ResponseType } from "@repo/common/schemas/response";
 
 const INVOICES_QUERY_KEY = ["invoices"] as const;

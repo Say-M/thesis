@@ -1,13 +1,13 @@
 import { HTTPException } from "hono/http-exception";
-import { User } from "@/models/user";
+import { User } from "@repo/common/models/user";
 import type { ResponseType } from "@repo/common/schemas/response";
 import type {
   ListUserQuerySchemaType,
   UpdateUserSchemaType,
-} from "@/schemas/user";
+} from "@repo/common/schemas/user";
 import type { QueryFilter } from "mongoose";
-import type { User as UserType } from "@/models/user";
-import { Role } from "@/enums/role";
+import type { User as UserType } from "@repo/common/models/user";
+import { Role } from "@repo/common/enums/role";
 
 const userProjection = { hashedPassword: 0 };
 
@@ -16,7 +16,7 @@ export const listUsersService = async (
 ): Promise<ResponseType> => {
   const { limit = 10, cursor, status, search, role, ...rest } = query;
   const filter: QueryFilter<UserType> = { ...rest };
-  if (cursor) filter._id = { $lt: cursor };
+  if (cursor) filter._id = { $gt: cursor };
   if (status?.length) filter.status = { $in: status };
   if (role?.length) filter.role = { $in: role };
   if (search) {

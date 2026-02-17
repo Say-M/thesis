@@ -5,7 +5,7 @@ import {
   LoginSchemaType,
   RegisterSchemaType,
   UpdatePasswordSchemaType,
-} from "@app/backend/schemas/auth";
+} from "@repo/common/schemas/auth";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { AuthContext } from "@/contexts/auth";

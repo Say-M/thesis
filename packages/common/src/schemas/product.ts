@@ -22,8 +22,14 @@ const variantSchema = z.object({
 });
 
 const productSchema = z.object({
-  category: z.string({ error: "Category is required" }).trim(),
-  subcategory: z.string({ error: "Subcategory is required" }).trim(),
+  category: z
+    .string({ error: "Category is required" })
+    .trim()
+    .nonempty({ message: "Category is required" }),
+  subcategory: z
+    .string({ error: "Subcategory is required" })
+    .trim()
+    .nonempty({ message: "Subcategory is required" }),
   thumbnail: z.string().trim().nullish(),
   images: z.array(z.string().trim()).optional(),
   name: z

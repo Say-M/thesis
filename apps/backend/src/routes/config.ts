@@ -1,8 +1,8 @@
 import app from "../app";
 import { describeRoute, validator } from "hono-openapi";
 import { roleGuard } from "@/middlewares/auth-guard";
-import { Role } from "@/enums/role";
-import { updateConfigSchema } from "@/schemas/config";
+import { Role } from "@repo/common/enums/role";
+import { updateConfigSchema } from "@repo/common/schemas/config";
 import { getConfigService, updateConfigService } from "@/services/config";
 
 const route = app.basePath("/api/config");

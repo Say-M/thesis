@@ -1,47 +1,77 @@
-ARG BUN_VERSION=1.3.6   
 # Use Bun as base image
-FROM oven/bun:${BUN_VERSION} AS base
+FROM oven/bun:1.3.6-alpine AS base
 
-# This Dockerfile is copy-pasted into our main docs at /docs/handbook/deploying-with-docker.
-# Make sure you update both files!
-
-# Set working directory
 WORKDIR /app
 
-# ---
-FROM base AS prepare
-RUN bun add -g turbo
-COPY . .
-# Add lockfile and package.json's of isolated subworkspace
-RUN turbo prune frontend --docker
-# ---
-FROM base AS builder
-# First install the dependencies (as they change less often)
-COPY --from=prepare /app/out/json/ .
+# Install dependencies only when needed
+FROM base AS deps
+
+# Copy workwpace root package files
+COPY package.json bun.lock ./
+
+# Copy all workspace package.json files for dependency resolution
+COPY packages/common/package.json ./packages/common
+COPY packages/eslint-config/package.json ./packages/eslint-config
+COPY packages/typescript-config/package.json ./packages/typescript-config
+COPY packages/utils/package.json ./packages/utils
+
+# Copy frontend app package.json
+COPY apps/frontend/package.json ./apps/frontend/
+
+# Install dependencies
 RUN bun install
-# Build the project
-COPY --from=prepare /app/out/full/ .
 
-# Uncomment and use build args to enable remote caching
-# ARG TURBO_TEAM
-# ENV TURBO_TEAM=$TURBO_TEAM
+# Rebuild the source code only when needed
+FROM base AS builder
 
-# ARG TURBO_TOKEN
-# ENV TURBO_TOKEN=$TURBO_TOKEN
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
 
-RUN bun turbo build
+# Copy workspace packages source (need for @repo/* imports)
+COPY packages ./packages
 
-# ---
-FROM oven/bun:${BUN_VERSION} AS runner
-# Don't run production as root for security reasons
-RUN groupadd --system --gid 1001 nodejs
-RUN useradd --system --uid 1001 --gid nodejs nextjs
-USER nextjs
+# Copy frontend app
+COPY apps/frontend ./apps/frontend
+
+# Set environment variables for build
+ENV OUTPUT_TRACING_ROOT=/app
+# Uncomment the following line in case you want to disable telemetry during runtime.
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Build the Next.js application directly (not using turbo for docker builds)
+WORKDIR /app/apps/frontend
+
+# Create symlink to node_modules at workspace root so Next.js can find dependencies
+RUN ln -s /app/node_modules ./node_modules
+
+# Build with bun
+
+RUN bun --bun next build
+
+# Production image, copy all the files and run next
+FROM base AS runner
+
+ENV NODE_ENV=production
+# Uncomment the following line in case you want to disable telemetry during runtime.
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/public ./public
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder /app/apps/frontend/.next/standalone ./
-COPY --from=builder /app/apps/frontend/.next/static ./apps/frontend/.next/static
-COPY --from=builder /app/apps/frontend/public ./apps/frontend/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/static ./apps/frontend/.next/static
 
-CMD bun apps/frontend/server.js
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT=3000
+
+# server.js is created by next build from the standalone output
+# https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
+ENV HOSTNAME="0.0.0.0"
+CMD ["bun", "server.js"]

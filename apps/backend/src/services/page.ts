@@ -1,8 +1,11 @@
 import { HTTPException } from "hono/http-exception";
-import { Page } from "@/models/page";
-import { Seo } from "@/models/seo";
+import { Page } from "@repo/common/models/page";
+import { Seo } from "@repo/common/models/seo";
 import type { ResponseType } from "@repo/common/schemas/response";
-import type { PageSchemaType, ListPageQuerySchemaType } from "@/schemas/page";
+import type {
+  PageSchemaType,
+  ListPageQuerySchemaType,
+} from "@repo/common/schemas/page";
 import { QueryFilter } from "mongoose";
 import { QueryOptions } from "mongoose";
 
@@ -18,7 +21,7 @@ export const createPageService = async (
     status: 201,
     message: "Page created",
     timestamp: new Date().toISOString(),
-    data: page,
+    data: { page },
   };
 };
 
@@ -30,7 +33,7 @@ export const getPageByIdService = async (id: string): Promise<ResponseType> => {
     status: 200,
     message: "OK",
     timestamp: new Date().toISOString(),
-    data: page,
+    data: { page },
   };
 };
 
@@ -46,7 +49,7 @@ export const getPageBySlugService = async (
     status: 200,
     message: "OK",
     timestamp: new Date().toISOString(),
-    data: page,
+    data: { page },
   };
 };
 
@@ -63,7 +66,7 @@ export const listPagesService = async (
     all,
   } = query;
   const filter: QueryFilter<Page> = {};
-  if (cursor) filter._id = { $lt: cursor };
+  if (cursor) filter._id = { $gt: cursor };
   if (status?.length) filter.status = { $in: status };
   if (showInHeader === true) filter.showInHeader = true;
   if (showInFooter === true) filter.showInFooter = true;
@@ -114,7 +117,7 @@ export const updatePageService = async (
     status: 200,
     message: "Page updated",
     timestamp: new Date().toISOString(),
-    data: page,
+    data: { page },
   };
 };
 

@@ -38,13 +38,13 @@ import {
   createCouponSchema,
   CreateCouponSchemaType,
   updateCouponSchema,
-} from "@app/backend/schemas/coupon";
+} from "@repo/common/schemas/coupon";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, Resolver, useForm } from "react-hook-form";
 import { useCreateCoupon, useUpdateCoupon } from "@/hooks/api/coupons";
 import type { CouponListItem } from "@/hooks/api/coupons";
 import { useEffect } from "react";
-import { DiscountType } from "@app/backend/enums/discount";
+import { DiscountType } from "@repo/common/enums/discount";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DatePickerTime } from "@/components/ui/date-picker-time";
 

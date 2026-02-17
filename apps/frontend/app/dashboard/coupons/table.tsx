@@ -32,7 +32,7 @@ import {
   type CouponListItem,
 } from "@/hooks/api/coupons";
 import { useFormatCurrency } from "@/lib/format-currency";
-import { DiscountType } from "@app/backend/enums/discount";
+import { DiscountType } from "@repo/common/enums/discount";
 import { format } from "date-fns";
 import { useInView } from "react-intersection-observer";
 import { Skeleton } from "@/components/ui/skeleton";

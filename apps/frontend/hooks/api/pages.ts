@@ -10,11 +10,11 @@ import useApi from "../use-api";
 import type {
   PageSchemaType,
   ListPageQuerySchemaType,
-} from "@app/backend/schemas/page";
-import type { Page } from "@app/backend/models/page";
+} from "@repo/common/schemas/page";
+import type { Page } from "@repo/common/models/page";
 import type { ResponseType } from "@repo/common/schemas/response";
 import { SeoDetail } from "./seo";
-import { UpdatePageSchemaType } from "@app/backend/schemas/page";
+import { UpdatePageSchemaType } from "@repo/common/schemas/page";
 
 const PAGES_QUERY_KEY = ["pages"] as const;
 

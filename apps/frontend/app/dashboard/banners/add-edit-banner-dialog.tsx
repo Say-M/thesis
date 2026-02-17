@@ -26,7 +26,7 @@ import {
   createBannerSchema,
   CreateBannerSchemaType,
   updateBannerSchema,
-} from "@app/backend/schemas/banner";
+} from "@repo/common/schemas/banner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, Resolver, useForm } from "react-hook-form";
 import { useCreateBanner, useUpdateBanner } from "@/hooks/api/banners";

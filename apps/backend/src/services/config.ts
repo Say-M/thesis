@@ -1,7 +1,7 @@
 import mongoose, { Types } from "mongoose";
-import { Config } from "@/models/config";
+import { Config } from "@repo/common/models/config";
 import type { ResponseType } from "@repo/common/schemas/response";
-import type { UpdateConfigSchemaType } from "@/schemas/config";
+import type { UpdateConfigSchemaType } from "@repo/common/schemas/config";
 
 const defaultConfig = {
   currency: "BDT",

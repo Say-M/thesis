@@ -9,7 +9,7 @@ import {
   CreateInvoiceSchemaType,
   updateInvoiceSchema,
   UpdateInvoiceSchemaType,
-} from "@app/backend/schemas/invoice";
+} from "@repo/common/schemas/invoice";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, Resolver, useFieldArray, useForm } from "react-hook-form";
 import {
@@ -52,7 +52,7 @@ import {
 import { useGetProduct } from "@/hooks/api/products";
 import { useValidateCoupon } from "@/hooks/api/coupons";
 import { useConfigContext } from "@/contexts/config";
-import { InvoiceType, PaymentMethod } from "@app/backend/enums/invoice";
+import { InvoiceType, PaymentMethod } from "@repo/common/enums/invoice";
 import { useFormatCurrency } from "@/lib/format-currency";
 import { toast } from "sonner";
 import type { ProductSearchOption } from "@/hooks/use-product-search";
@@ -1052,7 +1052,7 @@ export default function AddEditOrder() {
               {codAmount > 0 && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">
-                    COD ({codAmount}%)
+                    Cash on delivery ({codAmount}%)
                   </span>
                   <span className="tabular-nums">{formatCurrency(codFee)}</span>
                 </div>

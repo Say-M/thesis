@@ -1,13 +1,13 @@
 import app from "../app";
 import { describeRoute, validator } from "hono-openapi";
 import { roleGuard } from "@/middlewares/auth-guard";
-import { createOrUpdateSeoSchema } from "@/schemas/seo";
+import { createOrUpdateSeoSchema } from "@repo/common/schemas/seo";
 import {
   createOrUpdateSeoService,
   getSeoByTypeIdService,
   deleteSeoService,
 } from "@/services/seo";
-import { Role } from "@/enums/role";
+import { Role } from "@repo/common/enums/role";
 
 const route = app.basePath("/api/seo");
 

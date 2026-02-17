@@ -1,14 +1,14 @@
 import app from "../app";
 import { describeRoute, validator } from "hono-openapi";
 import { roleGuard } from "@/middlewares/auth-guard";
-import { listUserQuerySchema, updateUserSchema } from "@/schemas/user";
+import { listUserQuerySchema, updateUserSchema } from "@repo/common/schemas/user";
 import {
   listUsersService,
   getUserByIdService,
   updateUserService,
   deleteUserService,
 } from "@/services/user";
-import { Role } from "@/enums/role";
+import { Role } from "@repo/common/enums/role";
 
 const route = app.basePath("/api/users");
 

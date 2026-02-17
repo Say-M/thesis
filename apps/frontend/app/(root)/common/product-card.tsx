@@ -31,6 +31,7 @@ export type ProductCardProps = {
   stock?: number;
   hasVariants?: boolean;
   variantId?: string;
+  variantLabel?: string;
 };
 
 export default function ProductCard({
@@ -47,10 +48,7 @@ export default function ProductCard({
   hasVariants = false,
   variantId,
 }: ProductCardProps) {
-  const hasDiscount = oldPrice && oldPrice > price;
-  const discountPercent = hasDiscount
-    ? Math.round(((oldPrice - price) / oldPrice) * 100)
-    : null;
+  const discountAmount = oldPrice ? oldPrice - price : 0;
 
   // Stock badge logic
   const stockStatus =
@@ -77,6 +75,7 @@ export default function ProductCard({
     e.preventDefault();
     e.stopPropagation();
     if (isOutOfStock) return;
+    console.log({ _id, variantId });
     addToCart(_id, 1, variantId);
     toast.success("Added to cart");
   };
@@ -84,7 +83,9 @@ export default function ProductCard({
   const handleWishlistClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleWishlist(_id);
+    console.log({ _id, variantId });
+
+    toggleWishlist(_id, variantId);
     toast.success(inWishlist ? "Removed from wishlist" : "Added to wishlist");
   };
 
@@ -106,9 +107,9 @@ export default function ProductCard({
           </AspectRatio>
 
           <div className="absolute left-2 top-2 flex flex-col gap-1">
-            {discountPercent && (
+            {discountAmount > 0 && (
               <Badge variant="destructive" className="text-white">
-                -{discountPercent}%
+                -{formatCurrency(discountAmount)} OFF
               </Badge>
             )}
           </div>
@@ -146,7 +147,7 @@ export default function ProductCard({
             <span className="font-semibold text-primary">
               {formatCurrency(price)}
             </span>
-            {hasDiscount && oldPrice && (
+            {oldPrice && (
               <span className="ml-2 text-xs text-muted-foreground line-through">
                 {formatCurrency(oldPrice)}
               </span>
@@ -169,9 +170,9 @@ export default function ProductCard({
             size="icon"
             onClick={handleWishlistClick}
             aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
-            className={cn(inWishlist && "text-destructive")}
+            className={cn(inWishlist && "text-destructive!")}
           >
-            <Heart className={cn("size-4", inWishlist && "fill-current")} />
+            <Heart className={cn("size-4", inWishlist && "fill-current!")} />
           </Button>
         </div>
       </CardFooter>

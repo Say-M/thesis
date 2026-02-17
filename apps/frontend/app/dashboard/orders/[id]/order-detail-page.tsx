@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { useGetOrder } from "@/hooks/api/orders";
 import { useFormatCurrency } from "@/lib/format-currency";
 import { Badge } from "@/components/ui/badge";
-import { InvoiceStatus } from "@app/backend/enums/invoice";
+import { InvoiceStatus } from "@repo/common/enums/invoice";
 import {
   Card,
   CardContent,
@@ -247,7 +247,7 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
                   Coupon ({order.coupon.code})
                 </span>
                 <span className="font-medium text-muted-foreground">
-                  -{formatCurrency(order.discountAmount)}
+                  -{formatCurrency(order.couponDiscountAmount)}
                 </span>
               </div>
             )}

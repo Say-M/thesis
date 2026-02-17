@@ -11,8 +11,8 @@ import type {
   CreateBannerSchemaType,
   UpdateBannerSchemaType,
   ListBannerQuerySchemaType,
-} from "@app/backend/schemas/banner";
-import type { Banner } from "@app/backend/models/banner";
+} from "@repo/common/schemas/banner";
+import type { Banner } from "@repo/common/models/banner";
 import type { ResponseType } from "@repo/common/schemas/response";
 
 const BANNERS_QUERY_KEY = ["banners"] as const;
@@ -80,15 +80,7 @@ export const useCreateBanner = () => {
     },
     onSuccess: (data) => {
       toast.success(data?.message ?? "Banner created");
-      queryClient.setQueriesData(
-        { queryKey: [...BANNERS_QUERY_KEY] },
-        (oldData: ListBannersResponseType) => {
-          return {
-            ...oldData,
-            data: { banners: [...oldData?.data?.banners, data?.data?.banner] },
-          };
-        },
-      );
+      queryClient.invalidateQueries({ queryKey: [...BANNERS_QUERY_KEY] });
     },
     onError: (error: AxiosError<{ message?: string }>) => {
       toast.error(error.response?.data?.message ?? "Failed to create banner");
@@ -112,21 +104,7 @@ export const useUpdateBanner = () => {
     },
     onSuccess: (data, { id }) => {
       toast.success(data?.message ?? "Banner updated");
-      queryClient.setQueriesData(
-        { queryKey: [...BANNERS_QUERY_KEY] },
-        (oldData: ListBannersResponseType) => {
-          console.log({ oldData, data });
-
-          return {
-            ...oldData,
-            data: {
-              banners: oldData?.data?.banners.map((b) =>
-                b._id === id ? { ...b, ...data?.data?.banner } : b,
-              ),
-            },
-          };
-        },
-      );
+      queryClient.invalidateQueries({ queryKey: [...BANNERS_QUERY_KEY] });
     },
     onError: (error: AxiosError<{ message?: string }>) => {
       toast.error(error.response?.data?.message ?? "Failed to update banner");
@@ -144,17 +122,7 @@ export const useDeleteBanner = () => {
     },
     onSuccess: (data, id) => {
       toast.success(data?.message ?? "Banner deleted");
-      queryClient.setQueriesData(
-        { queryKey: [...BANNERS_QUERY_KEY] },
-        (oldData: ListBannersResponseType) => {
-          return {
-            ...oldData,
-            data: {
-              banners: oldData?.data?.banners.filter((b) => b._id !== id),
-            },
-          };
-        },
-      );
+      queryClient.invalidateQueries({ queryKey: [...BANNERS_QUERY_KEY] });
     },
     onError: (error: AxiosError<{ message?: string }>) => {
       toast.error(error.response?.data?.message ?? "Failed to delete banner");

@@ -9,7 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@app/backend": "*",
+    "@repo/common": "*",
     "@base-ui/react": "^1.1.0",
     "@hookform/resolvers": "^5.2.2",
     "@lexical/react": "^0.40.0",

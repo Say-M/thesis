@@ -2,10 +2,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
 import useApi from "../use-api";
-import type { UpdateConfigSchemaType } from "@app/backend/schemas/config";
+import type { UpdateConfigSchemaType } from "@repo/common/schemas/config";
 import type { ResponseType } from "@repo/common/schemas/response";
-import type { Asset } from "@app/backend/models/asset";
-import type { Config } from "@app/backend/models/config";
+import type { Asset } from "@repo/common/models/asset";
+import type { Config } from "@repo/common/models/config";
 
 const CONFIG_QUERY_KEY = ["config"] as const;
 

@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { loginSchema } from "@app/backend/schemas/auth";
+import { loginSchema } from "@repo/common/schemas/auth";
 import { z } from "zod";
 import Link from "next/link";
 import { useLogin } from "@/hooks/api/auth";

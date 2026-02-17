@@ -1,11 +1,11 @@
 import { HTTPException } from "hono/http-exception";
-import { Banner } from "@/models/banner";
+import { Banner } from "@repo/common/models/banner";
 import type { ResponseType } from "@repo/common/schemas/response";
 import type {
   CreateBannerSchemaType,
   UpdateBannerSchemaType,
   ListBannerQuerySchemaType,
-} from "@/schemas/banner";
+} from "@repo/common/schemas/banner";
 import { QueryFilter, QueryOptions } from "mongoose";
 
 export const createBannerService = async (
@@ -41,7 +41,7 @@ export const listBannersService = async (
 ): Promise<ResponseType> => {
   const { limit = 24, cursor, search, all, status, ...rest } = query;
   const filter: QueryFilter<Banner> = { ...rest };
-  if (cursor) filter._id = { $lt: cursor };
+  if (cursor) filter._id = { $gt: cursor };
   if (status?.length) filter.status = { $in: status };
   if (search)
     filter.$or = [

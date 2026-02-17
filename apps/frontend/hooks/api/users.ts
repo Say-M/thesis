@@ -8,11 +8,11 @@ import { AxiosError } from "axios";
 import { toast } from "sonner";
 import useApi from "../use-api";
 import type { ResponseType } from "@repo/common/schemas/response";
-import type { User } from "@app/backend/models/user";
+import type { User } from "@repo/common/models/user";
 import type {
   ListUserQuerySchemaType,
   UpdateUserSchemaType,
-} from "@app/backend/schemas/user";
+} from "@repo/common/schemas/user";
 
 const USERS_QUERY_KEY = ["users"] as const;
 

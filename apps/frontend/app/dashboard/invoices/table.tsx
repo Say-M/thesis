@@ -26,7 +26,7 @@ import { MoreHorizontal } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useListInvoices, useUpdateInvoice } from "@/hooks/api/invoices";
 import { useFormatCurrency } from "@/lib/format-currency";
-import { InvoiceStatus } from "@app/backend/enums/invoice";
+import { InvoiceStatus } from "@repo/common/enums/invoice";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { useInView } from "react-intersection-observer";

@@ -11,8 +11,8 @@ import type {
   CreateAssetSchemaType,
   CreateBulkAssetSchemaType,
   ListAssetQuerySchemaType,
-} from "@app/backend/schemas/asset";
-import type { Asset } from "@app/backend/models/asset";
+} from "@repo/common/schemas/asset";
+import type { Asset } from "@repo/common/models/asset";
 import type { ResponseType } from "@repo/common/schemas/response";
 
 const ASSETS_QUERY_KEY = ["assets"] as const;

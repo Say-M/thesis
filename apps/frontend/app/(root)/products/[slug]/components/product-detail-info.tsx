@@ -24,18 +24,20 @@ type Variant = ProductDetail["variants"] extends (infer V)[] ? V : never;
 
 type ProductDetailInfoProps = {
   product: ProductDetail;
+  discountAmount: number;
   displayPrice: number;
   displayStock: number;
   oldPrice: number | null;
   stockStatus: "in" | "low" | "out";
-  selectedVariantId: string | null;
-  onVariantChange: (variantId: string | null) => void;
+  selectedVariantId?: string;
+  onVariantChange: (variantId?: string) => void;
   quantity: number;
   onQuantityChange: (delta: number) => void;
 };
 
 export function ProductDetailInfo({
   product,
+  discountAmount,
   displayPrice,
   displayStock,
   oldPrice,
@@ -47,9 +49,8 @@ export function ProductDetailInfo({
 }: ProductDetailInfoProps) {
   const isOutOfStock = stockStatus === "out";
   const variants = product.hasVariants ? (product.variants ?? []) : [];
-  const discountValue = product.discountValue ?? 0;
   const { addToCart, isInWishlist, toggleWishlist, cart } = useCartWishlist();
-  const inWishlist = isInWishlist(product._id);
+  const inWishlist = isInWishlist(product._id, selectedVariantId ?? undefined);
 
   const handleAddToCart = () => {
     if (isOutOfStock) return;
@@ -58,7 +59,7 @@ export function ProductDetailInfo({
   };
 
   const handleWishlistClick = () => {
-    toggleWishlist(product._id);
+    toggleWishlist(product._id, selectedVariantId ?? undefined);
     toast.success(inWishlist ? "Removed from wishlist" : "Added to wishlist");
   };
 
@@ -130,8 +131,10 @@ export function ProductDetailInfo({
               {formatCurrency(oldPrice)}
             </span>
           )}
-          {discountValue > 0 && (
-            <Badge variant="destructive">-{discountValue}% OFF</Badge>
+          {discountAmount > 0 && (
+            <Badge variant="destructive">
+              -{formatCurrency(discountAmount)} OFF
+            </Badge>
           )}
         </div>
       </div>
@@ -141,7 +144,7 @@ export function ProductDetailInfo({
           <Label>Select Variant</Label>
           <Select
             value={selectedVariantId ?? variants[0]?._id ?? ""}
-            onValueChange={(v) => onVariantChange(v || null)}
+            onValueChange={(v) => onVariantChange(v)}
           >
             <SelectTrigger>
               <SelectValue />
@@ -234,7 +237,7 @@ export function ProductDetailInfo({
             size="lg"
             onClick={handleWishlistClick}
             aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
-            className={cn(inWishlist && "text-destructive")}
+            className={cn(inWishlist && "text-destructive!")}
           >
             <Heart className={cn("size-5", inWishlist && "fill-current")} />
           </Button>

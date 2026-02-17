@@ -31,12 +31,12 @@ import {
 import {
   updateUserSchema,
   type UpdateUserSchemaType,
-} from "@app/backend/schemas/user";
+} from "@repo/common/schemas/user";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, Resolver, useForm } from "react-hook-form";
 import { useUpdateUser } from "@/hooks/api/users";
 import type { UserListItem } from "@/hooks/api/users";
-import { Role } from "@app/backend/enums/role";
+import { Role } from "@repo/common/enums/role";
 
 const defaultValues: UpdateUserSchemaType = {
   name: "",

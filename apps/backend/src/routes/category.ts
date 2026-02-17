@@ -5,7 +5,7 @@ import {
   createCategorySchema,
   listCategoryQuerySchema,
   updateCategorySchema,
-} from "@/schemas/category";
+} from "@repo/common/schemas/category";
 import {
   createCategoryService,
   getCategoryByIdService,
@@ -13,7 +13,7 @@ import {
   updateCategoryService,
   deleteCategoryService,
 } from "@/services/category";
-import { Role } from "@/enums/role";
+import { Role } from "@repo/common/enums/role";
 
 const route = app.basePath("/api/categories");
 

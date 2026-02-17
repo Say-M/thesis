@@ -164,73 +164,65 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
             <Separator className="my-8" />
             {/* Recipient & Shipping */}
             <div className="grid gap-8 sm:grid-cols-2">
-              <div>
+              <div className="space-y-1">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Bill to
                 </p>
-                <p className="mt-1 font-medium text-foreground">
-                  {recipientName}
-                </p>
+                <p className="font-medium text-foreground">{recipientName}</p>
                 {recipientAddress && (
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {recipientAddress}
                   </p>
                 )}
-                <div className="mt-2 flex flex-wrap gap-6 gap-y-1 text-sm text-muted-foreground">
-                  {recipientEmail && (
-                    <a
-                      href={`mailto:${recipientEmail}`}
-                      className="flex items-center gap-1.5"
-                    >
-                      <Mail className="size-3 shrink-0" />
-                      {recipientEmail}
-                    </a>
-                  )}
-                  {recipientPhone && (
-                    <a
-                      href={`tel:${recipientPhone}`}
-                      className="flex items-center gap-1.5"
-                    >
-                      <Phone className="size-3 shrink-0" />
-                      {recipientPhone}
-                    </a>
-                  )}
-                </div>
+                {recipientEmail && (
+                  <a
+                    href={`mailto:${recipientEmail}`}
+                    className="text-sm text-muted-foreground flex items-center gap-1.5"
+                  >
+                    <Mail className="size-3 shrink-0" />
+                    {recipientEmail}
+                  </a>
+                )}
+                {recipientPhone && (
+                  <a
+                    href={`tel:${recipientPhone}`}
+                    className="text-sm text-muted-foreground flex items-center gap-1.5"
+                  >
+                    <Phone className="size-3 shrink-0" />
+                    {recipientPhone}
+                  </a>
+                )}
               </div>
 
               {shipping && (
-                <div>
+                <div className="space-y-1">
                   <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Ship to ({invoice.status})
                   </p>
-                  <p className="mt-1 font-medium text-foreground">
-                    {shipping.name}
-                  </p>
+                  <p className="font-medium text-foreground">{shipping.name}</p>
                   {shippingAddressLine && (
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                       {shippingAddressLine}
                     </p>
                   )}
-                  <div className="mt-2 flex flex-col gap-1 text-sm text-muted-foreground">
-                    {shipping.email && (
-                      <a
-                        href={`mailto:${shipping.email}`}
-                        className="flex items-center gap-1.5"
-                      >
-                        <Mail className="size-3 shrink-0" />
-                        {shipping.email}
-                      </a>
-                    )}
-                    {shipping.phone && (
-                      <a
-                        href={`tel:${shipping.phone}`}
-                        className="flex items-center gap-1.5"
-                      >
-                        <Phone className="size-3 shrink-0" />
-                        {shipping.phone}
-                      </a>
-                    )}
-                  </div>
+                  {shipping.email && (
+                    <a
+                      href={`mailto:${shipping.email}`}
+                      className="text-sm text-muted-foreground flex items-center gap-1.5"
+                    >
+                      <Mail className="size-3 shrink-0" />
+                      {shipping.email}
+                    </a>
+                  )}
+                  {shipping.phone && (
+                    <a
+                      href={`tel:${shipping.phone}`}
+                      className="text-sm text-muted-foreground flex items-center gap-1.5"
+                    >
+                      <Phone className="size-3 shrink-0" />
+                      {shipping.phone}
+                    </a>
+                  )}
                 </div>
               )}
             </div>
@@ -300,13 +292,20 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
                       {formatMoney(invoice.subtotal ?? 0, currency)}
                     </TableCell>
                   </TableRow>
-                  {(invoice.discountAmount ?? 0) > 0 && (
+                  {(invoice.couponDiscountAmount ?? 0) > 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-muted-foreground pl-0">
-                        Discount
+                      <TableCell
+                        colSpan={4}
+                        className="text-muted-foreground pl-0"
+                      >
+                        Discount ({invoice?.coupon?.code})
                       </TableCell>
                       <TableCell className="text-right text-destructive">
-                        -{formatMoney(invoice.discountAmount ?? 0, currency)}
+                        -
+                        {formatMoney(
+                          invoice.couponDiscountAmount ?? 0,
+                          currency,
+                        )}
                       </TableCell>
                     </TableRow>
                   )}

@@ -1,11 +1,11 @@
 import { HTTPException } from "hono/http-exception";
-import { Category } from "@/models/category";
+import { Category } from "@repo/common/models/category";
 import type { ResponseType } from "@repo/common/schemas/response";
 import type {
   CreateCategorySchemaType,
   ListCategoryQuerySchemaType,
   UpdateCategorySchemaType,
-} from "@/schemas/category";
+} from "@repo/common/schemas/category";
 import { QueryFilter, QueryOptions } from "mongoose";
 
 export const createCategoryService = async (
@@ -20,10 +20,14 @@ export const createCategoryService = async (
     featured: payload.featured ?? false,
   };
 
-  const category = (await Category.create(filteredPayload)).populate([
-    { path: "thumbnail", select: "name path" },
-    { path: "parentCategory", select: "name" },
-  ]);
+  const category = (
+    await (
+      await Category.create(filteredPayload)
+    ).populate([
+      { path: "thumbnail", select: "name path" },
+      { path: "parentCategory", select: "name" },
+    ])
+  ).toObject();
 
   return {
     status: 201,
@@ -74,7 +78,7 @@ export const listCategoriesService = async (
     ...rest
   } = query;
   const filter: QueryFilter<Category> = { ...rest };
-  if (cursor) filter._id = { $lt: cursor };
+  if (cursor) filter._id = { $gt: cursor };
   if (status?.length) filter.status = { $in: status };
   if (featured != null) filter.featured = featured;
   if (type?.length === 1) {

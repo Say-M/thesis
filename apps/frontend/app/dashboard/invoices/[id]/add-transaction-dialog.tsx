@@ -31,13 +31,13 @@ import {
   TransactionType,
   TransactionStatus,
   PaymentMethod,
-} from "@app/backend/enums/invoice";
+} from "@repo/common/enums/invoice";
 import { useCreateTransaction } from "@/hooks/api/transactions";
 import { useFormatCurrency } from "@/lib/format-currency";
 import {
   createTransactionSchema,
   CreateTransactionSchemaType,
-} from "@app/backend/schemas/transaction";
+} from "@repo/common/schemas/transaction";
 
 export default function AddTransactionDialog({
   open,

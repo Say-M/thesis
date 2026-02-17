@@ -6,13 +6,15 @@ import { ProductDetailGallery } from "./components/product-detail-gallery";
 import { ProductDetailInfo } from "./components/product-detail-info";
 import { ProductDetailFaqs } from "./components/product-detail-faqs";
 import { ProductDetailRelated } from "./components/product-detail-related";
-import { ProductDetail } from "@/hooks/api/products";
+import {
+  ProductDetail,
+  productListItemToCardProps,
+} from "@/hooks/api/products";
 import { SeoDetail } from "@/hooks/api/seo";
-import { DiscountType } from "@app/backend/enums/discount";
 
 function useProductDisplayState(product: ProductDetail | null | undefined) {
-  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
-    null,
+  const [selectedVariantId, setSelectedVariantId] = useState(
+    product?.variants?.[0]?._id,
   );
   const [quantity, setQuantity] = useState(1);
 
@@ -24,12 +26,12 @@ function useProductDisplayState(product: ProductDetail | null | undefined) {
     );
   }, [product, selectedVariantId]);
 
-  const displayPrice = currentVariant
-    ? (currentVariant.sellingPrice ?? 0)
-    : (product?.sellingPrice ?? 0);
-  const displayStock = currentVariant
-    ? (currentVariant.stock ?? 0)
-    : (product?.stock ?? 0);
+  const {
+    price: displayPrice,
+    oldPrice,
+    discountAmount,
+    stock: displayStock,
+  } = productListItemToCardProps({ ...product!, variants: [currentVariant!] });
 
   const displayImages = useMemo(() => {
     if (!product) return [];
@@ -55,17 +57,6 @@ function useProductDisplayState(product: ProductDetail | null | undefined) {
     return thumb?.path ? [thumb] : [];
   }, [product, currentVariant]);
 
-  const discountValue =
-    currentVariant?.discountValue ?? product?.discountValue ?? 0;
-  const discountType = (currentVariant?.discountType ??
-    product?.discountType) as string | undefined;
-  const oldPrice =
-    discountValue > 0 && discountType === DiscountType.PERCENTAGE
-      ? Math.round(displayPrice / (1 - discountValue / 100))
-      : discountValue > 0 && discountType === DiscountType.FIXED
-        ? displayPrice + discountValue
-        : null;
-
   const stockStatus: "in" | "low" | "out" =
     displayStock === 0 ? "out" : displayStock < 10 ? "low" : "in";
 
@@ -76,6 +67,7 @@ function useProductDisplayState(product: ProductDetail | null | undefined) {
     setQuantity,
     displayPrice,
     displayStock,
+    discountAmount,
     displayImages,
     oldPrice,
     stockStatus,
@@ -86,13 +78,11 @@ function useProductDisplayState(product: ProductDetail | null | undefined) {
 }
 
 type ProductDetailClientProps = {
-  slug: string;
   product: ProductDetail | null;
   seo: SeoDetail | null;
 };
 
 export function ProductDetailClient({
-  slug,
   product,
   seo: _seo,
 }: ProductDetailClientProps) {
@@ -101,6 +91,7 @@ export function ProductDetailClient({
     setSelectedVariantId,
     quantity,
     setQuantity,
+    discountAmount,
     displayPrice,
     displayStock,
     displayImages,
@@ -139,6 +130,7 @@ export function ProductDetailClient({
         />
         <ProductDetailInfo
           product={productForInfo}
+          discountAmount={discountAmount}
           displayPrice={displayPrice}
           displayStock={displayStock}
           oldPrice={oldPrice}

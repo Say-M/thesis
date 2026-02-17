@@ -11,10 +11,9 @@ import type {
   CreateInvoiceSchemaType,
   UpdateInvoiceSchemaType,
   ListInvoiceQuerySchemaType,
-} from "@app/backend/schemas/invoice";
-import type { Invoice } from "@app/backend/models/invoice";
+} from "@repo/common/schemas/invoice";
+import type { Invoice } from "@repo/common/models/invoice";
 import type { ResponseType } from "@repo/common/schemas/response";
-import { InvoiceType } from "@app/backend/enums/invoice";
 
 const ORDERS_QUERY_KEY = ["orders"] as const;
 

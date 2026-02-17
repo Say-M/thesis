@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Spinner } from "@/components/ui/spinner";
 import { AssetSelectorField } from "@/components/ui/asset-selector";
-import { pageSchema, type PageSchemaType } from "@app/backend/schemas/page";
+import { pageSchema, type PageSchemaType } from "@repo/common/schemas/page";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, Resolver, useForm } from "react-hook-form";
 import { useGetPage, useCreatePage, useUpdatePage } from "@/hooks/api/pages";

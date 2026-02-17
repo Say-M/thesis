@@ -1,10 +1,13 @@
-import { Role } from "@/enums/role";
+import { Role } from "@repo/common/enums/role";
 import { AppBindings } from "@/app";
 import { Context, Next } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import { generateToken, verifyToken } from "@repo/common/utils/token";
-import { User } from "@/models/user";
-import { ACCESS_TOKEN_MAX_AGE, REFRESH_TOKEN_MAX_AGE } from "@/constants";
+import { User } from "@repo/common/models/user";
+import {
+  ACCESS_TOKEN_MAX_AGE,
+  REFRESH_TOKEN_MAX_AGE,
+} from "@repo/common/constants/token";
 
 export const roleGuard = ({
   allowedRoles,

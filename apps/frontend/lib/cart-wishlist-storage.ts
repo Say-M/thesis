@@ -7,6 +7,11 @@ export type CartLineItem = {
   variantId?: string;
 };
 
+export type WishlistItem = {
+  productId: string;
+  variantId?: string;
+};
+
 export function getCartFromStorage(): CartLineItem[] {
   if (typeof window === "undefined") return [];
   try {
@@ -36,23 +41,35 @@ export function setCartToStorage(items: CartLineItem[]): void {
   }
 }
 
-export function getWishlistFromStorage(): string[] {
+export function getWishlistFromStorage(): WishlistItem[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(WISHLIST_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((x): x is string => typeof x === "string");
+
+    // Backward-compatible: previously wishlist was stored as string[] of productIds.
+    if (parsed.every((x) => typeof x === "string")) {
+      return (parsed as string[]).map((productId) => ({ productId }));
+    }
+
+    // New format: array of WishlistItem objects.
+    return parsed.filter(
+      (x): x is WishlistItem =>
+        x &&
+        typeof x === "object" &&
+        typeof (x as WishlistItem).productId === "string",
+    );
   } catch {
     return [];
   }
 }
 
-export function setWishlistToStorage(productIds: string[]): void {
+export function setWishlistToStorage(items: WishlistItem[]): void {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(WISHLIST_KEY, JSON.stringify(productIds));
+    localStorage.setItem(WISHLIST_KEY, JSON.stringify(items));
   } catch {
     // ignore
   }

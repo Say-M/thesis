@@ -5,7 +5,7 @@ import {
   registerSchema,
   updatePasswordSchema,
   updateProfileSchema,
-} from "@/schemas/auth";
+} from "@repo/common/schemas/auth";
 import {
   loginService,
   logoutService,

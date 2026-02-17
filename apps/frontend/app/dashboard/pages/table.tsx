@@ -52,6 +52,7 @@ export default function PagesTable({
     () => pagesData?.pages?.map((page) => page.pages).flat() ?? [],
     [pagesData],
   );
+  console.log({ pages }, pagesData);
   const { ref, inView } = useInView({ threshold: 0.8 });
   useEffect(() => {
     if (inView) {

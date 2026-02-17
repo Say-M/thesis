@@ -67,6 +67,6 @@ export default async function ProductDetailPage({ params }: Props) {
   const seo = product ? await getSeoByTypeId(product._id, "product") : null;
 
   return (
-    <ProductDetailClient slug={slug} product={product} seo={seo} />
+    <ProductDetailClient product={product} seo={seo} />
   );
 }

@@ -10,8 +10,8 @@ import { z } from "zod";
 import {
   createInvoiceSchema,
   type CreateInvoiceSchemaType,
-} from "@app/backend/schemas/invoice";
-import { InvoiceType, PaymentMethod } from "@app/backend/enums/invoice";
+} from "@repo/common/schemas/invoice";
+import { InvoiceType, PaymentMethod } from "@repo/common/enums/invoice";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -57,11 +57,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ComboboxApiSearch } from "@/components/ui/combobox-api-search";
+import { UserSearchOption, useUserSearch } from "@/hooks/use-user-search";
+import { Role } from "@repo/common/enums/role";
+import { roundTo2 } from "@repo/common/utils/round-to-2";
+import { FieldError } from "@/components/ui/field";
 
 const checkoutFormSchema = createInvoiceSchema
   .omit({ items: true, type: true })
   .extend({
-    sameAsBilling: z.boolean().default(true),
+    sameAsBilling: z.boolean().default(false),
   });
 
 type CheckoutFormValues = z.infer<typeof checkoutFormSchema>;
@@ -75,15 +80,11 @@ type CartItem = {
   variantLabel?: string;
   thumbnailUrl: string;
   unitPrice: number;
+  unitOldPrice: number | null;
   quantity: number;
   stock: number;
   subtotal: number;
 };
-
-/** Round to 2 decimal places for currency. */
-function roundTo2(n: number): number {
-  return Math.round(n * 100) / 100;
-}
 
 function buildCartItems(
   cart: { productId: string; quantity: number; variantId?: string }[],
@@ -94,7 +95,7 @@ function buildCartItems(
   for (const line of cart) {
     const product = byId.get(line.productId);
     if (!product) continue;
-    const { unitPrice, stock } = productListItemUnitPriceAndStock(
+    const { unitPrice, unitOldPrice, stock } = productListItemUnitPriceAndStock(
       product,
       line.variantId,
     );
@@ -113,6 +114,7 @@ function buildCartItems(
       variantLabel,
       thumbnailUrl: product.thumbnail?.path ?? "",
       unitPrice,
+      unitOldPrice,
       quantity,
       stock: stock ?? 0,
       subtotal: roundTo2(unitPrice * quantity),
@@ -125,19 +127,19 @@ export default function CartPage() {
   const router = useRouter();
   const { user } = useContext(AuthContext);
   const { config } = useConfigContext();
+  const searchUsers = useUserSearch();
   const shippingAmount = config?.shippingAmount ?? 0;
   const taxAmount = config?.taxAmount ?? 0;
   const codAmount = config?.codAmount ?? 0;
   const { cart, removeFromCart, updateCartQuantity, clearCart } =
     useCartWishlist();
   const productIds = useMemo(
-    () => [...new Set(cart.map((x) => x.productId))],
+    () => [...new Set(cart.map((x) => x.productId))].join(","),
     [cart],
   );
   const {
     data: productsData,
     status: productsStatus,
-    fetchNextPage: fetchNextProductsPage,
     isFetchingNextPage: isFetchingNextProductsPage,
   } = useListProducts({
     productIds,
@@ -152,10 +154,16 @@ export default function CartPage() {
     [cart, products],
   );
   const [couponCode, setCouponCode] = useState("");
-  const [discountAmount, setDiscountAmount] = useState(0);
-  const [appliedFreeShipping, setAppliedFreeShipping] = useState(false);
-  /** When a coupon is applied: discount from coupon (before free shipping). */
-  const [couponDiscountAmount, setCouponDiscountAmount] = useState(0);
+  /** When a coupon is applied: server coupon details used for live discount calculation. */
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountType: string;
+    value: number;
+    minPurchase?: number;
+    maxDiscount?: number;
+    isFreeShipping?: boolean;
+    description?: string;
+  } | null>(null);
   /** When a coupon is applied: code for display. */
   const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(
     null,
@@ -190,7 +198,7 @@ export default function CartPage() {
         postalCode: "",
       },
       notes: "",
-      sameAsBilling: true,
+      sameAsBilling: false,
       transaction: {
         paymentMethod: PaymentMethod.CASH,
         reference: "",
@@ -206,6 +214,7 @@ export default function CartPage() {
     if (!user || hasPrefilledUser.current) return;
     hasPrefilledUser.current = true;
     const customer = {
+      user: user._id,
       name: user.name ?? "",
       email: user.email ?? user.mobile ?? "",
       phone: user.mobile ?? "",
@@ -250,11 +259,43 @@ export default function CartPage() {
   const subtotal = roundTo2(
     cartItems.reduce((sum, item) => sum + item.subtotal, 0),
   );
+  // Derived discounts from applied coupon so they stay in sync with cart totals.
+  const { couponDiscountAmount, appliedFreeShipping } = useMemo(() => {
+    if (!appliedCoupon || subtotal < (appliedCoupon?.minPurchase || 0)) {
+      return {
+        couponDiscountAmount: 0,
+        appliedFreeShipping: false,
+      };
+    }
+
+    const isPercentage =
+      appliedCoupon.discountType === "Percentage" ||
+      appliedCoupon.discountType?.toLowerCase() === "percentage";
+
+    let couponDiscount = isPercentage
+      ? roundTo2((subtotal * appliedCoupon.value) / 100)
+      : roundTo2(appliedCoupon.value);
+
+    if (
+      isPercentage &&
+      appliedCoupon.maxDiscount != null &&
+      couponDiscount > appliedCoupon.maxDiscount
+    ) {
+      couponDiscount = appliedCoupon.maxDiscount;
+    }
+
+    return {
+      couponDiscountAmount: couponDiscount,
+      appliedFreeShipping: Boolean(appliedCoupon.isFreeShipping),
+    };
+  }, [appliedCoupon, subtotal, shippingAmount]);
+
   const totalBeforeCod =
     subtotal +
     (appliedFreeShipping ? 0 : shippingAmount) +
     taxAmount -
-    discountAmount;
+    couponDiscountAmount;
+
   const codFee =
     codAmount > 0 ? roundTo2((totalBeforeCod * codAmount) / 100) : 0;
   const total = roundTo2(totalBeforeCod + codFee);
@@ -281,30 +322,24 @@ export default function CartPage() {
       const res = await validateCoupon({ code, cartTotal: subtotal });
       if (res?.data?.isValid && res?.data?.coupon) {
         const coupon = res.data.coupon;
-        const isPercentage =
-          coupon.discountType === "Percentage" ||
-          coupon.discountType?.toLowerCase() === "percentage";
-        let couponDiscount = isPercentage
-          ? roundTo2((subtotal * coupon.value) / 100)
-          : roundTo2(coupon.value);
-        if (
-          isPercentage &&
-          coupon.maxDiscount != null &&
-          couponDiscount > coupon.maxDiscount
-        ) {
-          couponDiscount = coupon.maxDiscount;
+
+        // Frontend guard: enforce minPurchase against current cart subtotal.
+        if (coupon.minPurchase != null && subtotal < coupon.minPurchase) {
+          setAppliedCoupon(null);
+          setAppliedCouponCode(null);
+          toast.error(
+            `Coupon requires a minimum purchase of ${formatCurrency(
+              coupon.minPurchase,
+            )}.`,
+          );
+          return;
         }
-        const freeShippingValue = coupon.isFreeShipping ? shippingAmount : 0;
-        const discount = roundTo2(couponDiscount + freeShippingValue);
-        setCouponDiscountAmount(couponDiscount);
-        setDiscountAmount(discount);
-        setAppliedFreeShipping(Boolean(coupon.isFreeShipping));
+
+        setAppliedCoupon(coupon);
         setAppliedCouponCode(coupon.code ?? code.toUpperCase());
         toast.success("Coupon applied");
       } else {
-        setDiscountAmount(0);
-        setCouponDiscountAmount(0);
-        setAppliedFreeShipping(false);
+        setAppliedCoupon(null);
         setAppliedCouponCode(null);
         toast.error(res?.message ?? "Invalid coupon");
       }
@@ -312,9 +347,7 @@ export default function CartPage() {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data
           ?.message ?? "Invalid coupon";
-      setDiscountAmount(0);
-      setCouponDiscountAmount(0);
-      setAppliedFreeShipping(false);
+      setAppliedCoupon(null);
       setAppliedCouponCode(null);
       toast.error(message);
     }
@@ -325,16 +358,9 @@ export default function CartPage() {
 
   const onSubmit = (values: CheckoutFormValues) => {
     if (cartItems.length === 0) return;
-    const shippingAddress = values.sameAsBilling
-      ? values.billingAddress
-      : values.shippingAddress;
     const payload: CreateInvoiceSchemaType = {
+      ...values,
       type: InvoiceType.ONLINE,
-      customer: {
-        name: values.customer.name.trim(),
-        email: toOptionalEmail(values.customer.email),
-        phone: values.customer.phone.trim(),
-      },
       items: cartItems.map((item) => ({
         product: item.productId,
         variantId: item.variantId ?? undefined,
@@ -342,42 +368,17 @@ export default function CartPage() {
       })),
       coupon: couponCode.trim() || undefined,
       notes: toOptionalEmail(values.notes),
-      billingAddress: {
-        name: values.billingAddress.name.trim(),
-        email: toOptionalEmail(values.billingAddress.email),
-        phone: values.billingAddress.phone.trim(),
-        address: values.billingAddress.address.trim(),
-        city: values.billingAddress.city.trim(),
-        state: values.billingAddress.state.trim(),
-        postalCode: values.billingAddress.postalCode.trim(),
-      },
-      shippingAddress: {
-        name: shippingAddress.name.trim(),
-        email: toOptionalEmail(shippingAddress.email),
-        phone: shippingAddress.phone.trim(),
-        address: shippingAddress.address.trim(),
-        city: shippingAddress.city.trim(),
-        state: shippingAddress.state.trim(),
-        postalCode: shippingAddress.postalCode.trim(),
-      },
-      transaction: {
-        paymentMethod: values.transaction.paymentMethod,
-        reference: values.transaction.reference?.trim(),
-      },
     };
     createInvoice(payload, {
-      onSuccess: (res) => {
-        const data = (res as { data?: { invoice?: { _id?: string } } })?.data;
-        const id = data?.invoice?._id;
+      onSuccess: ({ data }) => {
+        const invoiceNumber = data?.invoice?.invoiceNumber;
         clearCart();
         setCouponCode("");
-        setDiscountAmount(0);
-        setCouponDiscountAmount(0);
-        setAppliedFreeShipping(false);
+        setAppliedCoupon(null);
         setAppliedCouponCode(null);
         form.reset();
-        if (id) {
-          router.push(`/orders/${id}`);
+        if (invoiceNumber) {
+          router.push(`/invoices/${invoiceNumber}`);
         } else {
           router.push("/products");
         }
@@ -462,14 +463,19 @@ export default function CartPage() {
                               </span>
                             )}
                           </Link>
-                          <div className="flex items-center gap-4 mt-1">
+                          <div className="flex items-center mt-1">
                             <span className="font-semibold text-primary">
                               {formatCurrency(item.unitPrice)}
                             </span>
+                            {item.unitOldPrice && (
+                              <span className="text-xs text-muted-foreground line-through mt-0.5 ml-1">
+                                {formatCurrency(item.unitOldPrice)}
+                              </span>
+                            )}
                             {item.stock < 10 && (
                               <Badge
                                 variant="secondary"
-                                className="bg-yellow-500 text-white text-xs"
+                                className="bg-yellow-500 text-white text-xs ml-4"
                               >
                                 Low stock
                               </Badge>
@@ -546,6 +552,45 @@ export default function CartPage() {
                 <div className="space-y-4">
                   <h4 className="text-sm font-medium">Customer</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {user?.role !== Role.USER && (
+                      <div className="space-y-2 sm:col-span-2">
+                        <Label htmlFor="customer.user">
+                          Select User (optional)
+                        </Label>
+                        <ComboboxApiSearch<UserSearchOption>
+                          searchFn={searchUsers}
+                          getOptionLabel={(o) => o.label}
+                          getOptionValue={(o) => o._id}
+                          value={form.watch("customer.user") || null}
+                          onChange={(opt) => {
+                            if (opt) {
+                              const user = opt as UserSearchOption;
+                              form.setValue("customer.user", user._id);
+                              form.setValue("customer.name", user.name);
+                              form.setValue(
+                                "customer.email",
+                                user.email || undefined,
+                              );
+                              form.setValue(
+                                "customer.phone",
+                                user.mobile || "",
+                              );
+                            } else {
+                              form.setValue("customer.user", undefined);
+                            }
+                          }}
+                          placeholder="Search users…"
+                          debounceMs={300}
+                          minQueryLength={1}
+                          clearable
+                        />
+                        {form.formState.errors.customer?.name && (
+                          <p className="text-sm text-destructive">
+                            {form.formState.errors.customer.name.message}
+                          </p>
+                        )}
+                      </div>
+                    )}
                     <div className="space-y-2 sm:col-span-2">
                       <Label htmlFor="customer.name">Name *</Label>
                       <Input
@@ -692,7 +737,7 @@ export default function CartPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                {/* <div className="flex items-center gap-2">
                   <Checkbox
                     id="sameAsBilling"
                     checked={sameAsBilling}
@@ -703,7 +748,7 @@ export default function CartPage() {
                   <Label htmlFor="sameAsBilling">
                     Shipping same as billing
                   </Label>
-                </div>
+                </div> */}
 
                 {!sameAsBilling && (
                   <div className="space-y-4">
@@ -860,14 +905,13 @@ export default function CartPage() {
                           ))}
                         </SelectContent>
                       </Select>
-                      {form.formState.errors.transaction?.paymentMethod && (
-                        <p className="text-sm text-destructive">
-                          {
-                            form.formState.errors.transaction.paymentMethod
-                              .message
-                          }
-                        </p>
-                      )}
+                      <FieldError
+                        errors={
+                          form.formState.errors.transaction?.paymentMethod
+                            ? [form.formState.errors.transaction.paymentMethod]
+                            : undefined
+                        }
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="transaction.reference">
@@ -877,6 +921,13 @@ export default function CartPage() {
                         id="transaction.reference"
                         {...form.register("transaction.reference")}
                         placeholder="e.g. transaction ID"
+                      />
+                      <FieldError
+                        errors={
+                          form.formState.errors.transaction?.reference
+                            ? [form.formState.errors.transaction.reference]
+                            : undefined
+                        }
                       />
                     </div>
                   </div>
@@ -890,7 +941,7 @@ export default function CartPage() {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-4">
+            <Card className="sticky top-28">
               <CardHeader>
                 <CardTitle>Order Summary</CardTitle>
               </CardHeader>
@@ -923,14 +974,15 @@ export default function CartPage() {
                       )}
                     </Button>
                   </div>
-                  {appliedCouponCode && (
-                    <p className="text-xs text-green-600">
-                      Coupon <strong>{appliedCouponCode}</strong> applied
-                      {discountAmount > 0
-                        ? ` · ${formatCurrency(discountAmount)} off`
-                        : ""}
-                    </p>
-                  )}
+                  {subtotal >= (appliedCoupon?.minPurchase || 0) &&
+                    appliedCouponCode && (
+                      <p className="text-xs text-green-600">
+                        Coupon <strong>{appliedCouponCode}</strong> applied
+                        {couponDiscountAmount > 0
+                          ? ` · ${formatCurrency(couponDiscountAmount)} off`
+                          : ""}
+                      </p>
+                    )}
                 </div>
 
                 <Separator />
@@ -940,6 +992,25 @@ export default function CartPage() {
                     <span className="text-muted-foreground">Subtotal</span>
                     <span>{formatCurrency(subtotal)}</span>
                   </div>
+                  {/* <div className="flex justify-between">
+                    <span className="text-muted-foreground">Tax</span>
+                    <span>
+                      {taxAmount > 0 ? (
+                        formatCurrency(taxAmount)
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </span>
+                  </div> */}
+                  {couponDiscountAmount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>
+                        Discount
+                        {appliedCouponCode ? ` (${appliedCouponCode})` : ""}
+                      </span>
+                      <span>-{formatCurrency(couponDiscountAmount)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-muted-foreground flex items-center gap-1">
                       <Truck className="size-3" />
@@ -956,37 +1027,8 @@ export default function CartPage() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Tax</span>
-                    <span>
-                      {taxAmount > 0 ? (
-                        formatCurrency(taxAmount)
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </span>
-                  </div>
-                  {discountAmount > 0 && (
-                    <>
-                      {couponDiscountAmount > 0 && (
-                        <div className="flex justify-between text-green-600">
-                          <span>
-                            Discount
-                            {appliedCouponCode ? ` (${appliedCouponCode})` : ""}
-                          </span>
-                          <span>-{formatCurrency(couponDiscountAmount)}</span>
-                        </div>
-                      )}
-                      {appliedFreeShipping && shippingAmount > 0 && (
-                        <div className="flex justify-between text-green-600">
-                          <span>Free shipping (coupon)</span>
-                          <span>-{formatCurrency(shippingAmount)}</span>
-                        </div>
-                      )}
-                    </>
-                  )}
-                  <div className="flex justify-between">
                     <span className="text-muted-foreground">
-                      COD
+                      Cash on delivery
                       {codAmount > 0 ? ` (${codAmount}%)` : ""}
                     </span>
                     <span>
