@@ -43,7 +43,7 @@ WORKDIR /app/apps/frontend
 RUN ln -s /app/node_modules ./node_modules
 
 # Build with bun
-RUN bun --bun next build
+RUN bun --bun next build --turbopack
 
 # Production image, copy all the files and run next
 FROM base AS runner
@@ -55,18 +55,13 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/apps/frontend/public ./public
-
-# Set correct permissions for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+USER nextjs
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/static ./.next/static
-
-USER nextjs
+COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/static ./apps/frontend/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/public ./apps/frontend/public
 
 EXPOSE 9001
 
