@@ -35,7 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
     (config?.siteLogo &&
     typeof config.siteLogo === "object" &&
     "path" in config.siteLogo
-      ? config?.siteLogo?.path
+      ? config.siteLogo.path
       : undefined);
   const twitterImage =
     (seo?.twitterImage as { path?: string } | undefined)?.path || ogImage;
@@ -84,9 +84,9 @@ export async function generateMetadata(): Promise<Metadata> {
       typeof config.siteFavicon === "object" &&
       "path" in config.siteFavicon && {
         icons: {
-          icon: config?.siteFavicon?.path,
-          shortcut: config?.siteFavicon?.path,
-          apple: config?.siteFavicon?.path,
+          icon: config.siteFavicon.path,
+          shortcut: config.siteFavicon.path,
+          apple: config.siteFavicon.path,
         },
       }),
   };

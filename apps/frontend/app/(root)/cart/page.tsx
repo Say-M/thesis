@@ -321,7 +321,7 @@ export default function CartPage() {
     try {
       const res = await validateCoupon({ code, cartTotal: subtotal });
       if (res?.data?.isValid && res?.data?.coupon) {
-        const coupon = res?.data?.coupon;
+        const coupon = res.data.coupon;
 
         // Frontend guard: enforce minPurchase against current cart subtotal.
         if (coupon.minPurchase != null && subtotal < coupon.minPurchase) {

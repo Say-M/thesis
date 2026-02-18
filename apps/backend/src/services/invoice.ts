@@ -81,7 +81,7 @@ export const createInvoiceService = async (
         let discountType = product.discountType || DiscountType.PERCENTAGE;
         let discountValue = product.discountValue ?? 0;
 
-        if (product?.hasVariants && item?.variantId) {
+        if (product.hasVariants && item.variantId) {
           const variant = product.variants?.find(
             (v) =>
               v._id?.toString() === item.variantId ||

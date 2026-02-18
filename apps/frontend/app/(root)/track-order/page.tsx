@@ -309,7 +309,7 @@ export default function TrackOrderPage() {
 
           {!isLoading && invoice && (
             <TrackResult
-              invoice={data?.data?.invoice}
+              invoice={data.data.invoice}
               onTrackAnother={trackAnother}
             />
           )}

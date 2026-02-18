@@ -21,12 +21,12 @@ export const useLogin = () => {
       return data;
     },
     onSuccess: (data) => {
-      toast.success(data?.message ?? "Success");
+      toast.success(data.message);
       setUser(data?.data?.user ?? null);
       router.push("/");
     },
     onError: (error: AxiosError) => {
-      toast.error((error?.response?.data as { message?: string })?.message ?? "An error occurred");
+      toast.error((error.response?.data as { message: string }).message);
     },
   });
 };
@@ -41,12 +41,12 @@ export const useRegister = () => {
       return data;
     },
     onSuccess: (data) => {
-      toast.success(data?.message ?? "Success");
+      toast.success(data.message);
       setUser(data?.data?.user ?? null);
       router.push("/");
     },
     onError: (error: AxiosError) => {
-      toast.error((error?.response?.data as { message?: string })?.message ?? "An error occurred");
+      toast.error((error.response?.data as { message: string }).message);
     },
   });
 };
@@ -61,14 +61,14 @@ export const useLogout = () => {
       return data;
     },
     onSuccess: (data) => {
-      toast.success(data?.message ?? "Success");
+      toast.success(data.message);
       setUser(null);
       setTimeout(() => {
         router.push("/auth/login");
       }, 50);
     },
     onError: (error: AxiosError) => {
-      toast.error((error?.response?.data as { message?: string })?.message ?? "An error occurred");
+      toast.error((error.response?.data as { message: string }).message);
     },
   });
 };

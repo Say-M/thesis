@@ -50,7 +50,7 @@ export const useUpdateConfig = () => {
         CONFIG_QUERY_KEY,
         (prev: GetConfigResponseType | undefined) =>
           prev && data?.data?.config
-            ? { ...prev, data: { config: data?.data?.config } }
+            ? { ...prev, data: { config: data.data.config } }
             : prev,
       );
     },

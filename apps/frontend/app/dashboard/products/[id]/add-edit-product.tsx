@@ -477,8 +477,8 @@ export default function AddEditProduct({ id }: { id: string }) {
                     <FieldLabel>Current thumbnail</FieldLabel>
                     <div className="relative">
                       <Image
-                        src={product?.thumbnail?.path ?? ""}
-                        alt={product?.thumbnail?.name ?? "Thumbnail"}
+                        src={product.thumbnail.path}
+                        alt={product.thumbnail.name || "Thumbnail"}
                         className="rounded-md border object-cover relative!"
                         fill
                       />

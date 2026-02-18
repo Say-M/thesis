@@ -48,7 +48,7 @@ export default function Footer() {
     all: "true",
   });
   const footerPages =
-    footerPagesData?.pages?.map((page) => page?.pages ?? []).flat() ?? [];
+    footerPagesData?.pages?.map((page) => page.pages).flat() ?? [];
   const footerPagesByTag = groupPagesByTag(footerPages);
   const tagKeys = Object.keys(footerPagesByTag).sort((a, b) =>
     b.localeCompare(a, undefined, { sensitivity: "base" }),
@@ -82,10 +82,10 @@ export default function Footer() {
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Mail className="size-4 shrink-0" />
                   <a
-                    href={`mailto:${config?.siteEmail ?? ""}`}
+                    href={`mailto:${config.siteEmail}`}
                     className="hover:text-foreground transition-colors"
                   >
-                    {config?.siteEmail}
+                    {config.siteEmail}
                   </a>
                 </div>
               )}
@@ -93,17 +93,17 @@ export default function Footer() {
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Phone className="size-4 shrink-0" />
                   <a
-                    href={`tel:${config?.sitePhone?.replace(/\s/g, "") ?? ""}`}
+                    href={`tel:${config.sitePhone.replace(/\s/g, "")}`}
                     className="hover:text-foreground transition-colors"
                   >
-                    {config?.sitePhone}
+                    {config.sitePhone}
                   </a>
                 </div>
               )}
               {config?.siteAddress?.trim() && (
                 <div className="flex items-start gap-2 text-muted-foreground">
                   <MapPin className="size-4 shrink-0 mt-0.5" />
-                  <span>{config?.siteAddress}</span>
+                  <span>{config.siteAddress}</span>
                 </div>
               )}
             </div>

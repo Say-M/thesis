@@ -88,12 +88,12 @@ export default function InvoicesTable({
                   <p className="font-medium">{invoice.customer?.name ?? "—"}</p>
                   {invoice.customer?.email && (
                     <p className="text-xs text-muted-foreground">
-                      {invoice?.customer?.email ?? ""}
+                      {invoice.customer.email}
                     </p>
                   )}
                   {invoice.customer?.phone && (
                     <p className="text-xs text-muted-foreground">
-                      {invoice?.customer?.phone ?? ""}
+                      {invoice.customer.phone}
                     </p>
                   )}
                 </div>
