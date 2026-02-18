@@ -68,11 +68,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/static ./.nex
 
 USER nextjs
 
-EXPOSE 3000
+EXPOSE 9001
 
-ENV PORT=3000
+ENV PORT=9001
 
 # server.js is created by next build from the standalone output
 # https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
-# ENV HOSTNAME="0.0.0.0"
+ENV HOSTNAME="0.0.0.0"
 CMD ["bun", "apps/frontend/server.js"]
