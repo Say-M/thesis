@@ -236,8 +236,8 @@ export default function SeoEditPage() {
                   <FieldLabel>Current OG image</FieldLabel>
                   <div className="relative max-w-80">
                     <Image
-                      src={seo.ogImage.path}
-                      alt={seo.ogImage.name || "OG Image"}
+                      src={seo?.ogImage?.path ?? ""}
+                      alt={seo?.ogImage?.name ?? "OG Image"}
                       className="rounded-md border object-cover relative!"
                       fill
                     />
@@ -352,8 +352,8 @@ export default function SeoEditPage() {
                   <FieldLabel>Current Twitter image</FieldLabel>
                   <div className="relative max-w-80">
                     <Image
-                      src={seo.twitterImage.path}
-                      alt={seo.twitterImage.name || "Twitter Image"}
+                      src={seo?.twitterImage?.path ?? ""}
+                      alt={seo?.twitterImage?.name ?? "Twitter Image"}
                       className="rounded-md border object-cover relative!"
                       fill
                     />

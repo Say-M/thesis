@@ -121,13 +121,13 @@ export default function InvoiceDetailPage() {
             {invoice.customer?.email && (
               <div>
                 <p className="text-sm text-muted-foreground">Email</p>
-                <p className="font-medium">{invoice.customer.email}</p>
+                <p className="font-medium">{invoice?.customer?.email ?? ""}</p>
               </div>
             )}
             {invoice.customer?.phone && (
               <div>
                 <p className="text-sm text-muted-foreground">Phone</p>
-                <p className="font-medium">{invoice.customer.phone}</p>
+                <p className="font-medium">{invoice?.customer?.phone ?? ""}</p>
               </div>
             )}
           </CardContent>
@@ -140,16 +140,16 @@ export default function InvoiceDetailPage() {
           <CardContent className="space-y-2">
             <div>
               <p className="text-sm text-muted-foreground">Invoice Number</p>
-              <p className="font-mono font-medium">{invoice.invoiceNumber}</p>
+              <p className="font-mono font-medium">{invoice?.invoiceNumber ?? ""}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Type</p>
-              <Badge variant="outline">{invoice.type}</Badge>
+              <Badge variant="outline">{invoice?.type ?? ""}</Badge>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Date</p>
               <p className="font-medium">
-                {invoice.createdAt
+                {invoice?.createdAt
                   ? format(new Date(invoice.createdAt), "PP hh:mm aa")
                   : "—"}
               </p>
@@ -165,21 +165,21 @@ export default function InvoiceDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-1">
-              <p className="font-medium">{invoice.billingAddress.name}</p>
-              {invoice.billingAddress.email && (
+              <p className="font-medium">{invoice?.billingAddress?.name ?? ""}</p>
+              {invoice?.billingAddress?.email && (
                 <p className="text-sm text-muted-foreground">
-                  {invoice.billingAddress.email}
+                  {invoice?.billingAddress?.email}
                 </p>
               )}
               <p className="text-sm text-muted-foreground">
-                {invoice.billingAddress.phone}
+                {invoice?.billingAddress?.phone ?? ""}
               </p>
               <p className="text-sm text-muted-foreground">
-                {invoice.billingAddress.address}
+                {invoice?.billingAddress?.address ?? ""}
               </p>
               <p className="text-sm text-muted-foreground">
-                {invoice.billingAddress.city}, {invoice.billingAddress.state}{" "}
-                {invoice.billingAddress.postalCode}
+                {invoice?.billingAddress?.city}, {invoice?.billingAddress?.state}{" "}
+                {invoice?.billingAddress?.postalCode}
               </p>
             </div>
           </CardContent>
@@ -193,21 +193,21 @@ export default function InvoiceDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-1">
-              <p className="font-medium">{invoice.shippingAddress.name}</p>
-              {invoice.shippingAddress.email && (
+              <p className="font-medium">{invoice?.shippingAddress?.name ?? ""}</p>
+              {invoice?.shippingAddress?.email && (
                 <p className="text-sm text-muted-foreground">
-                  {invoice.shippingAddress.email}
+                  {invoice?.shippingAddress?.email}
                 </p>
               )}
               <p className="text-sm text-muted-foreground">
-                {invoice.shippingAddress.phone}
+                {invoice?.shippingAddress?.phone ?? ""}
               </p>
               <p className="text-sm text-muted-foreground">
-                {invoice.shippingAddress.address}
+                {invoice?.shippingAddress?.address ?? ""}
               </p>
               <p className="text-sm text-muted-foreground">
-                {invoice.shippingAddress.city}, {invoice.shippingAddress.state}{" "}
-                {invoice.shippingAddress.postalCode}
+                {invoice?.shippingAddress?.city}, {invoice?.shippingAddress?.state}{" "}
+                {invoice?.shippingAddress?.postalCode}
               </p>
             </div>
           </CardContent>
@@ -288,7 +288,7 @@ export default function InvoiceDetailPage() {
               </div>
               {invoice.coupon && (
                 <div className="flex justify-between text-green-600">
-                  <span>Coupon ({invoice.coupon.code})</span>
+                  <span>Coupon ({invoice?.coupon?.code ?? ""})</span>
                   <span>
                     -{formatCurrency(invoice.couponDiscountAmount ?? 0)}
                   </span>
@@ -396,7 +396,7 @@ export default function InvoiceDetailPage() {
                       Payment Progress
                     </span>
                     <span className="font-medium">
-                      {invoice.paymentPercentage.toFixed(1)}%
+                      {invoice?.paymentPercentage?.toFixed(1) ?? "0"}%
                     </span>
                   </div>
                   <div className="w-full bg-secondary rounded-full h-2">

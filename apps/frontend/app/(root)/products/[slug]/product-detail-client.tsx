@@ -21,8 +21,8 @@ function useProductDisplayState(product: ProductDetail | null | undefined) {
   const currentVariant = useMemo(() => {
     if (!product?.hasVariants || !product.variants?.length) return null;
     return (
-      product.variants.find((v) => v._id === selectedVariantId) ??
-      product.variants[0]
+      product?.variants?.find((v) => v._id === selectedVariantId) ??
+      product?.variants?.[0]
     );
   }, [product, selectedVariantId]);
 

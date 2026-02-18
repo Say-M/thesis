@@ -42,7 +42,7 @@ export default function AuthProvider({
     if (!user)
       getProfile()
         .then(({ data }) => {
-          setUser(data.data?.user ?? null);
+          setUser(data?.data?.user ?? null);
         })
         .finally(() => setFetching(false));
   }, [user, pathname]);

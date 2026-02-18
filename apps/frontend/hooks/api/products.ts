@@ -63,8 +63,8 @@ export function productListItemToCardProps(p: ProductDetail): {
   stock: number;
   variantId?: string;
 } {
-  const useFirstVariant = p.hasVariants && p.variants && p.variants.length > 0;
-  const v = useFirstVariant ? p.variants![0] : null;
+  const useFirstVariant = p?.hasVariants && p?.variants && (p?.variants?.length ?? 0) > 0;
+  const v = useFirstVariant ? (p?.variants?.[0] ?? null) : null;
 
   const sellingPrice = v ? (v.sellingPrice ?? 0) : (p.sellingPrice ?? 0);
   const discountValue = v ? (v.discountValue ?? 0) : (p.discountValue ?? 0);

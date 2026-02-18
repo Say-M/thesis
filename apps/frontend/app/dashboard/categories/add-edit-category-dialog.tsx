@@ -230,8 +230,8 @@ export default function AddEditCategoryDialog({
                           <FieldLabel>Current thumbnail</FieldLabel>
                           <div className="relative">
                             <Image
-                              src={category.thumbnail.path}
-                              alt={category.thumbnail.name || "Thumbnail"}
+                              src={category?.thumbnail?.path ?? ""}
+                              alt={category?.thumbnail?.name ?? "Thumbnail"}
                               className="rounded-md border object-cover relative!"
                               fill
                             />

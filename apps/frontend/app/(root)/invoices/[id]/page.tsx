@@ -429,5 +429,5 @@ export default function InvoiceViewPage() {
     );
   }
 
-  return <InvoiceContent invoice={data.data.invoice} />;
+  return <InvoiceContent invoice={data?.data?.invoice} />;
 }

@@ -331,8 +331,8 @@ export default function SettingsPage() {
                 {config?.siteLogo?.path && (
                   <div className="relative">
                     <Image
-                      src={config.siteLogo.path}
-                      alt={config.siteLogo.name || "Logo"}
+                      src={config?.siteLogo?.path ?? ""}
+                      alt={config?.siteLogo?.name ?? "Logo"}
                       className="rounded-md border object-cover relative! max-w-80!"
                       fill
                     />
@@ -552,7 +552,7 @@ export default function SettingsPage() {
                     {config?.seo?.ogImage && (
                       <div className="relative mb-2">
                         <Image
-                          src={(config.seo.ogImage as any)?.path || ""}
+                          src={(config?.seo?.ogImage as any)?.path ?? ""}
                           alt="OG Image"
                           className="rounded-md border object-cover relative! max-w-80!"
                           fill
@@ -629,7 +629,7 @@ export default function SettingsPage() {
                     {config?.seo?.twitterImage && (
                       <div className="relative mb-2">
                         <Image
-                          src={(config.seo.twitterImage as any)?.path || ""}
+                          src={(config?.seo?.twitterImage as any)?.path ?? ""}
                           alt="Twitter Image"
                           className="rounded-md border object-cover relative! max-w-80!"
                           fill

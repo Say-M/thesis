@@ -87,13 +87,13 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
             {order.customer?.email && (
               <div>
                 <p className="text-sm text-muted-foreground">Email</p>
-                <p className="font-medium">{order.customer.email}</p>
+                <p className="font-medium">{order?.customer?.email ?? ""}</p>
               </div>
             )}
             {order.customer?.phone && (
               <div>
                 <p className="text-sm text-muted-foreground">Phone</p>
-                <p className="font-medium">{order.customer.phone}</p>
+                <p className="font-medium">{order?.customer?.phone ?? ""}</p>
               </div>
             )}
           </CardContent>
@@ -106,12 +106,12 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
           <CardContent className="space-y-2">
             <div>
               <p className="text-sm text-muted-foreground">Order Number</p>
-              <p className="font-mono font-medium">{order.invoiceNumber}</p>
+              <p className="font-mono font-medium">{order?.invoiceNumber ?? ""}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Date</p>
               <p className="font-medium">
-                {order.createdAt
+                {order?.createdAt
                   ? new Date(order.createdAt).toLocaleString()
                   : "—"}
               </p>
@@ -127,21 +127,21 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
           </CardHeader>
           <CardContent>
             <div className="space-y-1">
-              <p className="font-medium">{order.billingAddress.name}</p>
-              {order.billingAddress.email && (
+              <p className="font-medium">{order?.billingAddress?.name ?? ""}</p>
+              {order?.billingAddress?.email && (
                 <p className="text-sm text-muted-foreground">
-                  {order.billingAddress.email}
+                  {order?.billingAddress?.email}
                 </p>
               )}
               <p className="text-sm text-muted-foreground">
-                {order.billingAddress.phone}
+                {order?.billingAddress?.phone ?? ""}
               </p>
               <p className="text-sm text-muted-foreground">
-                {order.billingAddress.address}
+                {order?.billingAddress?.address ?? ""}
               </p>
               <p className="text-sm text-muted-foreground">
-                {order.billingAddress.city}, {order.billingAddress.state}{" "}
-                {order.billingAddress.postalCode}
+                {order?.billingAddress?.city}, {order?.billingAddress?.state}{" "}
+                {order?.billingAddress?.postalCode}
               </p>
             </div>
           </CardContent>
@@ -155,21 +155,21 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
           </CardHeader>
           <CardContent>
             <div className="space-y-1">
-              <p className="font-medium">{order.shippingAddress.name}</p>
-              {order.shippingAddress.email && (
+              <p className="font-medium">{order?.shippingAddress?.name ?? ""}</p>
+              {order?.shippingAddress?.email && (
                 <p className="text-sm text-muted-foreground">
-                  {order.shippingAddress.email}
+                  {order?.shippingAddress?.email}
                 </p>
               )}
               <p className="text-sm text-muted-foreground">
-                {order.shippingAddress.phone}
+                {order?.shippingAddress?.phone ?? ""}
               </p>
               <p className="text-sm text-muted-foreground">
-                {order.shippingAddress.address}
+                {order?.shippingAddress?.address ?? ""}
               </p>
               <p className="text-sm text-muted-foreground">
-                {order.shippingAddress.city}, {order.shippingAddress.state}{" "}
-                {order.shippingAddress.postalCode}
+                {order?.shippingAddress?.city}, {order?.shippingAddress?.state}{" "}
+                {order?.shippingAddress?.postalCode}
               </p>
             </div>
           </CardContent>
@@ -244,7 +244,7 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
             {order.coupon && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">
-                  Coupon ({order.coupon.code})
+                  Coupon ({order?.coupon?.code ?? ""})
                 </span>
                 <span className="font-medium text-muted-foreground">
                   -{formatCurrency(order.couponDiscountAmount)}

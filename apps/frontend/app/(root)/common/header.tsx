@@ -136,7 +136,7 @@ export default function Header() {
     enabled: debouncedSearch.length >= SEARCH_MIN_LENGTH,
   });
   const searchProducts =
-    searchData?.pages?.map((page) => page.products).flat() ?? [];
+    searchData?.pages?.map((page) => page?.products ?? []).flat() ?? [];
 
   const handleSelectProduct = useCallback(
     (slug: string) => {
@@ -154,7 +154,7 @@ export default function Header() {
     all: "true",
   });
   const headerPages =
-    headerPagesData?.pages?.map((page) => page.pages).flat() ?? [];
+    headerPagesData?.pages?.map((page) => page?.pages ?? []).flat() ?? [];
 
   return (
     <header className="sticky top-0 z-50 bg-background print:hidden">
@@ -168,9 +168,9 @@ export default function Header() {
                     <Fragment key={page._id}>
                       <Link
                         key={page._id}
-                        href={`/${page.slug}`}
+                        href={`/${page?.slug ?? ""}`}
                       >
-                        {page.title}
+                        {page?.title ?? ""}
                       </Link>
                       {index < headerPages.length - 1 && (
                         <Separator orientation="vertical" className="h-3!" />
@@ -207,13 +207,14 @@ export default function Header() {
           <Link href="/">
             {config?.siteLogo ? (
               <Image
-                src={config.siteLogo.path}
-                alt={config.siteName}
+                src={config?.siteLogo?.path}
+                alt={config?.siteName ?? ""}
                 width={100}
                 height={100}
+                className="max-h-8 w-full object-cover"
               />
             ) : (
-              <h1 className="text-2xl font-bold">{config?.siteName}</h1>
+              <h1 className="text-2xl font-bold">{config?.siteName ?? ""}</h1>
             )}
           </Link>
           <div className="max-w-xl w-full mx-auto">
@@ -225,7 +226,7 @@ export default function Header() {
                       autoComplete="off"
                       placeholder="Search products…"
                       value={searchInput}
-                      onChange={(e) => setSearchInput(e.target.value)}
+                      onChange={(e) => setSearchInput(e?.target?.value ?? "")}
                       onFocus={() => setSearchOpen(true)}
                       onKeyDown={(e) => {
                         if (e.key === "Escape") {

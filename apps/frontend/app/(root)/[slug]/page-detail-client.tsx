@@ -25,21 +25,21 @@ export function PageDetailClient({ slug, page }: PageDetailClientProps) {
     page.featuredImage &&
     typeof page.featuredImage === "object" &&
     "path" in page.featuredImage
-      ? page.featuredImage.path
+      ? page?.featuredImage?.path
       : undefined;
-  const content = page.content as SerializedEditorState | null | undefined;
+  const content = page?.content as SerializedEditorState | null | undefined;
 
   return (
     <article className="mx-auto max-w-4xl px-4 my-8 md:px-8">
       <header className="space-y-4">
         <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-          {page.title}
+          {page?.title ?? ""}
         </h1>
         {featuredImage && (
           <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-muted">
             <Image
               src={featuredImage}
-              alt={page.title}
+              alt={page?.title ?? ""}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 896px"

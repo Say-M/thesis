@@ -5,4 +5,6 @@ export const acceptedImageMimeTypes = [
   "image/avif",
   "image/svg+xml",
   "image/gif",
+  "image/ico",
+  "image/x-icon",
 ];
