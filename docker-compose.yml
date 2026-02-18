@@ -3,8 +3,17 @@ services:
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
-    env_file:
-      - apps/backend/.env.production
+    environment:
+      - SERVER_URL=${SERVER_URL}
+      - PORT=${PORT:-9000}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - CSRF_ORIGINS=${CSRF_ORIGINS:-*}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+      - PRIVATE_JWK=${PRIVATE_JWK}
+      - PUBLIC_JWK=${PUBLIC_JWK}
+      - IMAGEKIT_PRIVATE_KEY=${IMAGEKIT_PRIVATE_KEY}
+      - IMAGEKIT_FOLDER_NAME=${IMAGEKIT_FOLDER_NAME}
     ports:
       - "9000:9000"
     restart: unless-stopped
@@ -15,8 +24,8 @@ services:
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
-    env_file:
-      - apps/frontend/.env.production
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     ports:
       - "9001:9001"
     restart: unless-stopped
