@@ -54,7 +54,7 @@ export default function ProductsTable({
   } = useListProducts({ search, status, featured });
 
   const products = useMemo(
-    () => productsData?.pages?.map((page) => page.products).flat() ?? [],
+    () => productsData?.pages?.map((page) => page?.products ?? []).flat() ?? [],
     [productsData],
   );
 
@@ -81,27 +81,27 @@ export default function ProductsTable({
         </TableHeader>
         <TableBody>
           {products.map((product) => (
-            <TableRow key={product._id}>
+            <TableRow key={product?._id ?? ""}>
               <TableCell>
                 <div className="flex items-center gap-3">
                   <Avatar size="sm" className="size-10! rounded-sm shrink-0">
                     <AvatarImage
-                      src={product.thumbnail?.path}
-                      alt={product.name}
+                      src={product?.thumbnail?.path}
+                      alt={product?.name ?? ""}
                     />
                     <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium rounded-sm">
-                      {product.name?.charAt(0)?.toUpperCase() ?? "—"}
+                      {product?.name?.charAt(0)?.toUpperCase() ?? "—"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="space-y-0.5">
-                    <p className="font-medium">{product.name}</p>
+                    <p className="font-medium">{product?.name ?? ""}</p>
                     <p className="text-xs text-muted-foreground">
-                      {product.slug}
+                      {product?.slug ?? ""}
                     </p>
-                    {product.hasVariants && Array.isArray(product.variants) && (
+                    {product?.hasVariants && Array.isArray(product?.variants) && (
                       <p className="text-[11px] text-muted-foreground">
-                        {product.variants.length}{" "}
-                        {product.variants.length === 1 ? "variant" : "variants"}
+                        {product?.variants?.length ?? 0}{" "}
+                        {product?.variants?.length === 1 ? "variant" : "variants"}
                       </p>
                     )}
                   </div>
@@ -114,10 +114,10 @@ export default function ProductsTable({
                 {product.subcategory?.name ?? "—"}
               </TableCell>
               <TableCell className="text-muted-foreground">
-                {product.hasVariants && Array.isArray(product.variants)
+                {product?.hasVariants && Array.isArray(product?.variants)
                   ? (() => {
-                      const prices = product.variants
-                        .map((v) => v.sellingPrice)
+                      const prices = (product?.variants ?? [])
+                        .map((v) => v?.sellingPrice)
                         .filter((v): v is number => typeof v === "number");
                       if (!prices.length) return "—";
                       const min = Math.min(...prices);
@@ -126,29 +126,29 @@ export default function ProductsTable({
                       if (min === max) return formatCurrency(min);
                       return `From ${formatCurrency(min)}`;
                     })()
-                  : product.sellingPrice != null
+                  : product?.sellingPrice != null
                     ? formatCurrency(product.sellingPrice)
                     : "—"}
               </TableCell>
               <TableCell className="text-muted-foreground">
-                {typeof (product as any).totalStock === "number"
+                {typeof (product as any)?.totalStock === "number"
                   ? (product as any).totalStock
-                  : (product.stock ?? 0)}
+                  : (product?.stock ?? 0)}
               </TableCell>
               <TableCell>
                 <Badge
-                  variant={product.status ? "default" : "secondary"}
-                  className={!product.status ? "opacity-75" : ""}
+                  variant={product?.status ? "default" : "secondary"}
+                  className={!product?.status ? "opacity-75" : ""}
                 >
-                  {product.status ? "Active" : "Inactive"}
+                  {product?.status ? "Active" : "Inactive"}
                 </Badge>
               </TableCell>
               <TableCell>
                 <Badge
-                  variant={product.featured ? "default" : "secondary"}
-                  className={!product.featured ? "opacity-75" : ""}
+                  variant={product?.featured ? "default" : "secondary"}
+                  className={!product?.featured ? "opacity-75" : ""}
                 >
-                  {product.featured ? "Featured" : "Not Featured"}
+                  {product?.featured ? "Featured" : "Not Featured"}
                 </Badge>
               </TableCell>
               <TableCell className="text-right">
@@ -162,7 +162,7 @@ export default function ProductsTable({
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
                       onSelect={() =>
-                        router.push(`/dashboard/products/${product._id}`)
+                        router.push(`/dashboard/products/${product?._id ?? ""}`)
                       }
                     >
                       Edit
@@ -171,11 +171,11 @@ export default function ProductsTable({
                     <DropdownMenuItem
                       onSelect={() => {
                         router.push(
-                          `/dashboard/seo/${product._id}?type=product`,
+                          `/dashboard/seo/${product?._id ?? ""}?type=product`,
                         );
                       }}
                     >
-                      {product.seo ? "Edit SEO" : "Add SEO"}
+                      {product?.seo ? "Edit SEO" : "Add SEO"}
                     </DropdownMenuItem>
                     <DropdownMenuSub>
                       <DropdownMenuSubTrigger>
@@ -184,10 +184,10 @@ export default function ProductsTable({
                       <DropdownMenuPortal>
                         <DropdownMenuSubContent>
                           <DropdownMenuRadioGroup
-                            value={product.status?.toString()}
+                            value={product?.status?.toString()}
                             onValueChange={(value) => {
                               updateProduct({
-                                id: product._id,
+                                id: product?._id ?? "",
                                 payload: {
                                   status: value === "true",
                                   deleteImages: [],
@@ -209,15 +209,15 @@ export default function ProductsTable({
                     <DropdownMenuItem
                       onSelect={() =>
                         updateProduct({
-                          id: product._id,
+                          id: product?._id ?? "",
                           payload: {
-                            featured: !product.featured,
+                            featured: !product?.featured,
                             deleteImages: [],
                           },
                         })
                       }
                     >
-                      {product.featured
+                      {product?.featured
                         ? "Mark as not featured"
                         : "Mark as featured"}
                     </DropdownMenuItem>
