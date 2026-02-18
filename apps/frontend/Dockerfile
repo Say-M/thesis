@@ -1,9 +1,9 @@
 # Use Bun as base image
 FROM oven/bun:1.3.6-alpine AS base
+WORKDIR /app
 
 # Install dependencies only when needed
 FROM base AS deps
-WORKDIR /app
 
 # Copy workspace root package files
 COPY package.json bun.lock ./
@@ -21,7 +21,6 @@ RUN bun install
 
 # Rebuild the source code only when needed
 FROM base AS builder
-WORKDIR /app
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
@@ -40,14 +39,14 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Build the Next.js application directly (not using turbo for docker builds)
 WORKDIR /app/apps/frontend
 
-# No symlink: Bun/Node resolve deps by walking up to /app/node_modules. Turbopack errors on symlinks outside project root.
+# Create symlink to node_modules at workspace root so Next.js can find dependencies
+RUN ln -s /app/node_modules ./node_modules
 
 # Build with bun
 RUN bun --bun next build
 
 # Production image, copy all the files and run next
 FROM base AS runner
-WORKDIR /app
 
 ENV NODE_ENV=production
 # Uncomment the following line in case you want to disable telemetry during runtime.
@@ -76,4 +75,4 @@ ENV PORT=3000
 # server.js is created by next build from the standalone output
 # https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
 ENV HOSTNAME="0.0.0.0"
-CMD ["bun", "server.js"]
+CMD ["bun", "apps/frontend/server.js"]
