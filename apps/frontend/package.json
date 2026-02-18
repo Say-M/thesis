@@ -9,12 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@repo/common": "*",
     "@base-ui/react": "^1.1.0",
     "@hookform/resolvers": "^5.2.2",
     "@lexical/react": "^0.40.0",
     "@lexical/selection": "^0.40.0",
     "@lexical/utils": "^0.40.0",
+    "@repo/common": "*",
     "@tanstack/react-query": "^5.90.20",
     "@tanstack/react-query-devtools": "^5.91.3",
     "axios": "^1.13.5",
@@ -36,7 +36,8 @@
     "recharts": "2.15.4",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
-    "vaul": "^1.1.2"
+    "vaul": "^1.1.2",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

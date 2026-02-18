@@ -32,32 +32,48 @@ COPY packages ./packages
 # Copy frontend app
 COPY apps/frontend ./apps/frontend
 
+# Set environment variables for build
+ENV OUTPUT_TRACING_ROOT=/app
+# Uncomment the following line in case you want to disable telemetry during runtime.
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Build from app directory; Node resolves deps from /app/node_modules
+# Build the Next.js application directly (not using turbo for docker builds)
 WORKDIR /app/apps/frontend
+
+# No symlink: Bun/Node resolve deps by walking up to /app/node_modules. Turbopack errors on symlinks outside project root.
+
+# Build with bun
 RUN bun --bun next build
 
-# Production image
+# Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
+# Uncomment the following line in case you want to disable telemetry during runtime.
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
-USER nextjs
 
 COPY --from=builder /app/apps/frontend/public ./public
+
+# Set correct permissions for prerender cache
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/static ./apps/frontend/.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/public ./apps/frontend/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/static ./.next/static
+
+USER nextjs
 
 EXPOSE 3000
+
 ENV PORT=3000
+
+# server.js is created by next build from the standalone output
+# https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
 ENV HOSTNAME="0.0.0.0"
-CMD ["bun", "apps/frontend/server.js"]
+CMD ["bun", "server.js"]
