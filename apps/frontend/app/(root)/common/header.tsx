@@ -166,10 +166,7 @@ export default function Header() {
                 <>
                   {headerPages.map((page, index) => (
                     <Fragment key={page._id}>
-                      <Link
-                        key={page._id}
-                        href={`/${page.slug}`}
-                      >
+                      <Link key={page._id} href={`/${page.slug}`}>
                         {page.title}
                       </Link>
                       {index < headerPages.length - 1 && (
@@ -211,6 +208,7 @@ export default function Header() {
                 alt={config.siteName}
                 width={100}
                 height={100}
+                className="max-h-8 w-full object-cover"
               />
             ) : (
               <h1 className="text-2xl font-bold">{config?.siteName}</h1>
