@@ -60,20 +60,20 @@ export default function Banner() {
       <Carousel setApi={setApi} className="relative">
         <CarouselContent>
           {banners.map((banner) => {
-            const imagePath = banner.image?.path;
+            const imagePath = banner?.image?.path;
             const inner = (
               <AspectRatio ratio={16 / 9}>
                 <div className="size-full bg-muted">
                   {imagePath ? (
                     <img
                       src={imagePath}
-                      alt={banner.title ?? "Banner"}
+                      alt={banner?.title ?? "Banner"}
                       className="size-full object-cover"
                     />
                   ) : (
                     <div className="size-full flex items-center justify-center">
                       <span className="text-muted-foreground">
-                        {banner.title ?? "Banner"}
+                        {banner?.title ?? "Banner"}
                       </span>
                     </div>
                   )}
@@ -82,9 +82,9 @@ export default function Banner() {
             );
             return (
               <CarouselItem key={banner._id}>
-                {banner.link?.trim() ? (
+                {banner?.link?.trim() ? (
                   <Link
-                    href={banner.link}
+                    href={banner?.link ?? ""}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block"
