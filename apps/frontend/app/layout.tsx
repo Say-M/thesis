@@ -1,3 +1,4 @@
+import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import TanStackProvider from "@/contexts/tanstack";
@@ -113,6 +114,7 @@ export default function RootLayout({
           </AuthProvider>
         </TanStackProvider>
       </body>
+      <GoogleAnalytics gaId="G-63VP74W5V4" />
     </html>
   );
 }
