@@ -79,13 +79,9 @@ export function useUpdateTransaction(invoiceId: string) {
     },
     onSuccess: () => {
       toast.success("Payment status updated");
-      queryClient.invalidateQueries({
-        queryKey: ["invoices", invoiceId, "transactions"],
-      });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      queryClient.invalidateQueries({
-        queryKey: ["invoices", invoiceId],
-      });
+      queryClient.invalidateQueries({ queryKey: [invoiceId] });
     },
     onError: (error: AxiosError<{ message?: string }>) => {
       toast.error(error.response?.data?.message ?? "Failed to update status");

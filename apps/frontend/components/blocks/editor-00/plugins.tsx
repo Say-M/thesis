@@ -131,7 +131,7 @@ export function Plugins({
               <div className="" ref={onRef}>
                 <ContentEditable
                   placeholder={placeholder}
-                  className={`ContentEditable__root relative block ${minHeight} min-h-full overflow-auto px-8 py-4 focus:outline-none`}
+                  className={`ContentEditable__root relative block ${minHeight} overflow-auto p-4 focus:outline-none`}
                 />
               </div>
             </div>

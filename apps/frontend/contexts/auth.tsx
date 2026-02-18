@@ -36,7 +36,7 @@ export default function AuthProvider({
   const router = useRouter();
   const { refetch: getProfile } = useGetProfile();
 
-  const privateRoutes = ["/dashboard", "/profile"];
+  const privateRoutes = ["dashboard", "profile"];
 
   useEffect(() => {
     if (!user)
@@ -69,7 +69,7 @@ export default function AuthProvider({
         refetch: getProfile,
       }}
     >
-      {isFetching && privateRoutes.includes(pathname) ? (
+      {isFetching && privateRoutes.includes(pathname?.split("/")[1] ?? "") ? (
         <div className="flex h-screen w-full items-center justify-center">
           <div className="flex items-center justify-center gap-2">
             <Loader2Icon className="size-12 animate-spin" />

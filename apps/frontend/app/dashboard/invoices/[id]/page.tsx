@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/table";
 import { Spinner } from "@/components/ui/spinner";
 import AddTransactionDialog from "./add-transaction-dialog";
+import Link from "next/link";
 
 export default function InvoiceDetailPage() {
   const formatCurrency = useFormatCurrency();
@@ -55,6 +56,7 @@ export default function InvoiceDetailPage() {
   const invoice = data?.data?.invoice;
   const transactions = transactionsData?.data?.transactions ?? [];
   const remainingBalance = invoice?.remainingBalance ?? invoice?.total ?? 0;
+  const totalBalance = invoice?.total ?? 0;
   const remainingRefundableBalance = Math.max(
     0,
     (invoice?.paidAmount || 0) - (invoice?.refundedAmount || 0),
@@ -84,21 +86,26 @@ export default function InvoiceDetailPage() {
       <div className="flex items-center gap-4">
         <div className="flex-1">
           <h1 className="text-2xl font-bold">Invoice Details</h1>
-          <p className="text-muted-foreground">{invoice.invoiceNumber}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-muted-foreground">{invoice.invoiceNumber}</p>{" "}
+            <Badge
+              variant={
+                invoice.status === InvoiceStatus.DELIVERED
+                  ? "default"
+                  : invoice.status === InvoiceStatus.CANCELLED ||
+                      invoice.status === InvoiceStatus.REFUNDED
+                    ? "destructive"
+                    : "secondary"
+              }
+              className="text-sm"
+            >
+              {invoice.status}
+            </Badge>
+          </div>
         </div>
-        <Badge
-          variant={
-            invoice.status === InvoiceStatus.DELIVERED
-              ? "default"
-              : invoice.status === InvoiceStatus.CANCELLED ||
-                  invoice.status === InvoiceStatus.REFUNDED
-                ? "destructive"
-                : "secondary"
-          }
-          className="text-sm"
-        >
-          {invoice.status}
-        </Badge>
+        <Button asChild size="sm">
+          <Link href={`/invoices/${invoice.invoiceNumber}`}>Print Invoice</Link>
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -257,6 +264,12 @@ export default function InvoiceDetailPage() {
               ))}
             </TableBody>
           </Table>
+          {invoice?.notes && (
+            <div className="mt-2 text-sm text-muted-foreground">
+              <p className="font-medium">Notes</p>
+              <p className="text-sm text-muted-foreground">{invoice.notes}</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -266,7 +279,7 @@ export default function InvoiceDetailPage() {
             <CardTitle>Summary</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal</span>
                 <span className="font-medium">
@@ -274,13 +287,17 @@ export default function InvoiceDetailPage() {
                 </span>
               </div>
               {invoice.coupon && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">
-                    Coupon ({invoice.coupon.code})
-                  </span>
-                  <span className="font-medium text-muted-foreground">
+                <div className="flex justify-between text-green-600">
+                  <span>Coupon ({invoice.coupon.code})</span>
+                  <span>
                     -{formatCurrency(invoice.couponDiscountAmount ?? 0)}
                   </span>
+                </div>
+              )}
+              {invoice.codAmount && (
+                <div className="flex justify-between">
+                  <span>Cash on delivery</span>
+                  <span>{formatCurrency(invoice.codAmount)}</span>
                 </div>
               )}
               {!!invoice.shippingAmount && (
@@ -291,17 +308,17 @@ export default function InvoiceDetailPage() {
                   </span>
                 </div>
               )}
-              {!!invoice.taxAmount && (
+              {/* {!!invoice.taxAmount && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Tax</span>
                   <span className="font-medium">
                     {formatCurrency(invoice.taxAmount)}
                   </span>
                 </div>
-              )}
+              )} */}
               <div className="flex justify-between pt-2 border-t">
                 <span className="font-bold">Total</span>
-                <span className="font-bold text-lg">
+                <span className="font-bold">
                   {formatCurrency(invoice.total)} {invoice?.currency}
                 </span>
               </div>
@@ -456,7 +473,7 @@ export default function InvoiceDetailPage() {
                 size="sm"
                 className="gap-1.5"
                 onClick={() => setRefundDialogOpen(true)}
-                disabled={remainingBalance <= 0}
+                disabled={remainingBalance === totalBalance}
               >
                 <RotateCcw className="size-4" />
                 Add Refund

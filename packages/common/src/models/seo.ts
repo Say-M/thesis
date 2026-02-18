@@ -1,7 +1,7 @@
 import { Schema, model, InferSchemaType, Types } from "mongoose";
 import { TwitterCard } from "../enums/seo";
 
-const schema = new Schema(
+export const schema = new Schema(
   {
     metaTitle: { type: String, trim: true },
     metaDescription: { type: String, trim: true },

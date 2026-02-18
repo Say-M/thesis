@@ -69,7 +69,8 @@ route.get(
     responses: { 200: { description: "OK" } },
   }),
   async (c) => {
-    const response = await getPageByIdService(c.req.param("id"));
+    const id = c.req.param("id");
+    const response = await getPageByIdService(id);
     return c.json(response, response.status);
   },
 );
@@ -84,10 +85,9 @@ route.patch(
   }),
   validator("json", updatePageSchema),
   async (c) => {
-    const response = await updatePageService(
-      c.req.param("id"),
-      c.req.valid("json"),
-    );
+    const id = c.req.param("id");
+    const payload = c.req.valid("json");
+    const response = await updatePageService(id, payload);
     return c.json(response, response.status);
   },
 );

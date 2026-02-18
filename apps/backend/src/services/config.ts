@@ -21,7 +21,12 @@ const defaultConfig = {
 /** Get the single config document. Creates one with defaults if none exists. */
 export const getConfigService = async (): Promise<ResponseType> => {
   let config = await Config.findOne()
-    .populate([{ path: "siteLogo" }, { path: "siteFavicon" }])
+    .populate([
+      { path: "siteLogo" },
+      { path: "siteFavicon" },
+      { path: "seo.ogImage" },
+      { path: "seo.twitterImage" },
+    ])
     .lean();
 
   if (!config) {
@@ -56,7 +61,7 @@ export const updateConfigService = async (
   try {
     const update: Record<string, unknown> = {};
     const set = (key: string, value: unknown) => {
-      if (value !== undefined) update[key] = value;
+      if (value) update[key] = value;
     };
     set("currency", payload.currency);
     set("taxAmount", payload.taxAmount);
@@ -82,11 +87,65 @@ export const updateConfigService = async (
       update.siteFavicon = new Types.ObjectId(payload.siteFavicon);
     }
 
+    // Handle SEO updates
+    if (payload.seo !== undefined) {
+      const seoUpdate: Record<string, unknown> = {};
+      const setSeo = (key: string, value: unknown) => {
+        if (value !== undefined) seoUpdate[key] = value;
+      };
+
+      setSeo("metaTitle", payload.seo?.metaTitle);
+      setSeo("metaDescription", payload.seo?.metaDescription);
+      setSeo("metaKeywords", payload.seo?.metaKeywords);
+      setSeo("canonicalUrl", payload.seo?.canonicalUrl);
+      setSeo("noindex", payload.seo?.noindex);
+      setSeo("nofollow", payload.seo?.nofollow);
+      setSeo("ogTitle", payload.seo?.ogTitle);
+      setSeo("ogDescription", payload.seo?.ogDescription);
+      setSeo("ogType", payload.seo?.ogType);
+      setSeo("twitterCard", payload.seo?.twitterCard);
+      setSeo("twitterTitle", payload.seo?.twitterTitle);
+      setSeo("twitterDescription", payload.seo?.twitterDescription);
+      setSeo("structuredData", payload.seo?.structuredData);
+
+      // Handle OG image
+      if (payload.seo?.deleteOgImage) {
+        seoUpdate.ogImage = null;
+      } else if (payload.seo?.ogImage === "" || payload.seo?.ogImage === null) {
+        seoUpdate.ogImage = null;
+      } else if (payload.seo?.ogImage) {
+        seoUpdate.ogImage = new Types.ObjectId(payload.seo?.ogImage);
+      }
+
+      // Handle Twitter image
+      if (payload.seo?.deleteTwitterImage) {
+        seoUpdate.twitterImage = null;
+      } else if (
+        payload.seo?.twitterImage === "" ||
+        payload.seo?.twitterImage === null
+      ) {
+        seoUpdate.twitterImage = null;
+      } else if (payload.seo?.twitterImage) {
+        seoUpdate.twitterImage = new Types.ObjectId(payload.seo?.twitterImage);
+      }
+
+      // Only set SEO if there are fields to update
+      if (Object.keys(seoUpdate).length > 0) {
+        update.seo = seoUpdate;
+      }
+    }
+
     const config = await Config.findOneAndUpdate(
       {},
       { $set: update },
       { new: true, upsert: true, runValidators: true, session },
     )
+      .populate([
+        { path: "siteLogo" },
+        { path: "siteFavicon" },
+        { path: "seo.ogImage" },
+        { path: "seo.twitterImage" },
+      ])
       .lean()
       .session(session);
 

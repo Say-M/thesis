@@ -5,6 +5,7 @@ import type { ResponseType } from "@repo/common/schemas/response";
 import type {
   PageSchemaType,
   ListPageQuerySchemaType,
+  UpdatePageSchemaType,
 } from "@repo/common/schemas/page";
 import { QueryFilter } from "mongoose";
 import { QueryOptions } from "mongoose";
@@ -76,9 +77,9 @@ export const listPagesService = async (
       { slug: { $regex: search, $options: "i" } },
     ];
 
-  const options: QueryOptions<Page> = {
-    sort: { _id: -1, order: 1 },
-  };
+  const options: QueryOptions<Page> = {};
+  if (all) options.sort = { order: 1 };
+  else options.sort = { _id: -1, order: 1 };
 
   if (!all) options.limit = limit + 1;
 
@@ -106,7 +107,7 @@ export const listPagesService = async (
 
 export const updatePageService = async (
   id: string,
-  json: PageSchemaType,
+  json: UpdatePageSchemaType,
 ): Promise<ResponseType> => {
   const page = await Page.findByIdAndUpdate(id, { $set: json }, { new: true })
     .populate("seo")

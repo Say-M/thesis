@@ -8,7 +8,7 @@ export const pageSchema = z.object({
     .string()
     .trim()
     .transform((s) => s.toLowerCase()),
-  content: z.any(),
+  content: z.any().nullish(),
   featuredImage: z.string().trim().nullish(),
   seo: z.string().trim().nullish(),
   status: z.boolean().nullish(),

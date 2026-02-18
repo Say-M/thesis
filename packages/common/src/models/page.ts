@@ -12,7 +12,7 @@ const schema = new Schema(
       lowercase: true,
       index: true,
     },
-    content: { type: Schema.Types.Mixed, required: true },
+    content: { type: Schema.Types.Mixed },
     featuredImage: { type: Types.ObjectId, ref: "Asset" },
     seo: { type: Types.ObjectId, ref: "Seo" },
     status: { type: Boolean, default: true, index: true },

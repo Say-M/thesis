@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { createOrUpdateSeoSchema } from "./seo";
 
 const socialEntrySchema = z.object({
   name: z.string().trim(),
@@ -19,6 +20,7 @@ export const updateConfigSchema = z.object({
   siteAddress: z.string().trim().nullish(),
   siteUrl: z.string().trim().nullish(),
   socials: z.record(z.string(), socialEntrySchema).nullish(),
+  seo: createOrUpdateSeoSchema.omit({ type: true, id: true }).nullish(),
 });
 
 export type UpdateConfigSchemaType = z.infer<typeof updateConfigSchema>;

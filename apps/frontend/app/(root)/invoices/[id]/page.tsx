@@ -156,8 +156,11 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
                 <p className="mt-1 text-sm text-muted-foreground">
                   {format(new Date(invoice.createdAt), "PP hh:mm aa")}
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="mt-1 text-sm text-muted-foreground print:hidden">
                   Payment Status: {invoice.isFullyPaid ? "Paid" : "Pending"}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground print:hidden">
+                  Shipping Status: {invoice.status}
                 </p>
               </div>
             </div>
@@ -322,7 +325,7 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
                       </TableCell>
                     </TableRow>
                   )}
-                  {(invoice.taxAmount ?? 0) > 0 && (
+                  {/* {(invoice.taxAmount ?? 0) > 0 && (
                     <TableRow>
                       <TableCell
                         colSpan={4}
@@ -332,6 +335,19 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
                       </TableCell>
                       <TableCell className="text-right text-muted-foreground">
                         {formatMoney(invoice.taxAmount ?? 0, currency)}
+                      </TableCell>
+                    </TableRow>
+                  )} */}
+                  {(invoice.codAmount ?? 0) > 0 && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={4}
+                        className="text-muted-foreground pl-0"
+                      >
+                        Cash on delivery
+                      </TableCell>
+                      <TableCell className="text-right text-muted-foreground">
+                        {formatMoney(invoice.codAmount ?? 0, currency)}
                       </TableCell>
                     </TableRow>
                   )}
@@ -351,9 +367,9 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
             </div>
 
             {/* Payment / status note */}
-            {/* <div className="mt-10 border-t border-border pt-6">
+            <div className="mt-10 print:hidden">
               {invoice?.notes && <p>{invoice.notes}</p>}
-              <p className="text-xs text-muted-foreground">
+              {/* <p className="text-xs text-muted-foreground">
                 Status:{" "}
                 <span className="font-medium capitalize text-foreground">
                   {invoice.status}
@@ -368,8 +384,8 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
               </p>
               <p className="mt-1 text-xs font-medium text-foreground">
                 Bank: — &nbsp; IBAN: —
-              </p>
-            </div> */}
+              </p> */}
+            </div>
           </div>
         </article>
       </div>

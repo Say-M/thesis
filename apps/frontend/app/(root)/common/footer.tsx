@@ -45,13 +45,13 @@ export default function Footer() {
   const { data: footerPagesData } = useListPages({
     status: "true",
     showInFooter: "true",
-    limit: 50,
+    all: "true",
   });
   const footerPages =
     footerPagesData?.pages?.map((page) => page.pages).flat() ?? [];
   const footerPagesByTag = groupPagesByTag(footerPages);
   const tagKeys = Object.keys(footerPagesByTag).sort((a, b) =>
-    a.localeCompare(b, undefined, { sensitivity: "base" }),
+    b.localeCompare(a, undefined, { sensitivity: "base" }),
   );
 
   const hasLinkColumns = tagKeys.length > 0;
@@ -227,14 +227,14 @@ export default function Footer() {
             </span>
             <Separator orientation="vertical" className="h-3" />
             <Link
-              href="/privacy"
+              href="/privacy-policy"
               className="hover:text-foreground transition-colors"
             >
               Privacy Policy
             </Link>
             <Separator orientation="vertical" className="h-3" />
             <Link
-              href="/terms"
+              href="/terms-of-service"
               className="hover:text-foreground transition-colors"
             >
               Terms of Service

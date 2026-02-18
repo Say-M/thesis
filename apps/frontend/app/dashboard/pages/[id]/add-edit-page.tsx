@@ -19,7 +19,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { AssetSelectorField } from "@/components/ui/asset-selector";
 import { pageSchema, type PageSchemaType } from "@repo/common/schemas/page";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, Resolver, useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useGetPage, useCreatePage, useUpdatePage } from "@/hooks/api/pages";
 import { Search } from "lucide-react";
 import { SerializedEditorState } from "lexical";
@@ -63,7 +63,7 @@ function pageToFormValues(page: {
   title: string;
   slug: string;
   tag: string;
-  content: unknown;
+  content?: unknown;
   featuredImage?: { _id: string; name: string; path: string };
   status: boolean;
   showInHeader: boolean;
@@ -74,7 +74,7 @@ function pageToFormValues(page: {
     title: page.title ?? "",
     slug: page.slug ?? "",
     tag: page.tag ?? "",
-    content: page.content,
+    content: page.content ?? null,
     featuredImage: page.featuredImage?._id,
     seo: null,
     status: page.status ?? true,
@@ -93,7 +93,7 @@ export default function AddEditPage({ id }: { id: string }) {
     isLoading: loadingPage,
     error: pageError,
   } = useGetPage(isCreate ? null : id);
-  const page = pageData?.data;
+  const page = pageData?.data?.page;
 
   const form = useForm<PageSchemaType>({
     //@ts-ignore
@@ -132,7 +132,7 @@ export default function AddEditPage({ id }: { id: string }) {
     if (isCreate) {
       createPage(values as PageSchemaType, {
         onSuccess: (data) => {
-          const newId = (data as { data?: { _id?: string } })?.data?._id;
+          const newId = data?.data?.page?._id;
           if (newId) router.push(`/dashboard/pages/${newId}`);
         },
       });

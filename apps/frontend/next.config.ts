@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -10,6 +11,9 @@ const nextConfig: NextConfig = {
         hostname: "ik.imagekit.io",
       },
     ],
+  },
+  turbopack: {
+    root: path.join(__dirname, "..", ".."),
   },
 };
 

@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 import type { PageDetail } from "@/hooks/api/pages";
 import { Editor } from "@/components/blocks/editor-00/editor";
@@ -58,7 +56,7 @@ export function PageDetailClient({ slug, page }: PageDetailClientProps) {
             readOnly
             showToolbar={false}
             minHeight="min-h-0"
-            className="border-0 shadow-none -mx-8 -my-4"
+            className="border-0 shadow-none -m-4"
           />
         ) : (
           <p className="text-muted-foreground">No content.</p>

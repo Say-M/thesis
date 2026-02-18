@@ -1,9 +1,10 @@
 # Use Bun as base image
 FROM oven/bun:1.3.6-alpine AS base
 
+WORKDIR /app
+
 # Install dependencies only when needed
 FROM base AS deps
-WORKDIR /app
 
 # Copy workspace root package files
 COPY package.json bun.lock ./
@@ -11,7 +12,6 @@ COPY package.json bun.lock ./
 COPY packages/common/package.json ./packages/common/
 COPY packages/eslint-config/package.json ./packages/eslint-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
-COPY packages/utils/package.json ./packages/utils/
 
 # Copy backend app package.json
 COPY apps/backend/package.json ./apps/backend/

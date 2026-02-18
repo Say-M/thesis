@@ -169,7 +169,6 @@ export default function Header() {
                       <Link
                         key={page._id}
                         href={`/${page.slug}`}
-                        className="text-muted-foreground hover:text-foreground transition-colors"
                       >
                         {page.title}
                       </Link>

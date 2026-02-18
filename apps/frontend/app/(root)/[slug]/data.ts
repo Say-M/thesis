@@ -10,10 +10,10 @@ export const getPageBySlug = cache(
   async (slug: string): Promise<PageDetail | null> => {
     try {
       if (!API_BASE || !slug) return null;
-      const { data } = await axios.get<{ data: PageDetail }>(
+      const { data } = await axios.get<{ data: { page: PageDetail } }>(
         `${API_BASE}pages/slug/${encodeURIComponent(slug)}`,
       );
-      return data?.data ?? null;
+      return data?.data?.page ?? null;
     } catch {
       return null;
     }

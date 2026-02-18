@@ -1,4 +1,5 @@
 import { Schema, model, InferSchemaType, Types } from "mongoose";
+import { schema as seoSchema } from "./seo";
 
 const schema = new Schema(
   {
@@ -61,6 +62,9 @@ const schema = new Schema(
         },
         { _id: false },
       ),
+    },
+    seo: {
+      type: seoSchema,
     },
   },
   { timestamps: true },
