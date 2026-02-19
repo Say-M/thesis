@@ -158,34 +158,6 @@ export default function InvoiceDetailPage() {
         </Card>
       </div>
 
-      {invoice.billingAddress && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Billing Address</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1">
-              <p className="font-medium">{invoice.billingAddress.name}</p>
-              {invoice.billingAddress.email && (
-                <p className="text-sm text-muted-foreground">
-                  {invoice.billingAddress.email}
-                </p>
-              )}
-              <p className="text-sm text-muted-foreground">
-                {invoice.billingAddress.phone}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {invoice.billingAddress.address}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {invoice.billingAddress.city}, {invoice.billingAddress.state}{" "}
-                {invoice.billingAddress.postalCode}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {invoice.shippingAddress && (
         <Card>
           <CardHeader>
@@ -294,12 +266,12 @@ export default function InvoiceDetailPage() {
                   </span>
                 </div>
               )}
-              {invoice.codAmount && (
+              {/* {invoice.codAmount && (
                 <div className="flex justify-between">
                   <span>Cash on delivery</span>
                   <span>{formatCurrency(invoice.codAmount)}</span>
                 </div>
-              )}
+              )} */}
               {!!invoice.shippingAmount && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Shipping</span>

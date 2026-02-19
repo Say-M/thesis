@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ShoppingCart, Heart, Share2, Minus, Plus } from "lucide-react";
+import { ShoppingCart, Heart, Share2, Minus, Plus, Play } from "lucide-react";
 import { formatCurrency } from "@/lib/format-currency-base";
 import { cn } from "@/lib/utils";
 import type { ProductDetail } from "@/hooks/api/products";
@@ -52,6 +52,54 @@ export function ProductDetailInfo({
   const { addToCart, isInWishlist, toggleWishlist, cart } = useCartWishlist();
   const inWishlist = isInWishlist(product._id, selectedVariantId ?? undefined);
 
+  const selectedVariant = variants.find((v) => v._id === selectedVariantId);
+
+  // Derive business min/max order quantities from variant or product.
+  const rawVariantMin =
+    typeof selectedVariant?.minQuantity === "number"
+      ? selectedVariant?.minQuantity
+      : null;
+  const rawVariantMax =
+    typeof selectedVariant?.maxQuantity === "number"
+      ? selectedVariant?.maxQuantity
+      : null;
+  const rawProductMin =
+    typeof product.minQuantity === "number" ? product.minQuantity : null;
+  const rawProductMax =
+    typeof product.maxQuantity === "number" ? product.maxQuantity : null;
+
+  const minOrderQuantity =
+    (rawVariantMin != null && rawVariantMin > 0
+      ? rawVariantMin
+      : rawProductMin != null && rawProductMin > 0
+        ? rawProductMin
+        : 1) ?? 1;
+  const maxOrderQuantity =
+    rawVariantMax != null && rawVariantMax > 0
+      ? rawVariantMax
+      : rawProductMax != null && rawProductMax > 0
+        ? rawProductMax
+        : null;
+
+  const effectiveMax = (() => {
+    const stockCap = displayStock || 0;
+    if (maxOrderQuantity != null && maxOrderQuantity > 0) {
+      return Math.min(maxOrderQuantity, stockCap || maxOrderQuantity);
+    }
+    return stockCap;
+  })();
+
+  // Derive weight, weightUnit, and unit from variant or product
+  const displayWeight =
+    selectedVariant?.weight != null && selectedVariant.weight > 0
+      ? selectedVariant.weight
+      : product.weight != null && product.weight > 0
+        ? product.weight
+        : null;
+  const displayWeightUnit =
+    selectedVariant?.weightUnit || product.weightUnit || null;
+  const displayUnit = selectedVariant?.unit || product.unit || null;
+
   const handleAddToCart = () => {
     if (isOutOfStock) return;
     addToCart(product._id, quantity, selectedVariantId ?? undefined);
@@ -69,7 +117,7 @@ export function ProductDetailInfo({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-2">
           <div className="text-sm text-muted-foreground">
             {product.category && (
@@ -122,7 +170,7 @@ export function ProductDetailInfo({
       <Separator />
 
       <div className="space-y-1">
-        <div className="flex items-baseline gap-3">
+        <div className="flex flex-wrap items-baseline gap-3">
           <span className="text-3xl font-bold text-primary">
             {formatCurrency(displayPrice)}
           </span>
@@ -138,6 +186,25 @@ export function ProductDetailInfo({
           )}
         </div>
       </div>
+
+      {(displayWeight != null || displayUnit) && (
+        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+          {displayWeight != null && (
+            <div className="flex items-center gap-1">
+              <span className="font-medium">Weight:</span>
+              <span>
+                {displayWeight} {displayWeightUnit || ""}
+              </span>
+            </div>
+          )}
+          {displayUnit && (
+            <div className="flex items-center gap-1">
+              <span className="font-medium">Unit:</span>
+              <span>{displayUnit}</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {variants.length > 0 && (
         <div className="space-y-2">
@@ -188,20 +255,25 @@ export function ProductDetailInfo({
               variant="outline"
               size="icon"
               onClick={() => onQuantityChange(-1)}
-              disabled={quantity <= 1}
+              disabled={quantity <= minOrderQuantity}
             >
               <Minus className="size-4" />
             </Button>
             <Input
               type="number"
-              min={1}
-              max={displayStock}
+              min={minOrderQuantity}
+              max={effectiveMax || displayStock}
               value={quantity}
               onChange={(e) => {
-                const val = parseInt(e.target.value) || 1;
-                onQuantityChange(
-                  Math.max(1, Math.min(displayStock, val)) - quantity,
+                const raw = parseInt(e.target.value);
+                const maxCap = effectiveMax || displayStock;
+                const minCap = minOrderQuantity;
+                const val = Number.isFinite(raw) ? raw : minCap;
+                const clamped = Math.min(
+                  Math.max(minCap, val),
+                  maxCap || minCap,
                 );
+                onQuantityChange(clamped - quantity);
               }}
               className="w-20 text-center"
             />
@@ -210,7 +282,11 @@ export function ProductDetailInfo({
               variant="outline"
               size="icon"
               onClick={() => onQuantityChange(1)}
-              disabled={quantity >= displayStock}
+              disabled={
+                effectiveMax
+                  ? quantity >= effectiveMax
+                  : quantity >= displayStock
+              }
             >
               <Plus className="size-4" />
             </Button>
@@ -259,6 +335,14 @@ export function ProductDetailInfo({
         </div>
       </div>
 
+      {product.videoLink && (
+        <Button variant="outline" className="w-full" asChild>
+          <a href={product.videoLink} target="_blank" rel="noopener noreferrer">
+            <Play className="size-4 mr-2" />
+            Watch Product Video
+          </a>
+        </Button>
+      )}
       {/* <div className="grid grid-cols-2 gap-4 pt-4 border-t">
         <div className="flex items-center gap-3">
           <Truck className="size-5 text-primary" />

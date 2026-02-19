@@ -80,6 +80,11 @@ const defaultVariant: VariantFormValues = {
   sellingPrice: 0,
   discountType: DiscountType.PERCENTAGE,
   discountValue: 0,
+  weight: 0,
+  weightUnit: "",
+  unit: "",
+  minQuantity: 0,
+  maxQuantity: 0,
   stock: 0,
 };
 
@@ -97,6 +102,11 @@ const defaultValues: ProductFormValues = {
   sellingPrice: 0,
   discountType: DiscountType.PERCENTAGE,
   discountValue: 0,
+  weight: 0,
+  weightUnit: "",
+  unit: "",
+  minQuantity: 0,
+  maxQuantity: 0,
   stock: 0,
   sku: "",
   variants: [],
@@ -122,6 +132,11 @@ function productToFormValues(p: ProductDetail): Partial<ProductFormValues> {
         sellingPrice: v.sellingPrice,
         discountType: v.discountType ?? DiscountType.PERCENTAGE,
         discountValue: v.discountValue ?? 0,
+        weight: v.weight ?? 0,
+        weightUnit: v.weightUnit ?? "",
+        unit: v.unit ?? "",
+        minQuantity: v.minQuantity ?? 0,
+        maxQuantity: v.maxQuantity ?? 0,
         stock: v.stock,
       }))
     : [];
@@ -142,6 +157,11 @@ function productToFormValues(p: ProductDetail): Partial<ProductFormValues> {
     sellingPrice: p.sellingPrice ?? undefined,
     discountType: p.discountType ?? DiscountType.PERCENTAGE,
     discountValue: p.discountValue ?? 0,
+    weight: p.weight ?? 0,
+    weightUnit: p.weightUnit ?? "",
+    unit: p.unit ?? "",
+    minQuantity: p.minQuantity ?? 0,
+    maxQuantity: p.maxQuantity ?? 0,
     stock: p.stock ?? undefined,
     sku: p.sku ?? "",
     variants,
@@ -691,12 +711,39 @@ export default function AddEditProduct({ id }: { id: string }) {
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
                         <FieldLabel htmlFor="stock">Stock</FieldLabel>
+                        <Input
+                          {...field}
+                          id="stock"
+                          type="number"
+                          min={0}
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value
+                                ? Number(e.target.value)
+                                : undefined,
+                            )
+                          }
+                        />
+                        {fieldState.invalid && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    )}
+                  />
+                  <Controller
+                    name="weight"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor="weight">Weight</FieldLabel>
                         <InputGroup>
                           <InputGroupInput
                             {...field}
-                            id="stock"
+                            id="weight"
                             type="number"
                             min={0}
+                            step="0.01"
                             value={field.value ?? ""}
                             onChange={(e) =>
                               field.onChange(
@@ -707,8 +754,106 @@ export default function AddEditProduct({ id }: { id: string }) {
                             }
                           />
                           <InputGroupAddon align="inline-end">
-                            <InputGroupText>pcs</InputGroupText>
+                            <InputGroupText>
+                              {form.watch("weightUnit") || "kg"}
+                            </InputGroupText>
                           </InputGroupAddon>
+                        </InputGroup>
+                        {fieldState.invalid && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    )}
+                  />
+                  <Controller
+                    name="weightUnit"
+                    control={form.control}
+                    render={({ field: { value, ...field }, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor="weightUnit">
+                          Weight unit
+                        </FieldLabel>
+                        <Input
+                          {...field}
+                          value={value ?? ""}
+                          id="weightUnit"
+                          placeholder="e.g. kg, g"
+                        />
+                        {fieldState.invalid && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    )}
+                  />
+                  <Controller
+                    name="unit"
+                    control={form.control}
+                    render={({ field: { value, ...field }, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor="unit">Unit</FieldLabel>
+                        <Input
+                          {...field}
+                          value={value ?? ""}
+                          id="unit"
+                          placeholder="e.g. pcs, box"
+                        />
+                        {fieldState.invalid && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    )}
+                  />
+                  <Controller
+                    name="minQuantity"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor="minQuantity">
+                          Min order quantity
+                        </FieldLabel>
+                        <InputGroup>
+                          <InputGroupInput
+                            {...field}
+                            id="minQuantity"
+                            type="number"
+                            value={field.value ?? ""}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value
+                                  ? Number(e.target.value)
+                                  : undefined,
+                              )
+                            }
+                          />
+                        </InputGroup>
+                        {fieldState.invalid && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </Field>
+                    )}
+                  />
+                  <Controller
+                    name="maxQuantity"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor="maxQuantity">
+                          Max order quantity
+                        </FieldLabel>
+                        <InputGroup>
+                          <InputGroupInput
+                            {...field}
+                            id="maxQuantity"
+                            type="number"
+                            value={field.value ?? ""}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value
+                                  ? Number(e.target.value)
+                                  : undefined,
+                              )
+                            }
+                          />
                         </InputGroup>
                         {fieldState.invalid && (
                           <FieldError errors={[fieldState.error]} />
@@ -929,10 +1074,35 @@ export default function AddEditProduct({ id }: { id: string }) {
                               render={({ field: f, fieldState: fs }) => (
                                 <Field data-invalid={fs.invalid}>
                                   <FieldLabel>Stock</FieldLabel>
+                                  <Input
+                                    type="number"
+                                    min={0}
+                                    value={f.value ?? ""}
+                                    onChange={(e) =>
+                                      f.onChange(
+                                        e.target.value
+                                          ? Number(e.target.value)
+                                          : 0,
+                                      )
+                                    }
+                                  />
+                                  {fs.invalid && (
+                                    <FieldError errors={[fs.error]} />
+                                  )}
+                                </Field>
+                              )}
+                            />
+                            <Controller
+                              name={`variants.${index}.weight`}
+                              control={form.control}
+                              render={({ field: f, fieldState: fs }) => (
+                                <Field data-invalid={fs.invalid}>
+                                  <FieldLabel>Weight</FieldLabel>
                                   <InputGroup>
                                     <InputGroupInput
                                       type="number"
                                       min={0}
+                                      step="0.01"
                                       value={f.value ?? ""}
                                       onChange={(e) =>
                                         f.onChange(
@@ -943,8 +1113,102 @@ export default function AddEditProduct({ id }: { id: string }) {
                                       }
                                     />
                                     <InputGroupAddon align="inline-end">
-                                      <InputGroupText>pcs</InputGroupText>
+                                      <InputGroupText>
+                                        {form.watch(
+                                          `variants.${index}.weightUnit`,
+                                        ) || "kg"}
+                                      </InputGroupText>
                                     </InputGroupAddon>
+                                  </InputGroup>
+                                  {fs.invalid && (
+                                    <FieldError errors={[fs.error]} />
+                                  )}
+                                </Field>
+                              )}
+                            />
+                            <Controller
+                              name={`variants.${index}.weightUnit`}
+                              control={form.control}
+                              render={({
+                                field: { value, ...field },
+                                fieldState: fs,
+                              }) => (
+                                <Field data-invalid={fs.invalid}>
+                                  <FieldLabel>Weight unit</FieldLabel>
+                                  <Input
+                                    {...field}
+                                    value={value ?? ""}
+                                    placeholder="e.g. kg, g"
+                                  />
+                                  {fs.invalid && (
+                                    <FieldError errors={[fs.error]} />
+                                  )}
+                                </Field>
+                              )}
+                            />
+                            <Controller
+                              name={`variants.${index}.unit`}
+                              control={form.control}
+                              render={({
+                                field: { value, ...field },
+                                fieldState: fs,
+                              }) => (
+                                <Field data-invalid={fs.invalid}>
+                                  <FieldLabel>Unit</FieldLabel>
+                                  <Input
+                                    {...field}
+                                    value={value ?? ""}
+                                    placeholder="e.g. pcs, box"
+                                  />
+                                  {fs.invalid && (
+                                    <FieldError errors={[fs.error]} />
+                                  )}
+                                </Field>
+                              )}
+                            />
+                            <Controller
+                              name={`variants.${index}.minQuantity`}
+                              control={form.control}
+                              render={({ field: f, fieldState: fs }) => (
+                                <Field data-invalid={fs.invalid}>
+                                  <FieldLabel>Min order quantity</FieldLabel>
+                                  <InputGroup>
+                                    <InputGroupInput
+                                      type="number"
+                                      value={f.value ?? ""}
+                                      onChange={(e) =>
+                                        f.onChange(
+                                          e.target.value
+                                            ? Number(e.target.value)
+                                            : 0,
+                                        )
+                                      }
+                                    />
+                                  </InputGroup>
+                                  {fs.invalid && (
+                                    <FieldError errors={[fs.error]} />
+                                  )}
+                                </Field>
+                              )}
+                            />
+                            <Controller
+                              name={`variants.${index}.maxQuantity`}
+                              control={form.control}
+                              render={({ field: f, fieldState: fs }) => (
+                                <Field data-invalid={fs.invalid}>
+                                  <FieldLabel>Max order quantity</FieldLabel>
+                                  <InputGroup>
+                                    <InputGroupInput
+                                      type="number"
+                                      value={f.value ?? ""}
+                                      onChange={(e) =>
+                                        f.onChange(
+                                          e.target.value
+                                            ? Number(e.target.value)
+                                            : 0,
+                                        )
+                                      }
+                                    />
                                   </InputGroup>
                                   {fs.invalid && (
                                     <FieldError errors={[fs.error]} />

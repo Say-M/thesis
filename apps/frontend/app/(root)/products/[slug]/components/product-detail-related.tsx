@@ -56,7 +56,7 @@ export function ProductDetailRelated({
     [productsData],
   );
 
-  if (products.length === 0 && productsStatus === "error") return null;
+  if (products.length === 0 || productsStatus === "error") return null;
 
   return (
     <div>

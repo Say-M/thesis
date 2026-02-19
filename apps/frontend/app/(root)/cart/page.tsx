@@ -62,6 +62,7 @@ import { UserSearchOption, useUserSearch } from "@/hooks/use-user-search";
 import { Role } from "@repo/common/enums/role";
 import { roundTo2 } from "@repo/common/utils/round-to-2";
 import { FieldError } from "@/components/ui/field";
+import Image from "next/image";
 
 const checkoutFormSchema = createInvoiceSchema
   .omit({ items: true, type: true })
@@ -82,6 +83,13 @@ type CartItem = {
   unitPrice: number;
   unitOldPrice: number | null;
   quantity: number;
+  /** Business rule: order quantity minimum (falls back to 1). */
+  minOrderQuantity: number;
+  /**
+   * Business rule: order quantity maximum.
+   * When null/undefined or <= 0, there is effectively no max cap beyond stock.
+   */
+  maxOrderQuantity: number | null;
   stock: number;
   subtotal: number;
 };
@@ -95,11 +103,57 @@ function buildCartItems(
   for (const line of cart) {
     const product = byId.get(line.productId);
     if (!product) continue;
+
     const { unitPrice, unitOldPrice, stock } = productListItemUnitPriceAndStock(
       product,
       line.variantId,
     );
-    const quantity = Math.min(Math.max(1, line.quantity), stock || 999);
+
+    // Derive business min/max order quantities from variant or product.
+    let minOrderQuantity = 1;
+    let maxOrderQuantity: number | null = null;
+
+    if (product.hasVariants && line.variantId && product.variants?.length) {
+      const variant = product.variants.find((v) => v._id === line.variantId);
+      if (variant) {
+        const vMin =
+          typeof variant.minQuantity === "number" ? variant.minQuantity : null;
+        const vMax =
+          typeof variant.maxQuantity === "number" ? variant.maxQuantity : null;
+
+        if (vMin != null && vMin > 0) {
+          minOrderQuantity = vMin;
+        }
+        if (vMax != null && vMax > 0) {
+          maxOrderQuantity = vMax;
+        }
+      }
+    } else {
+      const pMin =
+        typeof product.minQuantity === "number" ? product.minQuantity : null;
+      const pMax =
+        typeof product.maxQuantity === "number" ? product.maxQuantity : null;
+
+      if (pMin != null && pMin > 0) {
+        minOrderQuantity = pMin;
+      }
+      if (pMax != null && pMax > 0) {
+        maxOrderQuantity = pMax;
+      }
+    }
+
+    const effectiveStock = stock ?? 0;
+    const maxAllowed =
+      maxOrderQuantity != null && maxOrderQuantity > 0
+        ? Math.min(maxOrderQuantity, effectiveStock || 999)
+        : effectiveStock || 999;
+    const minAllowed = Math.min(Math.max(1, minOrderQuantity), maxAllowed || 1);
+
+    const safeQuantity = Math.min(
+      Math.max(minAllowed, line.quantity),
+      maxAllowed,
+    );
+
     const variantLabel = line.variantId
       ? product.variants?.find((v) => v._id === line.variantId)?.name
       : undefined;
@@ -115,9 +169,12 @@ function buildCartItems(
       thumbnailUrl: product.thumbnail?.path ?? "",
       unitPrice,
       unitOldPrice,
-      quantity,
-      stock: stock ?? 0,
-      subtotal: roundTo2(unitPrice * quantity),
+      quantity: safeQuantity,
+      minOrderQuantity: minAllowed,
+      maxOrderQuantity:
+        maxOrderQuantity != null && maxOrderQuantity > 0 ? maxAllowed : null,
+      stock: effectiveStock,
+      subtotal: roundTo2(unitPrice * safeQuantity),
     });
   }
   return items;
@@ -130,7 +187,7 @@ export default function CartPage() {
   const searchUsers = useUserSearch();
   const shippingAmount = config?.shippingAmount ?? 0;
   const taxAmount = config?.taxAmount ?? 0;
-  const codAmount = config?.codAmount ?? 0;
+  // const codAmount = config?.codAmount ?? 0;
   const { cart, removeFromCart, updateCartQuantity, clearCart } =
     useCartWishlist();
   const productIds = useMemo(
@@ -179,15 +236,6 @@ export default function CartPage() {
     resolver: zodResolver(checkoutFormSchema) as never,
     defaultValues: {
       customer: { name: "", email: "", phone: "" },
-      billingAddress: {
-        name: "",
-        email: "",
-        phone: "",
-        address: "",
-        city: "",
-        state: "",
-        postalCode: "",
-      },
       shippingAddress: {
         name: "",
         email: "",
@@ -219,17 +267,7 @@ export default function CartPage() {
       email: user.email ?? user.mobile ?? "",
       phone: user.mobile ?? "",
     };
-    const billingFromProfile = user.billingAddress;
     const shippingFromProfile = user.shippingAddress;
-    const billingAddress = {
-      name: billingFromProfile?.name ?? customer.name,
-      email: billingFromProfile?.email ?? customer.email ?? "",
-      phone: billingFromProfile?.phone ?? customer.phone,
-      address: billingFromProfile?.address ?? "",
-      city: billingFromProfile?.city ?? "",
-      state: billingFromProfile?.state ?? "",
-      postalCode: billingFromProfile?.postalCode ?? "",
-    };
     const shippingAddress = {
       name: shippingFromProfile?.name ?? customer.name,
       email: shippingFromProfile?.email ?? customer.email ?? "",
@@ -243,17 +281,9 @@ export default function CartPage() {
     form.reset({
       ...current,
       customer,
-      billingAddress,
-      shippingAddress: sameAsBilling ? billingAddress : shippingAddress,
+      shippingAddress: shippingAddress,
     });
   }, [user, form]);
-
-  useEffect(() => {
-    if (sameAsBilling) {
-      const billing = form.getValues("billingAddress");
-      form.setValue("shippingAddress", billing);
-    }
-  }, [sameAsBilling, form]);
 
   // Match backend: subtotal and totalBeforeCod for COD; round codFee and total to 2 decimals
   const subtotal = roundTo2(
@@ -296,14 +326,23 @@ export default function CartPage() {
     taxAmount -
     couponDiscountAmount;
 
-  const codFee =
-    codAmount > 0 ? roundTo2((totalBeforeCod * codAmount) / 100) : 0;
-  const total = roundTo2(totalBeforeCod + codFee);
+  // const codFee =
+  //   codAmount > 0 ? roundTo2((totalBeforeCod * codAmount) / 100) : 0;
+  const total = roundTo2(totalBeforeCod);
+  //  + codFee);
 
   const updateQuantity = (item: CartItem, delta: number) => {
+    const maxAllowed =
+      item.maxOrderQuantity != null && item.maxOrderQuantity > 0
+        ? Math.min(item.maxOrderQuantity, item.stock)
+        : item.stock;
+    const minAllowed = Math.min(
+      Math.max(1, item.minOrderQuantity),
+      maxAllowed || 1,
+    );
     const newQuantity = Math.max(
-      1,
-      Math.min(item.stock, item.quantity + delta),
+      minAllowed,
+      Math.min(maxAllowed, item.quantity + delta),
     );
     updateCartQuantity(item.productId, newQuantity, item.variantId);
   };
@@ -439,22 +478,34 @@ export default function CartPage() {
             {cartItems?.map((item) => (
               <Card key={item._id}>
                 <CardContent>
-                  <div className="flex gap-4">
+                  <div className="flex xs:flex-row flex-col gap-4 relative">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeItem(item)}
+                      aria-label="Remove item"
+                      className="shrink-0 absolute -top-2 -right-3"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
                     <Link href={`/products/${item.productSlug}`}>
                       <div className="relative w-24 h-24 rounded-md border bg-muted overflow-hidden shrink-0">
-                        <img
+                        <Image
+                          width={96}
+                          height={96}
                           src={item.thumbnailUrl}
                           alt={item.name}
-                          className="w-full h-full object-cover"
+                          className="object-cover"
                         />
                       </div>
                     </Link>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 flex flex-col justify-between min-w-0">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <Link
                             href={`/products/${item.productSlug}`}
-                            className="font-medium hover:text-primary transition-colors line-clamp-2"
+                            className="font-medium hover:text-primary transition-colors line-clamp-2 mr-8"
                           >
                             {item.name}
                             {item.variantLabel && (
@@ -463,64 +514,81 @@ export default function CartPage() {
                               </span>
                             )}
                           </Link>
-                          <div className="flex items-center mt-1">
+                          <div className="flex flex-wrap gap-1 items-center mt-1">
                             <span className="font-semibold text-primary">
                               {formatCurrency(item.unitPrice)}
                             </span>
                             {item.unitOldPrice && (
-                              <span className="text-xs text-muted-foreground line-through mt-0.5 ml-1">
+                              <span className="text-xs text-muted-foreground line-through mt-0.5 mr-4">
                                 {formatCurrency(item.unitOldPrice)}
                               </span>
                             )}
                             {item.stock < 10 && (
                               <Badge
                                 variant="secondary"
-                                className="bg-yellow-500 text-white text-xs ml-4"
+                                className="bg-yellow-500 text-white text-xs"
                               >
                                 Low stock
                               </Badge>
                             )}
                           </div>
                         </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeItem(item)}
-                          aria-label="Remove item"
-                          className="shrink-0 -mt-2 -mr-3"
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
                       </div>
                       <div className="flex items-center justify-between mt-2">
                         <div className="flex items-center gap-2">
                           <Button
                             type="button"
                             variant="outline"
-                            size="icon-sm"
+                            size="icon-xs"
                             onClick={() => updateQuantity(item, -1)}
-                            disabled={item.quantity <= 1}
+                            disabled={item.quantity <= item.minOrderQuantity}
                           >
                             <Minus />
                           </Button>
                           <Input
                             type="number"
-                            min={1}
-                            max={item.stock}
+                            min={item.minOrderQuantity}
+                            max={
+                              item.maxOrderQuantity != null &&
+                              item.maxOrderQuantity > 0
+                                ? Math.min(item.maxOrderQuantity, item.stock)
+                                : item.stock
+                            }
                             value={item.quantity}
                             onChange={(e) => {
-                              const val = parseInt(e.target.value) || 1;
-                              updateQuantity(item, val - item.quantity);
+                              const raw = parseInt(e.target.value);
+                              const maxAllowed =
+                                item.maxOrderQuantity != null &&
+                                item.maxOrderQuantity > 0
+                                  ? Math.min(item.maxOrderQuantity, item.stock)
+                                  : item.stock;
+                              const minAllowed = Math.min(
+                                Math.max(1, item.minOrderQuantity),
+                                maxAllowed || 1,
+                              );
+                              const val = Number.isFinite(raw)
+                                ? raw
+                                : minAllowed;
+                              const clamped = Math.min(
+                                Math.max(minAllowed, val),
+                                maxAllowed,
+                              );
+                              updateQuantity(item, clamped - item.quantity);
                             }}
-                            className="w-16 text-center h-8"
+                            className="w-12 text-center h-6 rounded text-xs"
                           />
                           <Button
                             type="button"
                             variant="outline"
-                            size="icon-sm"
+                            size="icon-xs"
                             onClick={() => updateQuantity(item, 1)}
-                            disabled={item.quantity >= item.stock}
+                            disabled={
+                              item.maxOrderQuantity != null &&
+                              item.maxOrderQuantity > 0
+                                ? item.quantity >=
+                                  Math.min(item.maxOrderQuantity, item.stock)
+                                : item.quantity >= item.stock
+                            }
                           >
                             <Plus />
                           </Button>
@@ -529,7 +597,7 @@ export default function CartPage() {
                           <p className="text-sm text-muted-foreground">
                             Subtotal
                           </p>
-                          <p className="font-semibold">
+                          <p className="font-medium sm:font-semibold text-sm sm:text-base">
                             {formatCurrency(item.subtotal)}
                           </p>
                         </div>
@@ -552,7 +620,7 @@ export default function CartPage() {
                 <div className="space-y-4">
                   <h4 className="text-sm font-medium">Customer</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {user?.role !== Role.USER && (
+                    {user && user?.role !== Role.USER && (
                       <div className="space-y-2 sm:col-span-2">
                         <Label htmlFor="customer.user">
                           Select User (optional)
@@ -635,120 +703,6 @@ export default function CartPage() {
                 </div>
 
                 <Separator />
-
-                <div className="space-y-4">
-                  <h4 className="text-sm font-medium flex items-center gap-2">
-                    <MapPin className="size-4" />
-                    Billing address
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2 sm:col-span-2">
-                      <Label htmlFor="billingAddress.name">Name *</Label>
-                      <Input
-                        id="billingAddress.name"
-                        {...form.register("billingAddress.name")}
-                        placeholder="Full name"
-                      />
-                      {form.formState.errors.billingAddress?.name && (
-                        <p className="text-sm text-destructive">
-                          {form.formState.errors.billingAddress.name.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="billingAddress.email">Email</Label>
-                      <Input
-                        id="billingAddress.email"
-                        type="email"
-                        {...form.register("billingAddress.email")}
-                        placeholder="email@example.com"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="billingAddress.phone">Phone *</Label>
-                      <Input
-                        id="billingAddress.phone"
-                        {...form.register("billingAddress.phone")}
-                        placeholder="Phone"
-                      />
-                      {form.formState.errors.billingAddress?.phone && (
-                        <p className="text-sm text-destructive">
-                          {form.formState.errors.billingAddress.phone.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2 sm:col-span-2">
-                      <Label htmlFor="billingAddress.address">Address *</Label>
-                      <Input
-                        id="billingAddress.address"
-                        {...form.register("billingAddress.address")}
-                        placeholder="Street address"
-                      />
-                      {form.formState.errors.billingAddress?.address && (
-                        <p className="text-sm text-destructive">
-                          {form.formState.errors.billingAddress.address.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="billingAddress.city">City *</Label>
-                      <Input
-                        id="billingAddress.city"
-                        {...form.register("billingAddress.city")}
-                        placeholder="City"
-                      />
-                      {form.formState.errors.billingAddress?.city && (
-                        <p className="text-sm text-destructive">
-                          {form.formState.errors.billingAddress.city.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="billingAddress.state">State *</Label>
-                      <Input
-                        id="billingAddress.state"
-                        {...form.register("billingAddress.state")}
-                        placeholder="State / Division"
-                      />
-                      {form.formState.errors.billingAddress?.state && (
-                        <p className="text-sm text-destructive">
-                          {form.formState.errors.billingAddress.state.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="billingAddress.postalCode">
-                        Postal code *
-                      </Label>
-                      <Input
-                        id="billingAddress.postalCode"
-                        {...form.register("billingAddress.postalCode")}
-                        placeholder="Postal code"
-                      />
-                      {form.formState.errors.billingAddress?.postalCode && (
-                        <p className="text-sm text-destructive">
-                          {
-                            form.formState.errors.billingAddress.postalCode
-                              .message
-                          }
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="sameAsBilling"
-                    checked={sameAsBilling}
-                    onCheckedChange={(checked) =>
-                      form.setValue("sameAsBilling", !!checked)
-                    }
-                  />
-                  <Label htmlFor="sameAsBilling">
-                    Shipping same as billing
-                  </Label>
-                </div> */}
 
                 {!sameAsBilling && (
                   <div className="space-y-4">
@@ -1026,7 +980,7 @@ export default function CartPage() {
                       )}
                     </span>
                   </div>
-                  <div className="flex justify-between">
+                  {/* <div className="flex justify-between">
                     <span className="text-muted-foreground">
                       Cash on delivery
                       {codAmount > 0 ? ` (${codAmount}%)` : ""}
@@ -1038,7 +992,7 @@ export default function CartPage() {
                         <span className="text-muted-foreground">—</span>
                       )}
                     </span>
-                  </div>
+                  </div> */}
                 </div>
 
                 <Separator />

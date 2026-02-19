@@ -120,12 +120,12 @@ export const listProductsService = async (
   } = query;
   const filter: QueryFilter<Product> = { ...rest };
   if (cursor) filter._id = { $gt: cursor };
-  if (status?.length) filter.status = { $in: status };
+  if (status && status?.length) filter.status = { $in: status };
   if (featured != null) filter.featured = featured;
-  if (hasVariants?.length) filter.hasVariants = { $in: hasVariants };
-  if (categories?.length) filter.category = { $in: categories };
-  if (subcategories?.length) filter.subcategory = { $in: subcategories };
-  if (productIds?.length) filter._id = { $in: productIds };
+  if (hasVariants && hasVariants?.length) filter.hasVariants = { $in: hasVariants };
+  if (categories && categories?.length) filter.category = { $in: categories };
+  if (subcategories && subcategories?.length) filter.subcategory = { $in: subcategories };
+  if (productIds && productIds?.length) filter._id = { $in: productIds };
   if (search)
     filter.$or = [
       { name: { $regex: search, $options: "i" } },

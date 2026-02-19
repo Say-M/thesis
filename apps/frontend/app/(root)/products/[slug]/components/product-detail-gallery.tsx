@@ -12,6 +12,9 @@ import {
 } from "@/components/ui/carousel";
 import { Play } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 type ImageItem = { _id: string; path: string };
 
@@ -51,13 +54,13 @@ export function ProductDetailGallery({
             <CarouselContent className="h-full">
               {images.map((img, idx) => (
                 <CarouselItem key={img._id} className="h-full">
-                  <div className="relative w-full h-full">
-                    <img
+                  <AspectRatio className="relative">
+                    <Image
+                      fill
                       src={img.path}
                       alt={`${productName} - Image ${idx + 1}`}
-                      className="w-full h-full object-cover"
                     />
-                  </div>
+                  </AspectRatio>
                 </CarouselItem>
               ))}
             </CarouselContent>
@@ -76,40 +79,32 @@ export function ProductDetailGallery({
       </div>
 
       {images.length > 1 && (
-        <div className="grid grid-cols-4 gap-2">
-          {images.map((img, idx) => (
-            <button
-              key={img._id}
-              type="button"
-              onClick={() => setSelectedIndex(idx)}
-              className={cn(
-                "relative aspect-square rounded-md border-2 overflow-hidden transition-all",
-                selectedIndex === idx
-                  ? "border-primary"
-                  : "border-transparent hover:border-muted-foreground/50",
-              )}
-            >
-              <img
-                src={img.path}
-                alt={`Thumbnail ${idx + 1}`}
-                className="w-full h-full object-cover"
-              />
-            </button>
-          ))}
-        </div>
-      )}
-
-      {videoLink && (
-        <Button variant="outline" className="w-full" asChild>
-          <a
-            href={videoLink}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Play className="size-4 mr-2" />
-            Watch Product Video
-          </a>
-        </Button>
+        <ScrollArea>
+          <div className="flex gap-2 w-full pb-4">
+            {images.map((img, idx) => (
+              <button
+                key={img._id}
+                type="button"
+                onClick={() => setSelectedIndex(idx)}
+                className={cn(
+                  "relative aspect-square w-20 h-20 shrink-0 rounded-md border-2 overflow-hidden transition-all",
+                  selectedIndex === idx
+                    ? "border-primary"
+                    : "border-transparent hover:border-muted-foreground/50",
+                )}
+              >
+                <Image
+                  width={120}
+                  height={120}
+                  src={img.path}
+                  alt={`Thumbnail ${idx + 1}`}
+                  className="object-cover"
+                />
+              </button>
+            ))}
+          </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
       )}
     </div>
   );

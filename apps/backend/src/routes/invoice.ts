@@ -119,8 +119,11 @@ route.get(
     summary: "Get invoice by ID",
     responses: { 200: { description: "OK" } },
   }),
+  roleGuard({ allowedRoles: -1, skipAuth: true }),
   async (c) => {
-    const response = await getInvoiceByIdService(c.req.param("id"));
+    const user = c.var.user;
+    const id = c.req.param("id");
+    const response = await getInvoiceByIdService(user, id);
     return c.json(response, response.status);
   },
 );

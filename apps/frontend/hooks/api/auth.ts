@@ -87,15 +87,6 @@ export const useGetProfile = () => {
 
 export type UpdateProfilePayload = {
   name: string;
-  billingAddress?: Partial<{
-    name: string;
-    email: string | null;
-    phone: string;
-    address: string;
-    city: string;
-    state: string;
-    postalCode: string;
-  }>;
   shippingAddress?: Partial<{
     name: string;
     email: string | null;

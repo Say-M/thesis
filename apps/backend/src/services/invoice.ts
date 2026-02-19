@@ -1,5 +1,5 @@
 import { HTTPException } from "hono/http-exception";
-import mongoose, { QueryFilter, Types } from "mongoose";
+import mongoose, { ProjectionType, QueryFilter, Types } from "mongoose";
 import { Invoice } from "@repo/common/models/invoice";
 import { Coupon } from "@repo/common/models/coupon";
 import { Product } from "@repo/common/models/product";
@@ -37,7 +37,6 @@ export const createInvoiceService = async (
       coupon: couponCode,
       type,
       notes,
-      billingAddress,
       shippingAddress,
       transaction: transactionPayload,
     } = payload;
@@ -96,6 +95,49 @@ export const createInvoiceService = async (
           variantName = variant.name;
           const variantDisplayName = `${product.name} ${variantName ? `(${variantName})` : ""}`;
 
+          // Enforce business min/max order quantity for this variant.
+          const rawVariantMin =
+            typeof variant.minQuantity === "number"
+              ? variant.minQuantity
+              : null;
+          const rawVariantMax =
+            typeof variant.maxQuantity === "number"
+              ? variant.maxQuantity
+              : null;
+          const rawProductMin =
+            typeof product.minQuantity === "number"
+              ? product.minQuantity
+              : null;
+          const rawProductMax =
+            typeof product.maxQuantity === "number"
+              ? product.maxQuantity
+              : null;
+
+          const minOrderQuantity =
+            (rawVariantMin != null && rawVariantMin > 0
+              ? rawVariantMin
+              : rawProductMin != null && rawProductMin > 0
+                ? rawProductMin
+                : 1) ?? 1;
+          const maxOrderQuantity =
+            rawVariantMax != null && rawVariantMax > 0
+              ? rawVariantMax
+              : rawProductMax != null && rawProductMax > 0
+                ? rawProductMax
+                : null;
+
+          if (
+            item.quantity < minOrderQuantity ||
+            (maxOrderQuantity != null && item.quantity > maxOrderQuantity)
+          ) {
+            throw new HTTPException(400, {
+              message:
+                maxOrderQuantity != null
+                  ? `Quantity for ${variantDisplayName} must be between ${minOrderQuantity} and ${maxOrderQuantity}`
+                  : `Quantity for ${variantDisplayName} must be at least ${minOrderQuantity}`,
+            });
+          }
+
           // Validate stock availability
           if (variant.stock < item.quantity) {
             throw new HTTPException(400, {
@@ -122,8 +164,35 @@ export const createInvoiceService = async (
           });
         } else if (!product.hasVariants) {
           // Validate stock availability
-          const productStock =
-            (product as any).totalStock ?? product.stock ?? 0;
+          const productStock = product.stock ?? 0;
+
+          // Enforce business min/max order quantity for single-variant product.
+          const rawProductMin =
+            typeof product.minQuantity === "number"
+              ? product.minQuantity
+              : null;
+          const rawProductMax =
+            typeof product.maxQuantity === "number"
+              ? product.maxQuantity
+              : null;
+          const minOrderQuantity =
+            (rawProductMin != null && rawProductMin > 0 ? rawProductMin : 1) ??
+            1;
+          const maxOrderQuantity =
+            rawProductMax != null && rawProductMax > 0 ? rawProductMax : null;
+
+          if (
+            item.quantity < minOrderQuantity ||
+            (maxOrderQuantity != null && item.quantity > maxOrderQuantity)
+          ) {
+            throw new HTTPException(400, {
+              message:
+                maxOrderQuantity != null
+                  ? `Quantity for "${product.name}" must be between ${minOrderQuantity} and ${maxOrderQuantity}`
+                  : `Quantity for "${product.name}" must be at least ${minOrderQuantity}`,
+            });
+          }
+
           if (productStock < item.quantity) {
             throw new HTTPException(400, {
               message: `Insufficient stock for "${product.name}". Available: ${productStock}, Requested: ${item.quantity}`,
@@ -173,6 +242,10 @@ export const createInvoiceService = async (
           name: product.name,
           variantName,
           quantity: item.quantity,
+          weight: product.weight,
+          weightUnit: product.weightUnit,
+          unit: product.unit,
+          buyingPrice: product.buyingPrice,
           unitPrice,
           discountType,
           discountValue,
@@ -187,7 +260,7 @@ export const createInvoiceService = async (
     const defaultCurrency = config?.currency || "BDT";
     const defaultTaxAmount = roundTo2(config?.taxAmount || 0);
     const defaultShippingAmount = roundTo2(config?.shippingAmount || 0);
-    const defaultCodAmount = roundTo2(config?.codAmount ?? 0);
+    // const defaultCodAmount = roundTo2(config?.codAmount ?? 0);
 
     // Validate and apply coupon
     let couponId = null;
@@ -276,10 +349,11 @@ export const createInvoiceService = async (
     const totalBeforeCod = roundTo2(
       subtotal - couponDiscountAmount + shippingAmount + taxAmount,
     );
-    const codAmount = roundTo2(
-      defaultCodAmount > 0 ? (totalBeforeCod * defaultCodAmount) / 100 : 0,
-    );
-    const total = roundTo2(totalBeforeCod + codAmount);
+    // const codAmount = roundTo2(
+    //   defaultCodAmount > 0 ? (totalBeforeCod * defaultCodAmount) / 100 : 0,
+    // );
+    const total = roundTo2(totalBeforeCod);
+    // + codAmount);
 
     // Determine invoice type and customer user
     // If the authenticated user has role USER, it's an online invoice and use their ID
@@ -305,7 +379,7 @@ export const createInvoiceService = async (
           items: lineItems,
           subtotal,
           coupon: couponId,
-          codAmount,
+          // codAmount,
           couponDiscountAmount,
           shippingAmount,
           taxAmount,
@@ -313,7 +387,6 @@ export const createInvoiceService = async (
           status: InvoiceStatus.PENDING,
           currency: defaultCurrency,
           notes,
-          billingAddress,
           shippingAddress,
         },
       ],
@@ -399,22 +472,23 @@ export const createInvoiceService = async (
 };
 
 export const getInvoiceByIdService = async (
+  user: User | null | undefined,
   id: string,
 ): Promise<ResponseType> => {
   let invoice;
-  if (Types.ObjectId.isValid(id)) {
-    invoice = await Invoice.findOne({
-      _id: id,
-    })
-      .populate("customer coupon")
-      .lean();
-  } else {
-    invoice = await Invoice.findOne({
-      invoiceNumber: id,
-    })
-      .populate("customer coupon")
-      .lean();
+  const select: ProjectionType<Invoice> = {};
+  if (user?.role === Role.USER) {
+    select["items.buyingPrice"] = 0;
   }
+  if (Types.ObjectId.isValid(id))
+    invoice = await Invoice.findById(id, select)
+      .populate("customer coupon")
+      .lean();
+  else
+    invoice = await Invoice.findOne({ invoiceNumber: id }, select)
+      .populate("customer coupon")
+      .lean();
+
   if (!invoice) throw new HTTPException(404, { message: "Invoice not found" });
 
   // Calculate transaction totals using aggregation
@@ -515,10 +589,15 @@ export const listInvoicesService = async (
     ];
   if (user?.role === Role.USER) filter["customer.user"] = user._id;
 
-  const items = await Invoice.find(filter)
-    .sort({ _id: -1 })
-    .limit(limit + 1)
-    .lean();
+  const select: ProjectionType<Invoice> = {};
+  if (user?.role === Role.USER) {
+    select["items.sellingPrice"] = 0;
+  }
+
+  const items = await Invoice.find(filter, select, {
+    sort: { _id: -1 },
+    limit: limit + 1,
+  }).lean();
 
   const hasMore = items.length > limit;
   const invoices = hasMore ? items.slice(0, limit) : items;
@@ -674,7 +753,6 @@ const ALLOWED_UPDATE_FIELDS: (keyof UpdateInvoiceSchemaType)[] = [
   "invoiceNumber",
   "status",
   "notes",
-  "billingAddress",
   "shippingAddress",
 ];
 

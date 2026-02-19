@@ -74,7 +74,8 @@ export default function ProductsListingClient() {
     isFetchingNextPage: isFetchingNextProductsPage,
   } = useListProducts({
     search: searchParam || undefined,
-    categories: [categoryParam, subcategoryParam].filter(Boolean).join(","),
+    categories: [categoryParam].filter(Boolean).join(","),
+    subcategories: [subcategoryParam].filter(Boolean).join(","),
     status: "true",
     limit: 24,
   });
@@ -239,7 +240,7 @@ export default function ProductsListingClient() {
 
       <Separator className="mb-6" />
 
-      {!cardList.length ? (
+      {productsStatus !== "pending" && !cardList.length ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground mb-4">No products found</p>
           <Button variant="outline" onClick={clearFilters}>
@@ -247,7 +248,7 @@ export default function ProductsListingClient() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 min-[510px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {cardList.map((product) => (
             <ProductCard key={product._id} {...product} />
           ))}
@@ -255,7 +256,7 @@ export default function ProductsListingClient() {
       )}
       <div ref={ref} />
       {(isFetchingNextProductsPage || productsStatus === "pending") && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 min-[510px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {Array.from({ length: 8 }).map((_, i) => (
             <div
               key={i}

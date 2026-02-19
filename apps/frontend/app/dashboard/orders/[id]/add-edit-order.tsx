@@ -84,15 +84,6 @@ const defaultValues: OrderFormValues = {
   items: [defaultItem],
   coupon: undefined,
   notes: undefined,
-  billingAddress: {
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
-    city: "",
-    state: "",
-    postalCode: "",
-  },
   shippingAddress: {
     name: "",
     email: "",
@@ -200,9 +191,12 @@ function LineItemPriceCell({
     );
   }
 
-  const hasVariants = product?.hasVariants && (product?.variants?.length ?? 0) > 0;
+  const hasVariants =
+    product?.hasVariants && (product?.variants?.length ?? 0) > 0;
   const variant =
-    hasVariants && variantId ? product?.variants?.find((v) => v?._id === variantId) : null;
+    hasVariants && variantId
+      ? product?.variants?.find((v) => v?._id === variantId)
+      : null;
 
   const unitPrice = variant
     ? (variant?.sellingPrice ?? 0)
@@ -339,17 +333,6 @@ function orderToFormValues(order: any): Partial<OrderFormValues> {
         : order.coupon
       : undefined,
     notes: order?.notes ?? undefined,
-    billingAddress: order?.billingAddress
-      ? {
-          name: order?.billingAddress?.name ?? "",
-          email: order?.billingAddress?.email ?? "",
-          phone: order?.billingAddress?.phone ?? "",
-          address: order?.billingAddress?.address ?? "",
-          city: order?.billingAddress?.city ?? "",
-          state: order?.billingAddress?.state ?? "",
-          postalCode: order?.billingAddress?.postalCode ?? "",
-        }
-      : defaultValues.billingAddress,
     shippingAddress: order?.shippingAddress
       ? {
           name: order?.shippingAddress?.name ?? "",
@@ -378,7 +361,7 @@ export default function AddEditOrder() {
 
   const shippingAmount = config?.shippingAmount ?? 0;
   const taxAmount = config?.taxAmount ?? 0;
-  const codAmount = config?.codAmount ?? 0;
+  // const codAmount = config?.codAmount ?? 0;
 
   const [discountAmount, setDiscountAmount] = useState(0);
   const [appliedFreeShipping, setAppliedFreeShipping] = useState(false);
@@ -452,15 +435,15 @@ export default function AddEditOrder() {
     [items, itemFields, productOptionsCache],
   );
 
-  const totalBeforeCod = roundTo2(
+  const orderTotal = roundTo2(
     subtotal +
       (appliedFreeShipping ? 0 : shippingAmount) +
       taxAmount -
       discountAmount,
   );
-  const codFee =
-    codAmount > 0 ? roundTo2((totalBeforeCod * codAmount) / 100) : 0;
-  const orderTotal = roundTo2(totalBeforeCod + codFee);
+  // const codFee =
+  //   codAmount > 0 ? roundTo2((totalBeforeCod * codAmount) / 100) : 0;
+  // const orderTotal = roundTo2(totalBeforeCod + codFee);
 
   const applyCoupon = async () => {
     const code = form.getValues("coupon")?.trim();
@@ -722,7 +705,7 @@ export default function AddEditOrder() {
                                 onChange={(opt) => {
                                   const prevId = f.value;
                                   const id = opt
-                                    ? (opt as ProductSearchOption)?._id ?? ""
+                                    ? ((opt as ProductSearchOption)?._id ?? "")
                                     : "";
                                   f.onChange(id);
                                   form.setValue(
@@ -770,14 +753,17 @@ export default function AddEditOrder() {
                                       {option?.hasVariants &&
                                       (option?.variants?.length ?? 0) > 0 ? (
                                         <span className="text-muted-foreground shrink-0 tabular-nums text-sm">
-                                          {option?.variants?.length ?? 0} variant
+                                          {option?.variants?.length ?? 0}{" "}
+                                          variant
                                           {(option?.variants?.length ?? 0) !== 1
                                             ? "s"
                                             : ""}
                                         </span>
                                       ) : option?.sellingPrice != null ? (
                                         <span className="text-muted-foreground shrink-0 tabular-nums text-sm">
-                                          {formatCurrency(option?.sellingPrice ?? 0)}
+                                          {formatCurrency(
+                                            option?.sellingPrice ?? 0,
+                                          )}
                                         </span>
                                       ) : null}
                                     </div>
@@ -992,7 +978,9 @@ export default function AddEditOrder() {
                           placeholder="e.g. transaction ID, phone number"
                           value={field.value ?? ""}
                           onChange={(e) =>
-                            field.onChange(e?.target?.value?.trim() || undefined)
+                            field.onChange(
+                              e?.target?.value?.trim() || undefined,
+                            )
                           }
                           onBlur={field.onBlur}
                         />
@@ -1049,14 +1037,14 @@ export default function AddEditOrder() {
                   </span>
                 </div>
               )}
-              {codAmount > 0 && (
+              {/* {codAmount > 0 && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">
                     Cash on delivery ({codAmount}%)
                   </span>
                   <span className="tabular-nums">{formatCurrency(codFee)}</span>
                 </div>
-              )}
+              )} */}
               <Separator className="my-2" />
               <div className="flex justify-between items-baseline font-medium">
                 <span>Total</span>
@@ -1065,116 +1053,6 @@ export default function AddEditOrder() {
                 </span>
               </div>
             </div>
-          </FieldSet>
-
-          <FieldSeparator />
-
-          <FieldSet>
-            <FieldLegend>Billing Address</FieldLegend>
-            <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Controller
-                name="billingAddress.name"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>Name</FieldLabel>
-                    <Input {...field} placeholder="Full name" />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-              <Controller
-                name="billingAddress.email"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>Email</FieldLabel>
-                    <Input
-                      {...field}
-                      type="email"
-                      placeholder="email@example.com"
-                      value={field.value ?? ""}
-                      onChange={(e) =>
-                        field.onChange(e.target.value || undefined)
-                      }
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-              <Controller
-                name="billingAddress.phone"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>Phone</FieldLabel>
-                    <Input {...field} placeholder="+1234567890" />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />{" "}
-              <Controller
-                name="billingAddress.city"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>City</FieldLabel>
-                    <Input {...field} placeholder="City" />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-              <Controller
-                name="billingAddress.state"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>State</FieldLabel>
-                    <Input {...field} placeholder="State" />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-              <Controller
-                name="billingAddress.postalCode"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>Postal Code</FieldLabel>
-                    <Input {...field} placeholder="12345" />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-              <Controller
-                name="billingAddress.address"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field
-                    data-invalid={fieldState.invalid}
-                    className="md:col-span-2"
-                  >
-                    <FieldLabel>Address</FieldLabel>
-                    <Textarea {...field} placeholder="Street address" />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-            </FieldGroup>
           </FieldSet>
 
           <FieldSeparator />

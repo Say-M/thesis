@@ -1,9 +1,5 @@
 import { z } from "zod";
-import {
-  InvoiceStatus,
-  InvoiceType,
-  PaymentMethod,
-} from "../enums/invoice";
+import { InvoiceStatus, InvoiceType, PaymentMethod } from "../enums/invoice";
 import { cursorPaginationQuerySchema } from "./common";
 import { addressSchema } from "./auth";
 
@@ -41,7 +37,6 @@ export const createInvoiceSchema = z.object({
   coupon: z.string({ error: "Invalid coupon" }).trim().nullish(),
   notes: z.string({ error: "Invalid notes" }).trim().nullish(),
   isSavedForLater: z.boolean().nullish(),
-  billingAddress: addressSchema,
   shippingAddress: addressSchema,
   transaction: z.object({
     paymentMethod: z.enum(PaymentMethod, { error: "Invalid payment method" }),
@@ -61,7 +56,6 @@ export const updateInvoiceSchema = z
       .nullish(),
     status: z.enum(InvoiceStatus, { error: "Invalid status" }).nullish(),
     notes: z.string({ error: "Invalid notes" }).trim().nullish(),
-    billingAddress: addressSchema.partial(),
     shippingAddress: addressSchema.partial(),
   })
   .partial();

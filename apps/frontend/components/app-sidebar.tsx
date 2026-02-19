@@ -1,8 +1,23 @@
 "use client";
 
+import { useContext } from "react";
+import Link from "next/link";
+import { AuthContext } from "@/contexts/auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { useLogout } from "@/hooks/api/auth";
 import {
   ChevronRight,
   CircleGauge,
+  ChevronDown,
   FileText,
   ScrollText,
   User,
@@ -14,10 +29,13 @@ import {
   Percent,
   Settings,
   ShoppingCart,
+  LogOut,
+  Globe,
 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarHeader,
   SidebarMenu,
@@ -32,9 +50,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useConfigContext } from "@/contexts/config";
+import { usePathname } from "next/navigation";
 
 const menus = [
   {
@@ -120,7 +137,18 @@ const menus = [
   },
 ];
 
+function getInitials(name: string | null | undefined): string {
+  if (!name?.trim()) return "?";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+}
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useContext(AuthContext);
+  const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const pathname = usePathname();
   const { config } = useConfigContext();
   return (
@@ -200,6 +228,68 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          {/* User profile dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="flex items-center gap-2 pl-2! pr-1.5!"
+                aria-label="Open user menu"
+                size="lg"
+              >
+                <Avatar className="size-8">
+                  <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                    {getInitials(user?.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="hidden max-w-32 truncate text-sm font-medium sm:inline lg:inline">
+                  {user?.name ?? "User"}
+                </span>
+                <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="right" align="end" className="w-56">
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col gap-0.5">
+                  <p className="font-medium">{user?.name ?? "User"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {user?.email ?? user?.mobile ?? ""}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/profile">
+                  <User className="size-4" />
+                  Profile
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/settings">
+                  <Settings className="size-4" />
+                  Settings
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/" target="_blank">
+                  <Globe className="size-4" />
+                  Visit Website
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => logout()}
+                disabled={isLoggingOut}
+              >
+                <LogOut className="size-4" />
+                {isLoggingOut ? "Logging out…" : "Log out"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }

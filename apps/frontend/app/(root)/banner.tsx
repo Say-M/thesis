@@ -56,7 +56,7 @@ export default function Banner() {
   }
 
   return (
-    <section className="max-w-7xl mx-auto px-4 md:px-8">
+    <section className="max-w-7xl mx-auto px-4 md:px-8 my-8">
       <Carousel setApi={setApi} className="relative">
         <CarouselContent>
           {banners.map((banner) => {

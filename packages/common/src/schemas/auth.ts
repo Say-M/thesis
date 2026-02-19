@@ -92,7 +92,6 @@ export type RegisterSchemaType = z.infer<typeof registerSchema>;
 export const updateProfileSchema = schema
   .omit({ email: true, mobile: true, password: true, confirmPassword: true })
   .extend({
-    billingAddress: addressSchema.partial(),
     shippingAddress: addressSchema.partial(),
   });
 

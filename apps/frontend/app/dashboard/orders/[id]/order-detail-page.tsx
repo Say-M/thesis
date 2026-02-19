@@ -120,34 +120,6 @@ export default function OrderDetailPage({ orderId }: { orderId: string }) {
         </Card>
       </div>
 
-      {order.billingAddress && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Billing Address</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1">
-              <p className="font-medium">{order.billingAddress.name}</p>
-              {order.billingAddress.email && (
-                <p className="text-sm text-muted-foreground">
-                  {order.billingAddress.email}
-                </p>
-              )}
-              <p className="text-sm text-muted-foreground">
-                {order.billingAddress.phone}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {order.billingAddress.address}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {order.billingAddress.city}, {order.billingAddress.state}{" "}
-                {order.billingAddress.postalCode}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {order.shippingAddress && (
         <Card>
           <CardHeader>

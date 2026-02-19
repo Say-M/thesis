@@ -109,7 +109,7 @@ export default function ProductCard({
           <div className="absolute left-2 top-2 flex flex-col gap-1">
             {discountAmount > 0 && (
               <Badge variant="destructive" className="text-white">
-                -{formatCurrency(discountAmount)} OFF
+                {formatCurrency(discountAmount)} OFF
               </Badge>
             )}
           </div>

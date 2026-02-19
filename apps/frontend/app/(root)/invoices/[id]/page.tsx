@@ -41,22 +41,11 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
   const hasCompanyInfo =
     siteName || siteAddress || siteEmail || sitePhone || siteLogo;
 
-  const recipient = invoice.billingAddress ?? invoice.customer;
+  const recipient = invoice.shippingAddress ?? invoice.customer;
   const recipientName =
     (recipient && "name" in recipient && recipient.name) ||
     invoice.customer?.name ||
     "—";
-  const recipientAddress =
-    recipient && "address" in recipient
-      ? [
-          recipient.address,
-          recipient.city,
-          recipient.state,
-          recipient.postalCode,
-        ]
-          .filter(Boolean)
-          .join(", ")
-      : "";
   const recipientEmail =
     (recipient && "email" in recipient && recipient.email) ||
     invoice.customer?.email ||
@@ -169,14 +158,9 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
             <div className="grid gap-8 sm:grid-cols-2">
               <div className="space-y-1">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Bill to
+                  Bill To
                 </p>
                 <p className="font-medium text-foreground">{recipientName}</p>
-                {recipientAddress && (
-                  <p className="text-sm text-muted-foreground">
-                    {recipientAddress}
-                  </p>
-                )}
                 {recipientEmail && (
                   <a
                     href={`mailto:${recipientEmail}`}
@@ -199,8 +183,9 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
 
               {shipping && (
                 <div className="space-y-1">
-                  <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Ship to ({invoice.status})
+                  <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Ship to
+                    <span className="print:hidden">({invoice.status})</span>
                   </p>
                   <p className="font-medium text-foreground">{shipping.name}</p>
                   {shippingAddressLine && (
@@ -338,7 +323,7 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
                       </TableCell>
                     </TableRow>
                   )} */}
-                  {(invoice.codAmount ?? 0) > 0 && (
+                  {/* {(invoice.codAmount ?? 0) > 0 && (
                     <TableRow>
                       <TableCell
                         colSpan={4}
@@ -350,7 +335,7 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
                         {formatMoney(invoice.codAmount ?? 0, currency)}
                       </TableCell>
                     </TableRow>
-                  )}
+                  )} */}
                   <TableRow>
                     <TableCell
                       colSpan={4}

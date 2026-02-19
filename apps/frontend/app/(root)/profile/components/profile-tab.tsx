@@ -1,27 +1,20 @@
 "use client";
 
-import { useUpdateProfile } from "@/hooks/api/auth";
+import { useUpdateProfile, useLogout } from "@/hooks/api/auth";
 import type { UpdateProfilePayload } from "@/hooks/api/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2Icon } from "lucide-react";
+import { Loader2Icon, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useCartWishlist } from "@/contexts/cart-wishlist";
+import { Separator } from "@/components/ui/separator";
 
 type UserProfile = {
   name?: string | null;
   email?: string | null;
   mobile?: string | null;
-  billingAddress?: {
-    name?: string;
-    email?: string | null;
-    phone?: string;
-    address?: string;
-    city?: string;
-    state?: string;
-    postalCode?: string;
-  } | null;
   shippingAddress?: {
     name?: string;
     email?: string | null;
@@ -35,9 +28,10 @@ type UserProfile = {
 
 export function ProfileTab({ user }: { user: UserProfile }) {
   const updateProfile = useUpdateProfile();
+  const logout = useLogout();
+  const { clearCart, clearWishlist } = useCartWishlist();
   const [form, setForm] = useState<UpdateProfilePayload>({
     name: "",
-    billingAddress: {},
     shippingAddress: {},
   });
 
@@ -46,17 +40,6 @@ export function ProfileTab({ user }: { user: UserProfile }) {
     setForm((prev) => ({
       ...prev,
       name: user.name ?? "",
-      billingAddress: user.billingAddress
-        ? {
-            name: user.billingAddress.name,
-            email: user.billingAddress.email ?? undefined,
-            phone: user.billingAddress.phone,
-            address: user.billingAddress.address,
-            city: user.billingAddress.city,
-            state: user.billingAddress.state,
-            postalCode: user.billingAddress.postalCode,
-          }
-        : {},
       shippingAddress: user.shippingAddress
         ? {
             name: user.shippingAddress.name,
@@ -82,9 +65,14 @@ export function ProfileTab({ user }: { user: UserProfile }) {
     };
     updateProfile.mutate({
       name: form.name.trim(),
-      billingAddress: clean(form.billingAddress as Record<string, string | undefined>),
       shippingAddress: clean(form.shippingAddress as Record<string, string | undefined>),
     });
+  };
+
+  const handleLogout = () => {
+    clearCart();
+    clearWishlist();
+    logout.mutate();
   };
 
   return (
@@ -124,108 +112,6 @@ export function ProfileTab({ user }: { user: UserProfile }) {
               className="bg-muted"
               readOnly
             />
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium">Billing address (optional)</h3>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="billing-name">Name</Label>
-                <Input
-                  id="billing-name"
-                  value={form.billingAddress?.name ?? ""}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      billingAddress: {
-                        ...prev.billingAddress,
-                        name: e.target.value,
-                      },
-                    }))
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="billing-phone">Phone</Label>
-                <Input
-                  id="billing-phone"
-                  value={form.billingAddress?.phone ?? ""}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      billingAddress: {
-                        ...prev.billingAddress,
-                        phone: e.target.value,
-                      },
-                    }))
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="billing-postalCode">Postal code</Label>
-                <Input
-                  id="billing-postalCode"
-                  value={form.billingAddress?.postalCode ?? ""}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      billingAddress: {
-                        ...prev.billingAddress,
-                        postalCode: e.target.value,
-                      },
-                    }))
-                  }
-                />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="billing-address">Address</Label>
-                <Input
-                  id="billing-address"
-                  value={form.billingAddress?.address ?? ""}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      billingAddress: {
-                        ...prev.billingAddress,
-                        address: e.target.value,
-                      },
-                    }))
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="billing-city">City</Label>
-                <Input
-                  id="billing-city"
-                  value={form.billingAddress?.city ?? ""}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      billingAddress: {
-                        ...prev.billingAddress,
-                        city: e.target.value,
-                      },
-                    }))
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="billing-state">State</Label>
-                <Input
-                  id="billing-state"
-                  value={form.billingAddress?.state ?? ""}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      billingAddress: {
-                        ...prev.billingAddress,
-                        state: e.target.value,
-                      },
-                    }))
-                  }
-                />
-              </div>
-            </div>
           </div>
 
           <div className="space-y-4">
@@ -337,6 +223,35 @@ export function ProfileTab({ user }: { user: UserProfile }) {
             Save profile
           </Button>
         </form>
+
+        <Separator className="my-6" />
+
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium text-destructive">Danger zone</h3>
+          <p className="text-sm text-muted-foreground">
+            Log out of your account. You will need to sign in again to access your
+            profile.
+          </p>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={handleLogout}
+            disabled={logout.isPending}
+            className="w-full sm:w-auto"
+          >
+            {logout.isPending ? (
+              <>
+                <Loader2Icon className="mr-2 size-4 animate-spin" />
+                Logging out...
+              </>
+            ) : (
+              <>
+                <LogOut className="mr-2 size-4" />
+                Log out
+              </>
+            )}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

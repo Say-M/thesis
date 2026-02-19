@@ -245,7 +245,7 @@ export default function TrackOrderPage() {
       </div>
 
       <Card className="mb-8">
-        <CardContent className="pt-6">
+        <CardContent>
           <form
             onSubmit={handleSubmit}
             className="flex flex-col gap-4 sm:flex-row"

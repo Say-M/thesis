@@ -157,8 +157,8 @@ export default function Header() {
     headerPagesData?.pages?.map((page) => page.pages).flat() ?? [];
 
   return (
-    <header className="sticky top-0 z-50 bg-background print:hidden">
-      <div className="border-b">
+    <header className="top-0 z-50 bg-background print:hidden">
+      <div className="hidden md:block border-b">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="flex items-center justify-between py-1">
             <div className="flex items-center gap-4 text-sm font-medium">
@@ -201,7 +201,7 @@ export default function Header() {
       </div>
       <div className="border-b">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between gap-6">
-          <Link href="/">
+          <Link href="/" className="shrink-0">
             {config?.siteLogo ? (
               <Image
                 src={config.siteLogo.path}
@@ -214,7 +214,8 @@ export default function Header() {
               <h1 className="text-2xl font-bold">{config?.siteName}</h1>
             )}
           </Link>
-          <div className="max-w-xl w-full mx-auto">
+          {/* Desktop Search - Full Width */}
+          <div className="hidden md:block max-w-xl w-full mx-auto">
             <Popover open={searchOpen} onOpenChange={setSearchOpen}>
               <PopoverAnchor asChild>
                 <div className="relative">
@@ -302,7 +303,107 @@ export default function Header() {
               </PopoverContent>
             </Popover>
           </div>
-          <div className="flex items-center gap-4">
+
+          {/* Mobile Search - Icon Only */}
+          <div className="md:hidden">
+            <Popover open={searchOpen} onOpenChange={setSearchOpen}>
+              <PopoverAnchor asChild>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  onClick={() => setSearchOpen(true)}
+                  aria-label="Search"
+                >
+                  <SearchIcon />
+                </Button>
+              </PopoverAnchor>
+              <PopoverContent
+                id="header-search-results-mobile"
+                className="w-svw md:hidden sm:w-md max-h-[min(70vh,400px)] overflow-y-auto p-0"
+                align="start"
+                sideOffset={8}
+                // onOpenAutoFocus={(e) => e.preventDefault()}
+              >
+                <div className="border-b bg-background p-4">
+                  <InputGroup>
+                    <InputGroupInput
+                      autoComplete="off"
+                      placeholder="Search products…"
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape") {
+                          setSearchOpen(false);
+                        }
+                      }}
+                      aria-expanded={searchOpen}
+                      aria-autocomplete="list"
+                      aria-controls="header-search-results-mobile"
+                      id="header-search-input-mobile"
+                      autoFocus
+                    />
+                    <InputGroupAddon align="inline-end">
+                      <InputGroupButton
+                        type="button"
+                        aria-label="Search"
+                        onClick={() => {
+                          if (searchInput.trim()) {
+                            router.push(
+                              `/products?search=${encodeURIComponent(searchInput.trim())}`,
+                            );
+                            setSearchOpen(false);
+                          }
+                        }}
+                      >
+                        <SearchIcon className="size-4" />
+                      </InputGroupButton>
+                    </InputGroupAddon>
+                  </InputGroup>
+                </div>
+
+                {searchInput.trim().length < SEARCH_MIN_LENGTH ? (
+                  <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+                    Type at least {SEARCH_MIN_LENGTH} characters to search
+                  </div>
+                ) : searchLoading ? (
+                  <div className="flex items-center justify-center gap-2 px-4 py-8">
+                    <Loader2Icon className="size-5 animate-spin text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      Searching…
+                    </span>
+                  </div>
+                ) : searchProducts.length === 0 ? (
+                  <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+                    No products found
+                  </div>
+                ) : (
+                  <ul className="py-2" role="listbox">
+                    {searchProducts.map((product) => (
+                      <SearchResultItem
+                        key={product._id}
+                        product={product}
+                        onSelect={() => handleSelectProduct(product.slug)}
+                      />
+                    ))}
+                  </ul>
+                )}
+                {debouncedSearch.length >= SEARCH_MIN_LENGTH &&
+                  searchProducts.length > 0 && (
+                    <div className="border-t p-2 text-center">
+                      <Link
+                        href={`/products?search=${encodeURIComponent(debouncedSearch)}`}
+                        className="text-sm font-medium text-primary hover:underline"
+                        onClick={() => setSearchOpen(false)}
+                      >
+                        View all results for &quot;{debouncedSearch}&quot;
+                      </Link>
+                    </div>
+                  )}
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="hidden md:flex items-center gap-4">
             <Button variant="ghost" size="icon-sm" className="relative" asChild>
               <Link
                 href="/cart"

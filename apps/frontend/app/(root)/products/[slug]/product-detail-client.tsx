@@ -122,7 +122,7 @@ export function ProductDetailClient({
     <div className="max-w-7xl mx-auto px-4 md:px-8 my-8 space-y-8">
       <ProductDetailBreadcrumb productName={product.name} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mb-12">
         <ProductDetailGallery
           images={displayImages}
           productName={product.name}

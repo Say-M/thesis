@@ -18,6 +18,22 @@ const variantSchema = z.object({
     .min(0, { message: "Selling price can not be negative" }),
   discountType: z.enum(DiscountType).nullish(),
   discountValue: z.number().min(0).nullish(),
+  weight: z.coerce
+    .number({ error: "Weight is required" })
+    .min(0, { message: "Weight can not be negative" })
+    .nullish(),
+  weightUnit: z.string().trim().nullish(),
+  unit: z.string().trim().nullish(),
+  minQuantity: z.coerce
+    .number({ error: "Min quantity is required" })
+    .int({ message: "Min quantity can not be a decimal number" })
+    .min(1, { message: "Min quantity can not be less than 1" })
+    .nullish(),
+  maxQuantity: z.coerce
+    .number({ error: "Max quantity is required" })
+    .int({ message: "Max quantity can not be a decimal number" })
+    .min(-1, { message: "Max quantity can not be less than -1" })
+    .nullish(),
   stock: z.number().int().min(0, { message: "Stock can not be negative" }),
 });
 
@@ -57,6 +73,22 @@ const productSchema = z.object({
   discountValue: z.coerce
     .number({ error: "Discount value is required" })
     .min(0, { message: "Discount can not be negative" })
+    .nullish(),
+  weight: z.coerce
+    .number({ error: "Weight is required" })
+    .min(0, { message: "Weight can not be negative" })
+    .nullish(),
+  weightUnit: z.string().trim().nullish(),
+  unit: z.string().trim().nullish(),
+  minQuantity: z.coerce
+    .number({ error: "Min quantity is required" })
+    .int({ message: "Min quantity can not be a decimal number" })
+    .min(1, { message: "Min quantity can not be less than 1" })
+    .nullish(),
+  maxQuantity: z.coerce
+    .number({ error: "Max quantity is required" })
+    .int({ message: "Max quantity can not be a decimal number" })
+    .min(-1, { message: "Max quantity can not be less than -1" })
     .nullish(),
   stock: z.coerce
     .number({ error: "Stock is required" })
@@ -156,16 +188,16 @@ export const listProductQuerySchema = cursorPaginationQuerySchema.extend({
     .string()
     .trim()
     .nullish()
-    .transform((val) => val?.split(",").map((v) => v.trim())),
+    .transform((val) => val && val?.split(",").map((v) => v.trim())),
   subcategories: z
     .string()
     .trim()
     .nullish()
-    .transform((val) => val?.split(",").map((v) => v.trim())),
+    .transform((val) => val && val?.split(",").map((v) => v.trim())),
   status: z
     .string()
     .nullish()
-    .transform((val) => val?.split(",").map((v) => v === "true")),
+    .transform((val) => val && val?.split(",").map((v) => v === "true")),
   featured: z
     .string()
     .nullish()
@@ -175,12 +207,12 @@ export const listProductQuerySchema = cursorPaginationQuerySchema.extend({
   hasVariants: z
     .string()
     .nullish()
-    .transform((val) => val?.split(",").map((v) => v === "true")),
+    .transform((val) => val && val?.split(",").map((v) => v === "true")),
   productIds: z
     .string()
     .trim()
     .nullish()
-    .transform((val) => val?.split(",").map((v) => v.trim())),
+    .transform((val) => val && val?.split(",").map((v) => v.trim())),
 });
 
 export type ListProductQuerySchemaType = z.infer<typeof listProductQuerySchema>;

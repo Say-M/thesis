@@ -44,15 +44,6 @@ export type OrderDetail = OrderListItem & {
     discountAmount: number;
     total: number;
   }>;
-  billingAddress?: {
-    name: string;
-    email?: string;
-    phone: string;
-    address: string;
-    city: string;
-    state: string;
-    postalCode: string;
-  };
   shippingAddress?: {
     name: string;
     email?: string;

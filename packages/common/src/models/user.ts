@@ -66,7 +66,6 @@ const schema = new Schema(
       default: true,
       index: true,
     },
-    billingAddress: { type: addressSchema },
     shippingAddress: { type: addressSchema },
     lastLogin: {
       type: Date,

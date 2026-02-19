@@ -16,6 +16,11 @@ const variantSchema = new Schema(
       default: DiscountType.PERCENTAGE,
     },
     discountValue: { type: Number, min: 0, default: 0 },
+    weight: { type: Number, min: 0, default: 0 },
+    weightUnit: { type: String, trim: true },
+    unit: { type: String, trim: true },
+    minQuantity: { type: Number, min: 1, default: 1 },
+    maxQuantity: { type: Number, min: -1, default: -1 },
     stock: { type: Number, required: true, min: 0, default: 0 },
     status: {
       type: Boolean,
@@ -90,6 +95,11 @@ const schema = new Schema(
       default: DiscountType.PERCENTAGE,
     },
     discountValue: { type: Number, min: 0, default: 0 },
+    weight: { type: Number, min: 0, default: 0 },
+    weightUnit: { type: String, trim: true },
+    unit: { type: String, trim: true },
+    minQuantity: { type: Number, min: 1, default: 1 },
+    maxQuantity: { type: Number, min: -1, default: -1 },
     stock: {
       type: Number,
       min: 0,
