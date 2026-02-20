@@ -507,8 +507,8 @@ export const createInvoiceService = async (
         cus_phone: createdInvoice.customer.phone || "",
         value_a: createdInvoice.invoiceNumber,
         value_b: origin,
-        store_id: process.env.SSLCOMMERZ_STORE_ID,
-        store_passwd: process.env.SSLCOMMERZ_STORE_PASS,
+        store_id: "dukan68f2e4af85841",
+        store_passwd: "dukan68f2e4af85841@ssl",
       });
 
       console.log({ response });
