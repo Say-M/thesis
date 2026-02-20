@@ -34,17 +34,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const STATUS_COLORS = {
   [InvoiceStatus.DELIVERED]:
-    "dark:bg-green-300 bg-greed-700 text-foreground dark:text-background",
+    "dark:bg-green-300 bg-green-700 dark:text-foreground text-background",
   [InvoiceStatus.CANCELLED]:
-    "dark:bg-red-300 bg-red-700 text-foreground dark:text-background",
+    "dark:bg-gray-300 bg-gray-700 dark:text-foreground text-background",
   [InvoiceStatus.REFUNDED]:
-    "dark:bg-yellow-300 bg-yellow-700 text-foreground dark:text-background",
+    "dark:bg-red-300 bg-red-700 dark:text-foreground text-background",
   [InvoiceStatus.PENDING]:
-    "dark:bg-gray-300 bg-gray-700 text-foreground dark:text-background",
+    "dark:bg-amber-300 bg-amber-700 dark:text-foreground text-background",
   [InvoiceStatus.PROCESSING]:
-    "dark:bg-blue-300 bg-blue-700 text-foreground dark:text-background",
+    "dark:bg-blue-300 bg-blue-700 dark:text-foreground text-background",
   [InvoiceStatus.SHIPPED]:
-    "dark:bg-purple-300 bg-purple-700 text-foreground dark:text-background",
+    "dark:bg-purple-300 bg-purple-700 dark:text-foreground text-background",
 };
 
 export default function InvoicesTable({
