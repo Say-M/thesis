@@ -181,12 +181,12 @@ export default function AssetsPage() {
 
   return (
     <div className="p-4 space-y-4">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-4 flex-1">
+      <div className="flex justify-between gap-4 flex-wrap">
+        <div className="flex flex-wrap items-center gap-3 flex-1">
           <Input
             type="text"
             placeholder="Search by name"
-            className="w-full min-w-[200px] max-w-xs"
+            className="w-full min-w-2xs max-w-sm"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             aria-label="Search assets"

@@ -30,12 +30,12 @@ export default function PagesPage() {
 
   return (
     <div className="space-y-4 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex min-w-0 max-w-2xl flex-1 items-center gap-3">
+      <div className="flex justify-between gap-4 flex-wrap">
+        <div className="flex flex-wrap items-center gap-3 flex-1">
           <Input
             type="text"
             placeholder="Search pages (title, slug)"
-            className="max-w-sm min-w-[140px] w-full"
+            className="w-full min-w-2xs max-w-sm"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             aria-label="Search pages"

@@ -46,6 +46,7 @@ const SOCIAL_KEYS = [
   { key: "instagram", label: "Instagram" },
   { key: "linkedin", label: "LinkedIn" },
   { key: "youtube", label: "YouTube" },
+  { key: "whatsapp", label: "WhatsApp" },
 ] as const;
 
 function toFormValues(c: ConfigData | null): UpdateConfigSchemaType {
@@ -482,7 +483,6 @@ export default function SettingsPage() {
                     </Field>
                     <Field>
                       <Input
-                        type="url"
                         placeholder="https://..."
                         {...form.register(`socials.${key}.url` as const)}
                       />

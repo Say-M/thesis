@@ -11,7 +11,7 @@ export default function RootLayout({
   return (
     <section className="flex flex-col h-svh overflow-hidden">
       <Header />
-      <ScrollArea className="flex-1 overflow-auto">
+      <ScrollArea className="flex-1 overflow-hidden">
         <main className="print:p-0">{children}</main>
         <Footer />
       </ScrollArea>

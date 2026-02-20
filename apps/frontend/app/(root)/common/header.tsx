@@ -27,6 +27,7 @@ import {
   Loader2Icon,
   SearchIcon,
   ShoppingCartIcon,
+  User2Icon,
 } from "lucide-react";
 import { DiscountType } from "@repo/common/enums/discount";
 import Link from "next/link";
@@ -305,7 +306,7 @@ export default function Header() {
           </div>
 
           {/* Mobile Search - Icon Only */}
-          <div className="md:hidden">
+          <div className="md:hidden flex gap-x-2 items-center">
             <Popover open={searchOpen} onOpenChange={setSearchOpen}>
               <PopoverAnchor asChild>
                 <Button
@@ -402,6 +403,11 @@ export default function Header() {
                   )}
               </PopoverContent>
             </Popover>
+            <Button size="icon" variant="secondary" asChild>
+              <Link href={user ? "/profile" : "/auth/login"}>
+                <User2Icon />
+              </Link>
+            </Button>
           </div>
           <div className="hidden md:flex items-center gap-4">
             <Button variant="ghost" size="icon-sm" className="relative" asChild>

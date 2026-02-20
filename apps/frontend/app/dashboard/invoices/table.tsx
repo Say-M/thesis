@@ -32,6 +32,21 @@ import { format } from "date-fns";
 import { useInView } from "react-intersection-observer";
 import { Skeleton } from "@/components/ui/skeleton";
 
+const STATUS_COLORS = {
+  [InvoiceStatus.DELIVERED]:
+    "dark:bg-green-300 bg-greed-700 text-foreground dark:text-background",
+  [InvoiceStatus.CANCELLED]:
+    "dark:bg-red-300 bg-red-700 text-foreground dark:text-background",
+  [InvoiceStatus.REFUNDED]:
+    "dark:bg-yellow-300 bg-yellow-700 text-foreground dark:text-background",
+  [InvoiceStatus.PENDING]:
+    "dark:bg-gray-300 bg-gray-700 text-foreground dark:text-background",
+  [InvoiceStatus.PROCESSING]:
+    "dark:bg-blue-300 bg-blue-700 text-foreground dark:text-background",
+  [InvoiceStatus.SHIPPED]:
+    "dark:bg-purple-300 bg-purple-700 text-foreground dark:text-background",
+};
+
 export default function InvoicesTable({
   search,
   status,
@@ -141,14 +156,7 @@ export default function InvoicesTable({
               </TableCell>
               <TableCell>
                 <Badge
-                  variant={
-                    invoice.status === InvoiceStatus.DELIVERED
-                      ? "default"
-                      : invoice.status === InvoiceStatus.CANCELLED ||
-                          invoice.status === InvoiceStatus.REFUNDED
-                        ? "destructive"
-                        : "secondary"
-                  }
+                  className={STATUS_COLORS[invoice.status as InvoiceStatus]}
                 >
                   {invoice.status}
                 </Badge>

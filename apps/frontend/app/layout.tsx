@@ -8,6 +8,7 @@ import { CartWishlistProvider } from "@/contexts/cart-wishlist";
 import { Toaster } from "sonner";
 import { getConfig } from "./data";
 import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -103,16 +104,23 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <TanStackProvider>
-          <AuthProvider>
-            <ConfigProvider>
-              <CartWishlistProvider>
-                <Toaster />
-                {children}
-              </CartWishlistProvider>
-            </ConfigProvider>
-          </AuthProvider>
-        </TanStackProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <TanStackProvider>
+            <AuthProvider>
+              <ConfigProvider>
+                <CartWishlistProvider>
+                  <Toaster />
+                  {children}
+                </CartWishlistProvider>
+              </ConfigProvider>
+            </AuthProvider>
+          </TanStackProvider>
+        </ThemeProvider>
       </body>
       <GoogleAnalytics gaId="G-63VP74W5V4" />
     </html>
