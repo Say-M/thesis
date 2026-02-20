@@ -24,7 +24,10 @@ import {
 import { getLatestConfig } from "@/utils/config-helper";
 import { Role } from "@repo/common/enums/role";
 import { roundTo2 } from "@repo/common/utils/round-to-2";
-import sslcommerz, { ShippingMethod, ProductProfile } from "@repo/sslcommerz/sslcommerz";
+import sslcommerz, {
+  ShippingMethod,
+  ProductProfile,
+} from "@repo/sslcommerz/sslcommerz";
 
 export const createInvoiceService = async (
   user: User | null | undefined,
@@ -486,7 +489,7 @@ export const createInvoiceService = async (
 
       const success_url =
         process.env.SERVER_URL +
-        `/success?invoiceNumber=${createdInvoice.invoiceNumber}`;
+        `/api/payments/success?invoiceNumber=${createdInvoice.invoiceNumber}`;
       const fail_url = process.env.SERVER_URL + "/api/payments/fail";
       const cancel_url = process.env.SERVER_URL + "/api/payments/cancel";
       const ipn_url = process.env.SERVER_URL + "/api/payments/ipn";
