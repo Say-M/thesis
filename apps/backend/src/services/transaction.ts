@@ -172,12 +172,7 @@ export const createTransactionService = async (
   payload: CreateTransactionSchemaType,
   other?: Record<string, any>,
 ): Promise<ResponseType> => {
-  let invoice;
-  if (Types.ObjectId.isValid(invoiceId)) {
-    invoice = (await Invoice.findById(invoiceId))?.toObject();
-  } else {
-    invoice = (await Invoice.findOne({ invoiceNumber: invoiceId }))?.toObject();
-  }
+  const invoice = await Invoice.findById(invoiceId).lean();
 
   if (!invoice) throw new HTTPException(404, { message: "Invoice not found" });
 

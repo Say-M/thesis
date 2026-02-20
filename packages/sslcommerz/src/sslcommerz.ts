@@ -110,8 +110,8 @@ class SSLCommerz {
 
   constructor(is_live = false) {
     this.config = {
-      storeId: process.env.SSLCOMMERZ_STORE_ID || "",
-      storePassword: process.env.SSLCOMMERZ_STORE_PASS || "",
+      storeId: process.env.STORE_ID || "",
+      storePassword: process.env.STORE_PASS || "",
       baseUrl: `https://${is_live ? "securepay" : "sandbox"}.sslcommerz.com`,
     };
 
@@ -127,24 +127,24 @@ class SSLCommerz {
     payload: PaymentRequestPayload,
   ): Promise<PaymentResponsePayload> {
     try {
-      const formData = new FormData();
+      const params = new URLSearchParams();
 
       for (const key in payload) {
-        formData.append(key, (payload as any)[key] || "");
+        params.append(key, (payload as any)[key] || "");
       }
 
-      formData.append("store_id", this.config.storeId || "dukan68f2e4af85841");
-      formData.append(
+      params.append("store_id", this.config.storeId || "turfg673f5da01545e");
+      params.append(
         "store_passwd",
-        this.config.storePassword || "dukan68f2e4af85841@ssl",
+        this.config.storePassword || "turfg673f5da01545e@ssl",
       );
 
-      console.log({ formData, config: this.config });
-
       const { data }: { data: PaymentResponsePayload } =
-        await this.axiosInstance.post(`/gwprocess/v4/api.php`, formData);
-
-      console.log({ data });
+        await this.axiosInstance.post(`/gwprocess/v4/api.php`, params, {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        });
 
       if (data.status === "FAILED") {
         throw new Error(data.failedreason);

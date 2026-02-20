@@ -482,14 +482,7 @@ export const createInvoiceService = async (
     const createdInvoice = invoice[0]?.toObject();
 
     if (createdInvoice && paymentType === PaymentType.ONLINE) {
-      console.log({
-        store_id: process.env.SSLCOMMERZ_STORE_ID,
-        store_passwd: process.env.SSLCOMMERZ_STORE_PASS,
-      });
-
-      const success_url =
-        process.env.SERVER_URL +
-        `/api/payments/success?invoiceNumber=${createdInvoice.invoiceNumber}`;
+      const success_url = process.env.SERVER_URL + "/api/payments/success";
       const fail_url = process.env.SERVER_URL + "/api/payments/fail";
       const cancel_url = process.env.SERVER_URL + "/api/payments/cancel";
       const ipn_url = process.env.SERVER_URL + "/api/payments/ipn";
@@ -510,6 +503,7 @@ export const createInvoiceService = async (
         cus_phone: createdInvoice.customer.phone || "",
         value_a: createdInvoice.invoiceNumber,
         value_b: origin,
+        value_c: createdInvoice._id?.toString(),
       });
 
       console.log({ response });

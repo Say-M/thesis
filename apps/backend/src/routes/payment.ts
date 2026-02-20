@@ -25,6 +25,7 @@ route.post(
     const invoiceNumber =
       c.req.query("invoiceNumber") || (body.value_a as string);
     const origin = body.value_b;
+    const invoiceId = body.value_c as string;
 
     if (!invoiceNumber)
       return c.redirect(
@@ -32,7 +33,7 @@ route.post(
       );
 
     const response = await createTransactionService(
-      invoiceNumber,
+      invoiceId,
       {
         amount: Number(currency_amount),
         store_amount: Number(store_amount),
@@ -58,6 +59,12 @@ route.post("/fail", async (c) => {
         "/payment/failed?message=Payment failed&invoiceNumber=" + invoiceNumber,
       ),
   );
+});
+
+route.post("/cancel", async (c) => {
+  const body = await c.req.parseBody();
+  const origin = body.value_b;
+  return c.redirect(origin + "/products");
 });
 
 export default route;
