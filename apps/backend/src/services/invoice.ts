@@ -24,7 +24,7 @@ import {
 import { getLatestConfig } from "@/utils/config-helper";
 import { Role } from "@repo/common/enums/role";
 import { roundTo2 } from "@repo/common/utils/round-to-2";
-import sslcommerz, { ShippingMethod, ProductProfile } from "@/utils/sslcommerz";
+import sslcommerz, { ShippingMethod, ProductProfile } from "@repo/sslcommerz/sslcommerz";
 
 export const createInvoiceService = async (
   user: User | null | undefined,
@@ -507,8 +507,6 @@ export const createInvoiceService = async (
         cus_phone: createdInvoice.customer.phone || "",
         value_a: createdInvoice.invoiceNumber,
         value_b: origin,
-        store_id: "dukan68f2e4af85841",
-        store_passwd: "dukan68f2e4af85841@ssl",
       });
 
       console.log({ response });
@@ -519,7 +517,7 @@ export const createInvoiceService = async (
           status: 201,
           message: "OK",
           timestamp: new Date().toISOString(),
-          data: { redirectUrl: response.redirectGatewayURL },
+          data: { redirectUrl: response.GatewayPageURL },
         };
       }
     }
