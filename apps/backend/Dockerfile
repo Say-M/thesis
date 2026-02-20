@@ -10,6 +10,7 @@ FROM base AS deps
 COPY package.json bun.lock ./
 
 COPY packages/common/package.json ./packages/common/
+COPY packages/sslcommerz/package.json ./packages/sslcommerz/
 COPY packages/eslint-config/package.json ./packages/eslint-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
@@ -28,6 +29,7 @@ COPY --from=deps /app/node_modules ./node_modules
 
 # Copy workspace packages source (need for @repo/* imports)
 COPY packages/common ./packages/common
+COPY packages/sslcommerz ./packages/sslcommerz
 
 # Copy backend app
 COPY apps/backend ./apps/backend
