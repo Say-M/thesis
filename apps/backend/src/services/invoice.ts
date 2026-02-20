@@ -496,7 +496,7 @@ export const createInvoiceService = async (
       const response = await sslcommerz.createPaymentSession({
         total_amount: createdInvoice.total,
         currency: createdInvoice.currency,
-        tran_id: createdInvoice.invoiceNumber + "-" + Date.now().toString(),
+        tran_id: createdInvoice.invoiceNumber,
         success_url,
         fail_url,
         cancel_url,
@@ -511,6 +511,8 @@ export const createInvoiceService = async (
         value_a: createdInvoice.invoiceNumber,
         value_b: origin,
       });
+
+      console.log({ response });
 
       if (response.status === "SUCCESS") {
         await session.commitTransaction();

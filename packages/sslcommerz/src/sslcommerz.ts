@@ -133,8 +133,13 @@ class SSLCommerz {
         formData.append(key, (payload as any)[key] || "");
       }
 
-      formData.append("store_id", this.config.storeId);
-      formData.append("store_passwd", this.config.storePassword);
+      formData.append("store_id", this.config.storeId || "dukan68f2e4af85841");
+      formData.append(
+        "store_passwd",
+        this.config.storePassword || "dukan68f2e4af85841@ssl",
+      );
+
+      console.log({ formData, config: this.config });
 
       const { data }: { data: PaymentResponsePayload } =
         await this.axiosInstance.post(`/gwprocess/v4/api.php`, formData);
