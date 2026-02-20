@@ -24,10 +24,7 @@ import {
 import { getLatestConfig } from "@/utils/config-helper";
 import { Role } from "@repo/common/enums/role";
 import { roundTo2 } from "@repo/common/utils/round-to-2";
-import sslcommerz, {
-  ShippingMethod,
-  ProductProfile,
-} from "@repo/sslcommerz/sslcommerz";
+import sslcommerz, { ShippingMethod, ProductProfile } from "@/utils/sslcommerz";
 
 export const createInvoiceService = async (
   user: User | null | undefined,
@@ -510,6 +507,8 @@ export const createInvoiceService = async (
         cus_phone: createdInvoice.customer.phone || "",
         value_a: createdInvoice.invoiceNumber,
         value_b: origin,
+        store_id: process.env.SSLCOMMERZ_STORE_ID,
+        store_passwd: process.env.SSLCOMMERZ_STORE_PASS,
       });
 
       console.log({ response });
