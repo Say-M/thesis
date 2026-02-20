@@ -11,7 +11,11 @@ import {
   createInvoiceSchema,
   type CreateInvoiceSchemaType,
 } from "@repo/common/schemas/invoice";
-import { InvoiceType, PaymentMethod } from "@repo/common/enums/invoice";
+import {
+  InvoiceType,
+  PaymentMethod,
+  PaymentType,
+} from "@repo/common/enums/invoice";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -62,6 +66,7 @@ import { UserSearchOption, useUserSearch } from "@/hooks/use-user-search";
 import { Role } from "@repo/common/enums/role";
 import { roundTo2 } from "@repo/common/utils/round-to-2";
 import { FieldError } from "@/components/ui/field";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Image from "next/image";
 
 const checkoutFormSchema = createInvoiceSchema
@@ -185,7 +190,14 @@ export default function CartPage() {
   const { user } = useContext(AuthContext);
   const { config } = useConfigContext();
   const searchUsers = useUserSearch();
-  const shippingAmount = config?.shippingAmount ?? 0;
+
+  // Get available shipping charges
+  const shippingCharges = config?.shippingCharges ?? [];
+  const defaultShippingCharge = shippingCharges[0];
+  const [selectedShippingCharge, setSelectedShippingCharge] = useState<
+    typeof defaultShippingCharge | null
+  >(defaultShippingCharge ?? null);
+  const shippingAmount = selectedShippingCharge?.price ?? 0;
   const taxAmount = config?.taxAmount ?? 0;
   // const codAmount = config?.codAmount ?? 0;
   const { cart, removeFromCart, updateCartQuantity, clearCart } =
@@ -247,15 +259,23 @@ export default function CartPage() {
       },
       notes: "",
       sameAsBilling: false,
-      transaction: {
-        paymentMethod: PaymentMethod.CASH,
-        reference: "",
-      },
+      shippingChargeName: defaultShippingCharge?.name ?? null,
+      // transaction: {
+      //   paymentMethod: PaymentMethod.CASH,
+      //   reference: "",
+      // },
     },
   });
 
   const sameAsBilling = form.watch("sameAsBilling");
   const hasPrefilledUser = useRef(false);
+
+  // Update shippingChargeName when selectedShippingCharge changes
+  useEffect(() => {
+    if (selectedShippingCharge) {
+      form.setValue("shippingChargeName", selectedShippingCharge.name ?? null);
+    }
+  }, [selectedShippingCharge, form]);
 
   // Pre-fill customer and addresses from logged-in user's profile (once)
   useEffect(() => {
@@ -826,7 +846,54 @@ export default function CartPage() {
 
                 <Separator />
 
-                <div className="space-y-4">
+                {/* Shipping Method Selection */}
+                {shippingCharges.length > 0 && (
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium flex items-center gap-2">
+                      <Truck className="size-4" />
+                      Shipping method
+                    </h4>
+                    <RadioGroup
+                      value={selectedShippingCharge?.name ?? ""}
+                      onValueChange={(value) => {
+                        const charge = shippingCharges.find(
+                          (c) => c.name === value,
+                        );
+                        if (charge) {
+                          setSelectedShippingCharge(charge);
+                        }
+                      }}
+                    >
+                      <div className="space-y-3">
+                        {shippingCharges.map((charge, index) => (
+                          <Label
+                            key={index}
+                            htmlFor={`shipping-${index}`}
+                            className="flex items-center gap-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                          >
+                            <RadioGroupItem
+                              value={charge.name}
+                              id={`shipping-${index}`}
+                              className="mt-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm">
+                                {charge.name}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {formatCurrency(charge.price)}
+                              </p>
+                            </div>
+                          </Label>
+                        ))}
+                      </div>
+                    </RadioGroup>
+                  </div>
+                )}
+
+                <Separator />
+
+                {/* <div className="space-y-4">
                   <h4 className="text-sm font-medium flex items-center gap-2">
                     <CreditCard className="size-4" />
                     Payment information
@@ -888,14 +955,14 @@ export default function CartPage() {
                   <p className="text-xs text-muted-foreground">
                     Amount to pay: {formatCurrency(total)} (see Order Summary)
                   </p>
-                </div>
+                </div> */}
               </CardContent>
             </Card>
           </div>
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-28">
+            <Card className="sticky top-6">
               <CardHeader>
                 <CardTitle>Order Summary</CardTitle>
               </CardHeader>
@@ -1006,14 +1073,33 @@ export default function CartPage() {
               </CardContent>
               <CardFooter className="flex flex-col gap-2">
                 <Button
-                  type="submit"
+                  type="button"
                   className="w-full"
                   size="lg"
                   disabled={isCheckoutPending || cartItems.length === 0}
+                  onClick={() => {
+                    form.setValue("paymentType", PaymentType.ONLINE);
+                    form.handleSubmit(onSubmit)();
+                  }}
                 >
-                  {isCheckoutPending ? "Placing order…" : "Place order"}
+                  {isCheckoutPending && <Spinner className="size-4" />}
+                  Pay Online
                 </Button>
-                <Button variant="outline" className="w-full" asChild>
+                <Button
+                  type="button"
+                  className="w-full"
+                  size="lg"
+                  variant="secondary"
+                  disabled={isCheckoutPending || cartItems.length === 0}
+                  onClick={() => {
+                    form.setValue("paymentType", PaymentType.COD);
+                    form.handleSubmit(onSubmit)();
+                  }}
+                >
+                  {isCheckoutPending && <Spinner className="size-4" />}
+                  Cash on delivary
+                </Button>
+                <Button variant="outline" size="lg" className="w-full" asChild>
                   <Link href="/products">Continue Shopping</Link>
                 </Button>
               </CardFooter>

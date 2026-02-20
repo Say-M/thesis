@@ -6,7 +6,7 @@ import type { UpdateConfigSchemaType } from "@repo/common/schemas/config";
 const defaultConfig = {
   currency: "BDT",
   taxAmount: 0,
-  shippingAmount: 0,
+  shippingCharges: [],
   siteName: undefined,
   siteDescription: undefined,
   siteLogo: undefined,
@@ -65,7 +65,7 @@ export const updateConfigService = async (
     };
     set("currency", payload.currency);
     set("taxAmount", payload.taxAmount);
-    set("shippingAmount", payload.shippingAmount);
+    set("shippingCharges", payload.shippingCharges);
     set("codAmount", payload.codAmount);
     set("siteName", payload.siteName);
     set("siteDescription", payload.siteDescription);

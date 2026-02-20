@@ -91,21 +91,6 @@ const menus = [
     ],
   },
   {
-    title: "Orders",
-    url: "/dashboard/orders",
-    icon: ShoppingCart,
-    // items: [
-    //   {
-    //     title: "List",
-    //     url: "/dashboard/orders",
-    //   },
-    //   {
-    //     title: "Create",
-    //     url: "/dashboard/orders/create",
-    //   },
-    // ],
-  },
-  {
     title: "Invoices",
     url: "/dashboard/invoices",
     icon: FileText,

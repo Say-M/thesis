@@ -29,5 +29,11 @@ export enum PaymentMethod {
   BKASH = "Bkash",
   ROCKET = "Rocket",
   NAGAD = "Nagad",
+  SSLCOMMERZ = "SSLCommerz",
   OTHER = "Other",
+}
+
+export enum PaymentType {
+  ONLINE = "Online",
+  COD = "Cash on Delivery",
 }

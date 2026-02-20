@@ -6,10 +6,15 @@ const socialEntrySchema = z.object({
   url: z.string().trim().optional(),
 });
 
+const shippingSchema = z.object({
+  name: z.string().trim(),
+  price: z.number().min(0),
+});
+
 export const updateConfigSchema = z.object({
   currency: z.string().trim().max(10).nullish(),
   taxAmount: z.number().min(0).nullish(),
-  shippingAmount: z.number().min(0).nullish(),
+  shippingCharges: z.array(shippingSchema).nullish(),
   codAmount: z.number().min(0).max(100).nullish(),
   siteName: z.string().trim().nullish(),
   siteDescription: z.string().trim().nullish(),

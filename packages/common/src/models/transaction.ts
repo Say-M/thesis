@@ -14,6 +14,7 @@ const schema = new Schema(
       index: true,
     },
     amount: { type: Number, required: true, min: 0 },
+    store_amount: { type: Number, min: 0 },
     status: {
       type: String,
       enum: TransactionStatus,
@@ -22,7 +23,6 @@ const schema = new Schema(
     paymentMethod: {
       type: String,
       enum: PaymentMethod,
-      default: PaymentMethod.CASH,
     },
     type: {
       type: String,
@@ -30,6 +30,7 @@ const schema = new Schema(
       required: true,
     },
     reference: { type: String, trim: true },
+    other: { type: Schema.Types.Mixed },
   },
   { timestamps: true },
 );

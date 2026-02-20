@@ -1,6 +1,14 @@
 import { Schema, model, InferSchemaType, Types } from "mongoose";
 import { schema as seoSchema } from "./seo";
 
+const shippingSchema = new Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    price: { type: Number, required: true, min: 0 },
+  },
+  { _id: false },
+);
+
 const schema = new Schema(
   {
     currency: {
@@ -12,9 +20,9 @@ const schema = new Schema(
       type: Number,
       default: 0,
     },
-    shippingAmount: {
-      type: Number,
-      default: 0,
+    shippingCharges: {
+      type: [shippingSchema],
+      default: [],
     },
     codAmount: {
       type: Number,

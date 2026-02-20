@@ -17,16 +17,22 @@ import { DiscountType } from "@repo/common/enums/discount";
 import {
   InvoiceStatus,
   InvoiceType,
+  PaymentType,
   TransactionStatus,
   TransactionType,
 } from "@repo/common/enums/invoice";
 import { getLatestConfig } from "@/utils/config-helper";
 import { Role } from "@repo/common/enums/role";
 import { roundTo2 } from "@repo/common/utils/round-to-2";
+import sslcommerz, {
+  ShippingMethod,
+  ProductProfile,
+} from "@repo/sslcommerz/sslcommerz";
 
 export const createInvoiceService = async (
   user: User | null | undefined,
   payload: CreateInvoiceSchemaType,
+  { origin, host }: { origin?: string; host?: string },
 ): Promise<ResponseType> => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -38,7 +44,9 @@ export const createInvoiceService = async (
       type,
       notes,
       shippingAddress,
-      transaction: transactionPayload,
+      shippingChargeName,
+      // transaction: transactionPayload,
+      paymentType,
     } = payload;
 
     // Fetch all products
@@ -259,7 +267,17 @@ export const createInvoiceService = async (
     const config = await getLatestConfig();
     const defaultCurrency = config?.currency || "BDT";
     const defaultTaxAmount = roundTo2(config?.taxAmount || 0);
-    const defaultShippingAmount = roundTo2(config?.shippingAmount || 0);
+
+    // Get shipping amount from selected shipping charge
+    let selectedShippingCharge = null;
+    if (shippingChargeName && config?.shippingCharges?.length) {
+      selectedShippingCharge = config.shippingCharges.find(
+        (charge) => charge.name === shippingChargeName,
+      );
+    }
+    const defaultShippingAmount = selectedShippingCharge
+      ? roundTo2(selectedShippingCharge.price || 0)
+      : roundTo2(config?.shippingCharges?.[0]?.price || 0);
     // const defaultCodAmount = roundTo2(config?.codAmount ?? 0);
 
     // Validate and apply coupon
@@ -403,24 +421,24 @@ export const createInvoiceService = async (
     }
 
     // Create initial transaction from payload (payment info at checkout)
-    const invoiceId = invoice[0]?._id;
-    if (invoiceId && transactionPayload) {
-      if (total > 0) {
-        await Transaction.create(
-          [
-            {
-              invoice: invoiceId,
-              amount: total,
-              type: TransactionType.PAYMENT,
-              status: TransactionStatus.PENDING,
-              paymentMethod: transactionPayload.paymentMethod,
-              reference: transactionPayload.reference,
-            },
-          ],
-          { session },
-        );
-      }
-    }
+    // const invoiceId = invoice[0]?._id;
+    // if (invoiceId && transactionPayload) {
+    //   if (total > 0) {
+    //     await Transaction.create(
+    //       [
+    //         {
+    //           invoice: invoiceId,
+    //           amount: total,
+    //           type: TransactionType.PAYMENT,
+    //           status: TransactionStatus.PENDING,
+    //           paymentMethod: transactionPayload.paymentMethod,
+    //           reference: transactionPayload.reference,
+    //         },
+    //       ],
+    //       { session },
+    //     );
+    //   }
+    // }
 
     // Adjust stock levels
     for (const stockUpdate of stockUpdates) {
@@ -453,10 +471,46 @@ export const createInvoiceService = async (
       }
     }
 
-    await session.commitTransaction();
-
     const createdInvoice = invoice[0]?.toObject();
 
+    if (createdInvoice && paymentType === PaymentType.ONLINE) {
+      const success_url =
+        process.env.SERVER_URL +
+        `/success?invoiceNumber=${createdInvoice.invoiceNumber}`;
+      const fail_url = process.env.SERVER_URL + "/api/payments/fail";
+      const cancel_url = process.env.SERVER_URL + "/api/payments/cancel";
+      const ipn_url = process.env.SERVER_URL + "/api/payments/ipn";
+      const response = await sslcommerz.createPaymentSession({
+        total_amount: createdInvoice.total,
+        currency: createdInvoice.currency,
+        tran_id: createdInvoice.invoiceNumber,
+        success_url,
+        fail_url,
+        cancel_url,
+        ipn_url,
+        shipping_method: ShippingMethod.NO,
+        product_name: createdInvoice.items.map((item) => item.name).join(", "),
+        product_category: "Products",
+        product_profile: ProductProfile.GENERAL,
+        cus_name: createdInvoice.customer.name,
+        cus_email: createdInvoice.customer.email || "",
+        cus_phone: createdInvoice.customer.phone || "",
+        value_a: createdInvoice.invoiceNumber,
+        value_b: origin,
+      });
+
+      if (response.status === "SUCCESS") {
+        await session.commitTransaction();
+        return {
+          status: 302,
+          message: "OK",
+          timestamp: new Date().toISOString(),
+          data: { redirectUrl: response.redirectGatewayURL },
+        };
+      }
+    }
+
+    await session.commitTransaction();
     return {
       status: 201,
       message: "Invoice created",
@@ -464,6 +518,7 @@ export const createInvoiceService = async (
       data: { invoice: createdInvoice },
     };
   } catch (err) {
+    console.log({ err });
     await session.abortTransaction();
     throw err;
   } finally {

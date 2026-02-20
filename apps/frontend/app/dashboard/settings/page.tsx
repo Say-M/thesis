@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,6 +38,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import { Trash2Icon, PlusIcon } from "lucide-react";
 
 const SOCIAL_KEYS = [
   { key: "facebook", label: "Facebook" },
@@ -63,7 +64,7 @@ function toFormValues(c: ConfigData | null): UpdateConfigSchemaType {
     return {
       currency: "BDT",
       taxAmount: 0,
-      shippingAmount: 0,
+      shippingCharges: [],
       codAmount: 0,
       siteName: "My Store",
       siteDescription: "",
@@ -97,7 +98,11 @@ function toFormValues(c: ConfigData | null): UpdateConfigSchemaType {
   return {
     currency: c.currency ?? "BDT",
     taxAmount: c.taxAmount ?? 0,
-    shippingAmount: c.shippingAmount ?? 0,
+    shippingCharges:
+      c.shippingCharges?.map((charge) => ({
+        name: charge.name ?? "",
+        price: charge.price ?? 0,
+      })) ?? [],
     codAmount: c.codAmount ?? 0,
     siteName: c.siteName ?? "My Store",
     siteDescription: c.siteDescription ?? "",
@@ -193,16 +198,19 @@ function toPayload(values: UpdateConfigSchemaType): UpdateConfigSchemaType {
     );
   const seo = hasSeoData ? seoData : undefined;
 
+  const shippingCharges =
+    values.shippingCharges
+      ?.filter((charge) => charge.name?.trim())
+      .map((charge) => ({
+        name: charge.name.trim(),
+        price: typeof charge.price === "number" ? charge.price : 0,
+      })) ?? [];
+
   return {
     currency: values.currency?.trim() || undefined,
-    taxAmount:
-      typeof values.taxAmount === "number" ? values.taxAmount : undefined,
-    codAmount:
-      typeof values.codAmount === "number" ? values.codAmount : undefined,
-    shippingAmount:
-      typeof values.shippingAmount === "number"
-        ? values.shippingAmount
-        : undefined,
+    taxAmount: values.taxAmount,
+    codAmount: values.codAmount,
+    shippingCharges: shippingCharges.length > 0 ? shippingCharges : undefined,
     siteName: values.siteName?.trim() || undefined,
     siteDescription: values.siteDescription?.trim() || undefined,
     siteLogo: siteLogo || null,
@@ -214,6 +222,70 @@ function toPayload(values: UpdateConfigSchemaType): UpdateConfigSchemaType {
     socials: Object.keys(socials).length > 0 ? socials : undefined,
     seo,
   };
+}
+
+function ShippingChargesField({ form }: { form: any }) {
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "shippingCharges",
+  });
+
+  return (
+    <FieldSet>
+      <FieldLegend>Shipping charges</FieldLegend>
+      <FieldDescription>
+        Add different shipping charges with their respective costs.
+      </FieldDescription>
+      {fields.map((field, index) => (
+        <div
+          key={field.id}
+          className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end p-4 bg-muted/30 rounded-lg border"
+        >
+          <Field>
+            <FieldLabel htmlFor={`shippingCharges.${index}.name`}>
+              Name
+            </FieldLabel>
+            <Input
+              id={`shippingCharges.${index}.name`}
+              placeholder="e.g. Inside Dhaka, Outside Dhaka"
+              {...form.register(`shippingCharges.${index}.name`)}
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor={`shippingCharges.${index}.price`}>
+              Cost ({form.watch("currency") || "BDT"})
+            </FieldLabel>
+            <Input
+              id={`shippingCharges.${index}.price`}
+              type="number"
+              min={0}
+              step={0.01}
+              placeholder="0.00"
+              {...form.register(`shippingCharges.${index}.price`, {
+                valueAsNumber: true,
+              })}
+            />
+          </Field>
+          <Button
+            type="button"
+            variant="destructive"
+            size="icon"
+            onClick={() => remove(index)}
+          >
+            <Trash2Icon className="size-4" />
+          </Button>
+        </div>
+      ))}
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => append({ name: "", price: 0 })}
+      >
+        <PlusIcon className="size-4" />
+        Add shipping method
+      </Button>
+    </FieldSet>
+  );
 }
 
 export default function SettingsPage() {
@@ -274,18 +346,6 @@ export default function SettingsPage() {
                 />
               </Field> */}
               <Field>
-                <FieldLabel htmlFor="shippingAmount">
-                  Default shipping amount
-                </FieldLabel>
-                <Input
-                  id="shippingAmount"
-                  type="number"
-                  min={0}
-                  step={0.01}
-                  {...form.register("shippingAmount", { valueAsNumber: true })}
-                />
-              </Field>
-              <Field>
                 <FieldLabel htmlFor="codAmount">Default COD amount</FieldLabel>
                 <InputGroup>
                   <InputGroupInput
@@ -300,6 +360,8 @@ export default function SettingsPage() {
                 <FieldError errors={[form.formState.errors.codAmount]} />
               </Field>
             </FieldGroup>
+
+            <ShippingChargesField form={form} />
           </FieldSet>
 
           <FieldSet>

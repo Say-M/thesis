@@ -38,7 +38,15 @@ route.post(
   async (c) => {
     const user = c.get("user");
     const payload = c.req.valid("json");
-    const response = await createInvoiceService(user, payload);
+    const origin = c.req.header("Origin");
+    const host = c.req.header("Host");
+    const response = await createInvoiceService(user, payload, {
+      origin,
+      host,
+    });
+    if (response.status === 302) {
+      return c.redirect(response.data?.redirectUrl);
+    }
     return c.json(response, response.status);
   },
 );

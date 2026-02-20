@@ -1,5 +1,5 @@
 import { HTTPException } from "hono/http-exception";
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { Transaction } from "@repo/common/models/transaction";
 import { Invoice } from "@repo/common/models/invoice";
 import type { ResponseType } from "@repo/common/schemas/response";
@@ -170,9 +170,14 @@ async function getTransactionTotals(
 export const createTransactionService = async (
   invoiceId: string,
   payload: CreateTransactionSchemaType,
+  other?: Record<string, any>,
 ): Promise<ResponseType> => {
-  const invoice = (await Invoice.findById(invoiceId))?.toObject();
-  console.log({ invoice });
+  let invoice;
+  if (Types.ObjectId.isValid(invoiceId)) {
+    invoice = (await Invoice.findById(invoiceId))?.toObject();
+  } else {
+    invoice = (await Invoice.findOne({ invoiceNumber: invoiceId }))?.toObject();
+  }
 
   if (!invoice) throw new HTTPException(404, { message: "Invoice not found" });
 
@@ -184,7 +189,10 @@ export const createTransactionService = async (
   }
 
   // PAYMENT: reject overpayment (amount cannot exceed remaining balance)
-  if (payload.type === TransactionType.PAYMENT) {
+  if (
+    payload.type === TransactionType.PAYMENT &&
+    payload.paymentMethod !== PaymentMethod.SSLCOMMERZ
+  ) {
     const { paidAmount, refundedAmount } =
       await getTransactionTotals(invoiceId);
     const remainingBalance = Math.max(
@@ -203,7 +211,10 @@ export const createTransactionService = async (
 
   // For REFUND, run inside a transaction so the read and write are atomic:
   // two concurrent refunds cannot both pass the refundableAmount check.
-  if (payload.type === TransactionType.REFUND) {
+  if (
+    payload.type === TransactionType.REFUND &&
+    payload.paymentMethod !== PaymentMethod.SSLCOMMERZ
+  ) {
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
@@ -265,6 +276,7 @@ export const createTransactionService = async (
     status: payload.status ?? TransactionStatus.SUCCESS,
     paymentMethod: payload.paymentMethod ?? PaymentMethod.CASH,
     reference: payload.reference,
+    other,
   });
 
   const created = await Transaction.findById(transaction._id).lean();

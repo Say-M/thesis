@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { InvoiceStatus, InvoiceType, PaymentMethod } from "../enums/invoice";
+import {
+  InvoiceStatus,
+  InvoiceType,
+  PaymentMethod,
+  PaymentType,
+} from "../enums/invoice";
 import { cursorPaginationQuerySchema } from "./common";
 import { addressSchema } from "./auth";
 
@@ -30,6 +35,7 @@ const customerSchema = z.object({
 
 export const createInvoiceSchema = z.object({
   type: z.enum(InvoiceType, { error: "Invalid invoice type" }).nullish(),
+  paymentType: z.enum(PaymentType, { error: "Invalid payment type" }),
   customer: customerSchema,
   items: z
     .array(lineItemSchema)
@@ -38,13 +44,14 @@ export const createInvoiceSchema = z.object({
   notes: z.string({ error: "Invalid notes" }).trim().nullish(),
   isSavedForLater: z.boolean().nullish(),
   shippingAddress: addressSchema,
-  transaction: z.object({
-    paymentMethod: z.enum(PaymentMethod, { error: "Invalid payment method" }),
-    reference: z
-      .string({ error: "Reference is required" })
-      .trim()
-      .nonempty({ error: "Reference is required" }),
-  }),
+  shippingChargeName: z.string().trim().nullish(),
+  // transaction: z.object({
+  //   paymentMethod: z.enum(PaymentMethod, { error: "Invalid payment method" }),
+  //   reference: z
+  //     .string({ error: "Reference is required" })
+  //     .trim()
+  //     .nonempty({ error: "Reference is required" }),
+  // }),
 });
 
 export const updateInvoiceSchema = z
