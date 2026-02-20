@@ -137,11 +137,7 @@ class SSLCommerz {
       formData.append("store_passwd", this.config.storePassword);
 
       const { data }: { data: PaymentResponsePayload } =
-        await this.axiosInstance.post(`/gwprocess/v4/api.php`, payload, {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-        });
+        await this.axiosInstance.post(`/gwprocess/v4/api.php`, formData);
 
       console.log({ data });
 

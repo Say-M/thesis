@@ -430,6 +430,10 @@ export default function CartPage() {
     };
     createInvoice(payload, {
       onSuccess: ({ data }) => {
+        const redirectUrl = data?.redirectUrl;
+        if (redirectUrl) {
+          window.location.href = redirectUrl;
+        }
         const invoiceNumber = data?.invoice?.invoiceNumber;
         clearCart();
         setCouponCode("");

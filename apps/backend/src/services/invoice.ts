@@ -87,6 +87,10 @@ export const createInvoiceService = async (
         // Handle variant products
         let discountType = product.discountType || DiscountType.PERCENTAGE;
         let discountValue = product.discountValue ?? 0;
+        let weight = product.weight ?? 0;
+        let weightUnit = product.weightUnit ?? "";
+        let unit = product.unit ?? "";
+        let buyingPrice = product.buyingPrice ?? 0;
 
         if (product.hasVariants && item.variantId) {
           const variant = product.variants?.find(
@@ -163,6 +167,10 @@ export const createInvoiceService = async (
           variantId = variant._id;
           discountType = variant.discountType || DiscountType.PERCENTAGE;
           discountValue = variant.discountValue ?? 0;
+          weight = variant.weight ?? 0;
+          weightUnit = variant.weightUnit ?? "";
+          unit = variant.unit ?? "";
+          buyingPrice = variant.buyingPrice ?? 0;
 
           // Track stock update for variant
           stockUpdates.push({
@@ -250,10 +258,10 @@ export const createInvoiceService = async (
           name: product.name,
           variantName,
           quantity: item.quantity,
-          weight: product.weight,
-          weightUnit: product.weightUnit,
-          unit: product.unit,
-          buyingPrice: product.buyingPrice,
+          weight,
+          weightUnit,
+          unit,
+          buyingPrice,
           unitPrice,
           discountType,
           discountValue,
@@ -474,6 +482,11 @@ export const createInvoiceService = async (
     const createdInvoice = invoice[0]?.toObject();
 
     if (createdInvoice && paymentType === PaymentType.ONLINE) {
+      console.log({
+        store_id: process.env.SSLCOMMERZ_STORE_ID,
+        store_passwd: process.env.SSLCOMMERZ_STORE_PASS,
+      });
+
       const success_url =
         process.env.SERVER_URL +
         `/success?invoiceNumber=${createdInvoice.invoiceNumber}`;
@@ -483,7 +496,7 @@ export const createInvoiceService = async (
       const response = await sslcommerz.createPaymentSession({
         total_amount: createdInvoice.total,
         currency: createdInvoice.currency,
-        tran_id: createdInvoice.invoiceNumber,
+        tran_id: createdInvoice.invoiceNumber + "-" + Date.now().toString(),
         success_url,
         fail_url,
         cancel_url,
@@ -502,7 +515,7 @@ export const createInvoiceService = async (
       if (response.status === "SUCCESS") {
         await session.commitTransaction();
         return {
-          status: 302,
+          status: 201,
           message: "OK",
           timestamp: new Date().toISOString(),
           data: { redirectUrl: response.redirectGatewayURL },

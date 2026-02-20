@@ -44,9 +44,6 @@ route.post(
       origin,
       host,
     });
-    if (response.status === 302) {
-      return c.redirect(response.data?.redirectUrl);
-    }
     return c.json(response, response.status);
   },
 );
