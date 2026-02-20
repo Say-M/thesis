@@ -129,6 +129,9 @@
     "packages/sslcommerz": {
       "name": "@repo/sslcommerz",
       "version": "0.0.0",
+      "dependencies": {
+        "axios": "^1.13.5",
+      },
       "devDependencies": {
         "@repo/eslint-config": "*",
         "@repo/typescript-config": "*",
