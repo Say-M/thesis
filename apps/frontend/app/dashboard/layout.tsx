@@ -16,6 +16,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import Link from "next/link";
+import { Fragment } from "react";
 
 export default function DashboardLayout({
   children,
@@ -47,21 +49,23 @@ export default function DashboardLayout({
               <Breadcrumb>
                 <BreadcrumbList>
                   <BreadcrumbItem>
-                    <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+                    <BreadcrumbLink href="/dashboard" asChild>
+                      <Link href="/dashboard">Dashboard</Link>
+                    </BreadcrumbLink>
                   </BreadcrumbItem>
                   {breadcrumbs.slice(1).map((crumb, index) => (
-                    <div key={crumb.href} className="flex items-center">
+                    <Fragment key={crumb.href}>
                       <BreadcrumbSeparator />
                       <BreadcrumbItem>
                         {index === breadcrumbs.length - 2 ? (
                           <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
                         ) : (
-                          <BreadcrumbLink href={crumb.href}>
-                            {crumb.label}
+                          <BreadcrumbLink href={crumb.href} asChild>
+                            <Link href={crumb.href}>{crumb.label}</Link>
                           </BreadcrumbLink>
                         )}
                       </BreadcrumbItem>
-                    </div>
+                    </Fragment>
                   ))}
                 </BreadcrumbList>
               </Breadcrumb>

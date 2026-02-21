@@ -61,11 +61,6 @@ const menus = [
     icon: CircleGauge,
   },
   {
-    title: "Profile",
-    url: "/dashboard/profile",
-    icon: User,
-  },
-  {
     title: "Assets",
     url: "/dashboard/assets",
     icon: ImagePlus,
@@ -216,20 +211,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 aria-label="Open user menu"
                 size="lg"
               >
-                <Avatar className="size-8">
-                  <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                    {getInitials(user?.name)}
-                  </AvatarFallback>
-                </Avatar>
                 <div className="flex items-center gap-2">
-                  <span className="inline max-w-48 truncate text-sm font-medium">
+                  <Avatar className="size-8">
+                    <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                      {getInitials(user?.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="max-w-48 md:max-w-36 truncate text-sm font-medium">
                     {user?.name}
                   </span>
-                  <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
                 </div>
+                <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent side="right" align="end" className="w-56">
+            <DropdownMenuContent side="top" align="start" className="w-56">
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col gap-0.5">
                   <p className="font-medium">{user?.name ?? "User"}</p>

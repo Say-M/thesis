@@ -32,7 +32,7 @@ import { format } from "date-fns";
 import { useInView } from "react-intersection-observer";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const STATUS_COLORS = {
+export const STATUS_COLORS = {
   [InvoiceStatus.DELIVERED]:
     "dark:bg-green-300 bg-green-700 dark:text-foreground text-background",
   [InvoiceStatus.CANCELLED]:
@@ -155,9 +155,7 @@ export default function InvoicesTable({
                 </div>
               </TableCell>
               <TableCell>
-                <Badge
-                  className={STATUS_COLORS[invoice.status as InvoiceStatus]}
-                >
+                <Badge className={STATUS_COLORS[invoice.status]}>
                   {invoice.status}
                 </Badge>
               </TableCell>

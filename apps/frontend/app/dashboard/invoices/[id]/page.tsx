@@ -39,6 +39,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import AddTransactionDialog from "./add-transaction-dialog";
 import Link from "next/link";
+import { STATUS_COLORS } from "../table";
 
 export default function InvoiceDetailPage() {
   const formatCurrency = useFormatCurrency();
@@ -83,22 +84,12 @@ export default function InvoiceDetailPage() {
 
   return (
     <div className="p-4 space-y-4">
-      <div className="flex items-center gap-4">
-        <div className="flex-1">
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="flex-1 whitespace-nowrap">
           <h1 className="text-2xl font-bold">Invoice Details</h1>
           <div className="flex items-center gap-2">
             <p className="text-muted-foreground">{invoice.invoiceNumber}</p>{" "}
-            <Badge
-              variant={
-                invoice.status === InvoiceStatus.DELIVERED
-                  ? "default"
-                  : invoice.status === InvoiceStatus.CANCELLED ||
-                      invoice.status === InvoiceStatus.REFUNDED
-                    ? "destructive"
-                    : "secondary"
-              }
-              className="text-sm"
-            >
+            <Badge className={STATUS_COLORS[invoice.status]}>
               {invoice.status}
             </Badge>
           </div>
@@ -175,7 +166,8 @@ export default function InvoiceDetailPage() {
                 {invoice.shippingAddress.phone}
               </p>
               <p className="text-sm text-muted-foreground">
-                {invoice.shippingAddress.address}, {invoice.shippingAddress.city}
+                {invoice.shippingAddress.address},{" "}
+                {invoice.shippingAddress.city}
               </p>
             </div>
           </CardContent>
@@ -415,7 +407,7 @@ export default function InvoiceDetailPage() {
       </div>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader className="flex flex-wrap flex-row items-center justify-between space-y-0 pb-2">
           <div>
             <CardTitle className="flex items-center gap-2">
               <Receipt className="size-5" />
@@ -441,7 +433,7 @@ export default function InvoiceDetailPage() {
                 size="sm"
                 className="gap-1.5"
                 onClick={() => setRefundDialogOpen(true)}
-                disabled={remainingBalance === totalBalance}
+                disabled={remainingBalance <= 0}
               >
                 <RotateCcw className="size-4" />
                 Add Refund

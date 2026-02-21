@@ -32,6 +32,7 @@ import { AssetsEmptyState } from "./assets-empty-state";
 import { Input } from "@/components/ui/input";
 import { Upload } from "lucide-react";
 import { useInView } from "react-intersection-observer";
+import Image from "next/image";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -62,12 +63,14 @@ function AssetPreviewDialogContent({
 
   return (
     <div className="space-y-3">
-      <div className="relative flex justify-center rounded-lg border bg-muted/30 overflow-hidden min-h-[200px]">
+      <div className="relative flex justify-center rounded-lg border bg-muted/30 overflow-hidden">
         {isImage ? (
-          <img
+          <Image
+            width={dimensions?.width ?? 0}
+            height={dimensions?.height ?? 0}
             src={asset.path}
             alt={asset.name}
-            className="max-h-[70vh] w-auto object-contain"
+            className="size-full"
             onLoad={(e) => {
               const img = e.currentTarget;
               if (img.naturalWidth && img.naturalHeight)
@@ -261,9 +264,7 @@ export default function AssetsPage() {
       >
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="pr-8 truncate">
-              {selectedAsset?.name}
-            </DialogTitle>
+            <DialogTitle>{selectedAsset?.name}</DialogTitle>
           </DialogHeader>
           {selectedAsset && (
             <AssetPreviewDialogContent
@@ -287,11 +288,7 @@ export default function AssetsPage() {
         </DialogContent>
       </Dialog>
 
-      {status === "pending" || isFetchingNextPage ? (
-        <div className="flex items-center justify-center min-h-[280px]">
-          <Spinner />
-        </div>
-      ) : !assets.length ? (
+      {!assets.length ? (
         <AssetsEmptyState
           openUploadDialog={openUploadDialog}
           isUploading={isUploading}
