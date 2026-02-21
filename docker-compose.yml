@@ -15,7 +15,7 @@ services:
       - IMAGEKIT_PRIVATE_KEY=${IMAGEKIT_PRIVATE_KEY}
       - IMAGEKIT_FOLDER_NAME=${IMAGEKIT_FOLDER_NAME}
     ports:
-      - "9000:9000"
+      - "${PORT:-9000}:${PORT:-9000}"
     restart: unless-stopped
     networks:
       - app-network
