@@ -14,6 +14,7 @@ import productRoutes from "./routes/product";
 import seoRoutes from "./routes/seo";
 import userRoutes from "./routes/user";
 import paymentRoutes from "./routes/payment";
+import steadfastRoutes from "./routes/steadfast";
 import connectDB from "@repo/common/db/mongo";
 
 await connectDB();
@@ -62,6 +63,7 @@ app.route("/", productRoutes);
 app.route("/", seoRoutes);
 app.route("/", userRoutes);
 app.route("/", paymentRoutes);
+app.route("/", steadfastRoutes);
 const port = process.env.PORT || 9000;
 
 export default {

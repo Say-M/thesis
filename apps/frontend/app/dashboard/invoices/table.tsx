@@ -57,11 +57,13 @@ export default function InvoicesTable({
   status,
   type,
   onDelete,
+  onProcess,
 }: {
   search?: string;
   status?: string[];
   type?: string[];
   onDelete?: (invoice: InvoiceListItem) => void;
+  onProcess?: (invoice: InvoiceListItem) => void;
 }) {
   const formatCurrency = useFormatCurrency();
   const {
@@ -187,6 +189,11 @@ export default function InvoicesTable({
                     >
                       View Details
                     </DropdownMenuItem>
+                    {invoice?.status === InvoiceStatus.PROCESSING && (
+                      <DropdownMenuItem onSelect={() => onProcess?.(invoice)}>
+                        Process with Steadfast
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSub>
                       <DropdownMenuSubTrigger>
                         Change status
