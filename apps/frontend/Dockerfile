@@ -31,8 +31,11 @@ COPY packages ./packages
 # Copy frontend app
 COPY apps/frontend ./apps/frontend
 
+ARG NEXT_PUBLIC_API_URL
+
 # Set environment variables for build
 ENV OUTPUT_TRACING_ROOT=/app
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 # Uncomment the following line in case you want to disable telemetry during runtime.
 ENV NEXT_TELEMETRY_DISABLED=1
 
