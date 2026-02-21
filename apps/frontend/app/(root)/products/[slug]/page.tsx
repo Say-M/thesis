@@ -15,8 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const seo = await getSeoByTypeId(product._id, "product");
   const title = seo?.metaTitle?.trim() || product.name;
-  const description =
-    seo?.metaDescription?.trim() || product.description?.trim() || undefined;
+  const description = seo?.metaDescription?.trim();
   const ogImage =
     (seo?.ogImage as { path?: string } | undefined)?.path ||
     product.thumbnail?.path ||
@@ -66,7 +65,5 @@ export default async function ProductDetailPage({ params }: Props) {
   const product = await getProductBySlug(slug);
   const seo = product ? await getSeoByTypeId(product._id, "product") : null;
 
-  return (
-    <ProductDetailClient product={product} seo={seo} />
-  );
+  return <ProductDetailClient product={product} seo={seo} />;
 }

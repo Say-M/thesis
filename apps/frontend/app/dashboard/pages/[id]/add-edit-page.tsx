@@ -242,35 +242,6 @@ export default function AddEditPage({ id }: { id: string }) {
                 </Field>
               )}
             />
-            {/* <Controller
-              name="content"
-              control={form.control}
-              render={({ field, fieldState }) => {
-                const content = field.value;
-                const hasContent =
-                  content != null &&
-                  (typeof content !== "object" ||
-                    Object.keys(content as object).length > 0);
-                const initialState = getContentInitialState(
-                  content,
-                  isCreate,
-                  page?.content,
-                );
-                return (
-                  <Field data-invalid={fieldState.invalid} className="mt-4">
-                    <FieldLabel htmlFor="content">Content</FieldLabel>
-                    <Editor
-                      key={`content-editor-${id}-${isCreate ? "create" : hasContent ? "loaded" : "empty"}`}
-                      onSerializedChange={(state) => field.onChange(state)}
-                      editorSerializedState={initialState}
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                );
-              }}
-            /> */}
             <FieldGroup className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
               <Controller
                 name="order"

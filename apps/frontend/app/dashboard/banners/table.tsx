@@ -28,7 +28,6 @@ import { useEffect, useMemo } from "react";
 import {
   useListBanners,
   useUpdateBanner,
-  useDeleteBanner,
   type BannerListItem,
 } from "@/hooks/api/banners";
 import Link from "next/link";
@@ -40,10 +39,12 @@ export default function BannersTable({
   search,
   status,
   onEdit,
+  onDelete,
 }: {
   search?: string;
   status?: string;
   onEdit?: (banner: BannerListItem) => void;
+  onDelete?: (banner: BannerListItem) => void;
 }) {
   const {
     data: bannersData,
@@ -62,7 +63,6 @@ export default function BannersTable({
     }
   }, [inView, fetchNextBannersPage]);
   const { mutate: updateBanner } = useUpdateBanner();
-  const { mutate: deleteBanner } = useDeleteBanner();
 
   return (
     <div className="rounded-md border bg-card">
@@ -155,7 +155,7 @@ export default function BannersTable({
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       className="text-destructive focus:text-destructive"
-                      onSelect={() => deleteBanner(banner._id)}
+                      onSelect={() => onDelete?.(banner)}
                     >
                       Delete
                     </DropdownMenuItem>

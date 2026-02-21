@@ -63,8 +63,7 @@ const schema = new Schema(
       index: true,
     },
     description: {
-      type: String,
-      trim: true,
+      type: Schema.Types.Mixed,
     },
     videoLink: {
       type: String,

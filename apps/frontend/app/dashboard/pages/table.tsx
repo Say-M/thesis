@@ -27,7 +27,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
 import { useEffect, useMemo } from "react";
-import { useListPages, useUpdatePage, useDeletePage } from "@/hooks/api/pages";
+import {
+  useListPages,
+  useUpdatePage,
+  type PageListItem,
+} from "@/hooks/api/pages";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,9 +41,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function PagesTable({
   search,
   status,
+  onDelete,
 }: {
   search?: string;
   status?: string;
+  onDelete?: (page: PageListItem) => void;
 }) {
   const router = useRouter();
   const {
@@ -52,7 +58,6 @@ export default function PagesTable({
     () => pagesData?.pages?.map((page) => page.pages).flat() ?? [],
     [pagesData],
   );
-  console.log({ pages }, pagesData);
   const { ref, inView } = useInView({ threshold: 0.8 });
   useEffect(() => {
     if (inView) {
@@ -60,7 +65,6 @@ export default function PagesTable({
     }
   }, [inView, fetchNextPagesPage]);
   const { mutate: updatePage } = useUpdatePage();
-  const { mutate: deletePage } = useDeletePage();
 
   return (
     <div className="rounded-md border bg-card">
@@ -125,7 +129,7 @@ export default function PagesTable({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
-                      <Link href={`/pages/${page.slug}`} target="_blank">
+                      <Link href={`/${page.slug}`} target="_blank">
                         View page
                       </Link>
                     </DropdownMenuItem>
@@ -167,7 +171,7 @@ export default function PagesTable({
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       className="text-destructive focus:text-destructive"
-                      onSelect={() => deletePage(page._id)}
+                      onSelect={() => onDelete?.(page)}
                     >
                       Delete
                     </DropdownMenuItem>

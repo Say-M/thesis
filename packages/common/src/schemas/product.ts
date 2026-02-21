@@ -57,7 +57,7 @@ const productSchema = z.object({
     .nonempty({ error: "Slug is required" })
     .trim()
     .transform((s) => s.toLowerCase()),
-  description: z.string().trim().nullish(),
+  description: z.any().nullish(),
   videoLink: z.union([z.url(), z.literal("")]).nullish(),
   seo: z.string().trim().nullish(),
   hasVariants: z.boolean().nullish(),

@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ImageZoom } from "@/components/animate-ui/primitives/effects/image-zoom";
 
 type ImageItem = { _id: string; path: string };
 
@@ -30,47 +31,22 @@ export function ProductDetailGallery({
   videoLink,
 }: ProductDetailGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [api, setApi] = useState<CarouselApi | null>(null);
-  const hasImages = images.length > 0;
 
-  useEffect(() => {
-    if (api) api.scrollTo(selectedIndex);
-  }, [api, selectedIndex]);
+  const hasImages = images.length > 0;
 
   return (
     <div className="space-y-4">
       <div className="relative aspect-square rounded-lg border bg-muted overflow-hidden">
         {hasImages ? (
-          <Carousel
-            className="w-full h-full"
-            opts={{ startIndex: selectedIndex }}
-            setApi={(carouselApi) => {
-              setApi(carouselApi ?? null);
-              carouselApi?.on("select", () =>
-                setSelectedIndex(carouselApi.selectedScrollSnap()),
-              );
-            }}
-          >
-            <CarouselContent className="h-full">
-              {images.map((img, idx) => (
-                <CarouselItem key={img._id} className="h-full">
-                  <AspectRatio className="relative">
-                    <Image
-                      fill
-                      src={img.path}
-                      alt={`${productName} - Image ${idx + 1}`}
-                    />
-                  </AspectRatio>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            {images.length > 1 && (
-              <>
-                <CarouselPrevious />
-                <CarouselNext />
-              </>
-            )}
-          </Carousel>
+          <ImageZoom>
+            <AspectRatio className="relative">
+              <Image
+                fill
+                src={images[selectedIndex]?.path}
+                alt={`${productName} - Image ${selectedIndex + 1}`}
+              />
+            </AspectRatio>
+          </ImageZoom>
         ) : (
           <div className="flex items-center justify-center h-full">
             <span className="text-muted-foreground">No image available</span>

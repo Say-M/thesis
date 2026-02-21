@@ -11,6 +11,19 @@ import {
 } from "@/components/ui/select";
 import InvoicesTable from "./table";
 import { InvoiceStatus, InvoiceType } from "@repo/common/enums/invoice";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
+import { Spinner } from "@/components/ui/spinner";
+import { useDeleteInvoice, type InvoiceListItem } from "@/hooks/api/invoices";
+import { Button } from "@/components/ui/button";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -22,6 +35,17 @@ export default function InvoicesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<InvoiceStatusFilter>("all");
   const [typeFilter, setTypeFilter] = useState<InvoiceTypeFilter>("all");
+
+  const [invoiceToDelete, setInvoiceToDelete] =
+    useState<InvoiceListItem | null>(null);
+  const { mutate: deleteInvoice, isPending: isDeleting } = useDeleteInvoice();
+  const handleConfirmDelete = () => {
+    if (invoiceToDelete) {
+      deleteInvoice(invoiceToDelete._id, {
+        onSettled: () => setInvoiceToDelete(null),
+      });
+    }
+  };
 
   useEffect(() => {
     const id = setTimeout(
@@ -77,12 +101,55 @@ export default function InvoicesPage() {
           </Select>
         </div>
       </div>
+
+      <AlertDialog
+        open={invoiceToDelete !== null}
+        onOpenChange={(open) => !open && setInvoiceToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete invoice</AlertDialogTitle>
+            {invoiceToDelete?.status === InvoiceStatus.CANCELLED ? (
+              <AlertDialogDescription>
+                Are you sure you want to delete &quot;
+                {invoiceToDelete?.invoiceNumber}&quot;? This action cannot be
+                undone.
+              </AlertDialogDescription>
+            ) : (
+              <AlertDialogDescription>
+                The invoice is not cancelled. Please cancel the invoice first.
+              </AlertDialogDescription>
+            )}
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              {invoiceToDelete?.status === InvoiceStatus.CANCELLED
+                ? "Cancel"
+                : "Close"}
+            </AlertDialogCancel>
+            {invoiceToDelete?.status === InvoiceStatus.CANCELLED && (
+              <AlertDialogAction asChild>
+                <Button
+                  variant="destructive"
+                  onClick={handleConfirmDelete}
+                  disabled={isDeleting}
+                >
+                  {isDeleting && <Spinner className="size-4" />}
+                  Delete
+                </Button>
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <InvoicesTable
         search={searchQuery || undefined}
         status={
           statusFilter === "all" ? undefined : [statusFilter as InvoiceStatus]
         }
         type={typeFilter === "all" ? undefined : [typeFilter as InvoiceType]}
+        onDelete={setInvoiceToDelete}
       />
     </div>
   );

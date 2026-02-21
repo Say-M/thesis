@@ -235,15 +235,6 @@ export function ProductDetailInfo({
         </div>
       )}
 
-      {product.description && (
-        <div className="space-y-2">
-          <h2 className="text-lg font-semibold">Description</h2>
-          <p className="text-muted-foreground leading-relaxed">
-            {product.description}
-          </p>
-        </div>
-      )}
-
       <Separator />
 
       <div className="space-y-4">
@@ -324,7 +315,7 @@ export function ProductDetailInfo({
             onClick={() => {
               navigator.share?.({
                 title: product.name,
-                text: product.description ?? undefined,
+                text: product.name,
                 url: typeof window !== "undefined" ? window.location.href : "",
               });
             }}

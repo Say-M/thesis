@@ -17,6 +17,7 @@ import {
   DropdownMenuPortal,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -24,7 +25,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
 import { useEffect, useMemo } from "react";
-import { useListInvoices, useUpdateInvoice } from "@/hooks/api/invoices";
+import {
+  useListInvoices,
+  useUpdateInvoice,
+  type InvoiceListItem,
+} from "@/hooks/api/invoices";
 import { useFormatCurrency } from "@/lib/format-currency";
 import { InvoiceStatus } from "@repo/common/enums/invoice";
 import { useRouter } from "next/navigation";
@@ -51,10 +56,12 @@ export default function InvoicesTable({
   search,
   status,
   type,
+  onDelete,
 }: {
   search?: string;
   status?: string[];
   type?: string[];
+  onDelete?: (invoice: InvoiceListItem) => void;
 }) {
   const formatCurrency = useFormatCurrency();
   const {
@@ -209,6 +216,13 @@ export default function InvoicesTable({
                         </DropdownMenuSubContent>
                       </DropdownMenuPortal>
                     </DropdownMenuSub>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onSelect={() => onDelete?.(invoice)}
+                    >
+                      Delete
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>

@@ -30,7 +30,7 @@ function PlateEditor({
       onChange={({ value }) => onChange?.(value)}
     >
       {!readOnly && (
-        <FixedToolbar className="overflow-hidden w-full border border-b-0 rounded-t-md">
+        <FixedToolbar className="overflow-hidden w-full border rounded-t-md">
           <FixedToolbarButtons />
         </FixedToolbar>
       )}

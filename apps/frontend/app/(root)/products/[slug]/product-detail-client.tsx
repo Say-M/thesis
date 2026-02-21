@@ -11,6 +11,7 @@ import {
   productListItemToCardProps,
 } from "@/hooks/api/products";
 import { SeoDetail } from "@/hooks/api/seo";
+import ProductDetailDescription from "./components/product-detail-description";
 
 function useProductDisplayState(product: ProductDetail | null | undefined) {
   const [selectedVariantId, setSelectedVariantId] = useState(
@@ -141,6 +142,10 @@ export function ProductDetailClient({
           onQuantityChange={handleQuantityChange}
         />
       </div>
+
+      {product.description && (
+        <ProductDetailDescription description={product.description} />
+      )}
 
       <ProductDetailFaqs faqs={product.faqs ?? []} />
 

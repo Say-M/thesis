@@ -151,18 +151,18 @@ route.patch(
   },
 );
 
-// route.delete(
-//   "/:id",
-//   roleGuard({ allowedRoles: [Role.SUPER_ADMIN, Role.ADMIN] }),
-//   describeRoute({
-//     tags: ["Invoices"],
-//     summary: "Delete invoice",
-//     responses: { 200: { description: "OK" } },
-//   }),
-//   async (c) => {
-//     const response = await deleteInvoiceService(c.req.param("id"));
-//     return c.json(response, response.status);
-//   },
-// );
+route.delete(
+  "/:id",
+  roleGuard({ allowedRoles: [Role.SUPER_ADMIN, Role.ADMIN] }),
+  describeRoute({
+    tags: ["Invoices"],
+    summary: "Delete invoice",
+    responses: { 200: { description: "OK" } },
+  }),
+  async (c) => {
+    const response = await deleteInvoiceService(c.req.param("id"));
+    return c.json(response, response.status);
+  },
+);
 
 export default route;

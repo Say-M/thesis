@@ -28,7 +28,6 @@ import { useEffect, useMemo } from "react";
 import {
   useListCoupons,
   useUpdateCoupon,
-  useDeleteCoupon,
   type CouponListItem,
 } from "@/hooks/api/coupons";
 import { useFormatCurrency } from "@/lib/format-currency";
@@ -41,10 +40,12 @@ export default function CouponsTable({
   search,
   status,
   onEdit,
+  onDelete,
 }: {
   search?: string;
   status?: boolean[];
   onEdit?: (coupon: CouponListItem) => void;
+  onDelete?: (coupon: CouponListItem) => void;
 }) {
   const formatCurrency = useFormatCurrency();
   const {
@@ -58,7 +59,6 @@ export default function CouponsTable({
     [couponsData],
   );
   const { mutate: updateCoupon } = useUpdateCoupon();
-  const { mutate: deleteCoupon } = useDeleteCoupon();
   const { ref, inView } = useInView({ threshold: 0.8 });
   useEffect(() => {
     if (inView) {
@@ -233,7 +233,7 @@ export default function CouponsTable({
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
-                        onSelect={() => deleteCoupon(coupon._id)}
+                        onSelect={() => onDelete?.(coupon)}
                       >
                         Delete
                       </DropdownMenuItem>

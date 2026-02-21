@@ -166,3 +166,21 @@ export const useUpdateInvoice = () => {
     },
   });
 };
+
+export const useDeleteInvoice = () => {
+  const api = useApi();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.delete(`/invoices/${id}`);
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(data?.message ?? "Invoice deleted");
+      queryClient.invalidateQueries({ queryKey: INVOICES_QUERY_KEY });
+    },
+    onError: (error: AxiosError<{ message?: string }>) => {
+      toast.error(error.response?.data?.message ?? "Failed to delete invoice");
+    },
+  });
+};

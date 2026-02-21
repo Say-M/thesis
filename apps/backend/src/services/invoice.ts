@@ -936,34 +936,42 @@ export const updateInvoiceService = async (
 export const deleteInvoiceService = async (
   id: string,
 ): Promise<ResponseType> => {
-  const invoice = await Invoice.findById(id);
-  if (!invoice) throw new HTTPException(404, { message: "Invoice not found" });
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const invoice = await Invoice.findByIdAndDelete(id, { session }).lean();
+    if (!invoice)
+      throw new HTTPException(404, { message: "Invoice not found" });
 
-  // B: Only allow delete when invoice is Cancelled or Refunded
-  if (
-    invoice.status !== InvoiceStatus.CANCELLED &&
-    invoice.status !== InvoiceStatus.REFUNDED
-  ) {
-    throw new HTTPException(400, {
-      message:
-        "Cannot delete an invoice that is not cancelled or refunded. Cancel or refund the invoice first.",
-    });
+    // B: Only allow delete when invoice is Cancelled
+    if (invoice.status !== InvoiceStatus.CANCELLED) {
+      throw new HTTPException(400, {
+        message:
+          "Cannot delete an invoice that is not cancelled. Cancel the invoice first.",
+      });
+    }
+
+    await Transaction.deleteMany({ invoice: id }, { session });
+    await restoreStockForInvoice(
+      invoice.items.map((item) => ({
+        product: item.product?.toString(),
+        variantId: item.variantId ? item.variantId?.toString() : null,
+        quantity: item.quantity,
+      })),
+      session,
+    );
+
+    await session.commitTransaction();
+
+    return {
+      status: 200,
+      message: "Invoice deleted",
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
   }
-
-  // C: Only allow delete when invoice has no transactions
-  const transactionCount = await Transaction.countDocuments({ invoice: id });
-  if (transactionCount > 0) {
-    throw new HTTPException(400, {
-      message:
-        "Cannot delete an invoice that has transactions. Remove or settle transactions first.",
-    });
-  }
-
-  await Invoice.findByIdAndDelete(id);
-
-  return {
-    status: 200,
-    message: "Invoice deleted",
-    timestamp: new Date().toISOString(),
-  };
 };

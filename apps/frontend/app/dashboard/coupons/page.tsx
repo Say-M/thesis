@@ -12,7 +12,18 @@ import {
 } from "@/components/ui/select";
 import CouponsTable from "./table";
 import AddEditCouponDialog from "./add-edit-coupon-dialog";
-import type { CouponListItem } from "@/hooks/api/coupons";
+import { useDeleteCoupon, type CouponListItem } from "@/hooks/api/coupons";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
+import { Spinner } from "@/components/ui/spinner";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -25,9 +36,18 @@ export default function CouponsPage() {
   );
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] =
-    useState<CouponStatusFilter>("all");
-
+  const [statusFilter, setStatusFilter] = useState<CouponStatusFilter>("all");
+  const [couponToDelete, setCouponToDelete] = useState<CouponListItem | null>(
+    null,
+  );
+  const { mutate: deleteCoupon, isPending: isDeleting } = useDeleteCoupon();
+  const handleConfirmDelete = () => {
+    if (couponToDelete) {
+      deleteCoupon(couponToDelete._id, {
+        onSettled: () => setCouponToDelete(null),
+      });
+    }
+  };
   useEffect(() => {
     const id = setTimeout(
       () => setSearchQuery(searchInput.trim()),
@@ -84,6 +104,35 @@ export default function CouponsPage() {
           />
         </div>
       </div>
+
+      <AlertDialog
+        open={couponToDelete !== null}
+        onOpenChange={(open) => !open && setCouponToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete coupon</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogDescription>
+            Are you sure you want to delete &quot;{couponToDelete?.code}&quot;?
+            This action cannot be undone.
+          </AlertDialogDescription>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button
+                variant="destructive"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting && <Spinner className="size-4" />}
+                Delete
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <CouponsTable
         search={searchQuery || undefined}
         status={
@@ -97,6 +146,7 @@ export default function CouponsPage() {
           setEditingCoupon(coupon);
           setDialogOpen(true);
         }}
+        onDelete={setCouponToDelete}
       />
     </div>
   );

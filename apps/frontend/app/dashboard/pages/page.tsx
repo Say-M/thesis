@@ -12,6 +12,18 @@ import {
 import PagesTable from "./table";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useDeletePage, type PageListItem } from "@/hooks/api/pages";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
+import { Spinner } from "@/components/ui/spinner";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -19,6 +31,7 @@ export default function PagesPage() {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("true,false");
+  const [pageToDelete, setPageToDelete] = useState<PageListItem | null>(null);
 
   useEffect(() => {
     const id = setTimeout(
@@ -27,6 +40,16 @@ export default function PagesPage() {
     );
     return () => clearTimeout(id);
   }, [searchInput]);
+
+  const { mutate: deletePage, isPending: isDeleting } = useDeletePage();
+
+  const handleConfirmDelete = () => {
+    if (pageToDelete) {
+      deletePage(pageToDelete._id, {
+        onSettled: () => setPageToDelete(null),
+      });
+    }
+  };
 
   return (
     <div className="space-y-4 p-4">
@@ -60,7 +83,36 @@ export default function PagesPage() {
           </Button>
         </div>
       </div>
-      <PagesTable search={searchQuery || undefined} status={statusFilter} />
+
+      <AlertDialog
+        open={pageToDelete !== null}
+        onOpenChange={(open) => !open && setPageToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete page</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{pageToDelete?.title}&quot;?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button
+                variant="destructive"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting && <Spinner className="size-4" />}
+                Delete
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <PagesTable search={searchQuery || undefined} status={statusFilter} onDelete={setPageToDelete} />
     </div>
   );
 }

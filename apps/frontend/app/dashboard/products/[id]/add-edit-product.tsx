@@ -52,6 +52,7 @@ import { cn } from "@/lib/utils";
 import { Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import { DiscountType } from "@repo/common/enums/discount";
 import Image from "next/image";
+import PlateEditor from "@/components/plugins/editor";
 
 type ProductFormValues = Omit<
   CreateProductSchemaType,
@@ -91,7 +92,7 @@ const defaultVariant: VariantFormValues = {
 const defaultValues: ProductFormValues = {
   name: "",
   slug: "",
-  description: "",
+  description: null as ProductFormValues["description"],
   category: "",
   subcategory: "",
   thumbnail: undefined,
@@ -149,7 +150,7 @@ function productToFormValues(p: ProductDetail): Partial<ProductFormValues> {
   return {
     name: p.name ?? "",
     slug: p.slug ?? "",
-    description: p.description ?? "",
+    description: p.description,
     category: categoryId ?? "",
     subcategory: subcategoryId ?? "",
     hasVariants: p.hasVariants ?? false,
@@ -372,19 +373,17 @@ export default function AddEditProduct({ id }: { id: string }) {
               <Controller
                 name="description"
                 control={form.control}
-                render={({ field: { value, ...rest }, fieldState }) => (
+                render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel htmlFor="description">
                       Description (optional)
                     </FieldLabel>
-                    <Textarea
-                      {...rest}
-                      id="description"
-                      value={value ?? ""}
-                      placeholder="Description"
-                      className="resize-none"
-                      aria-invalid={fieldState.invalid}
-                    />
+                    <div>
+                      <PlateEditor
+                        onChange={field.onChange}
+                        value={product?.description}
+                      />
+                    </div>
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
                     )}

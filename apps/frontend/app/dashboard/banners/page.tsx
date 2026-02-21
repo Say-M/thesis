@@ -12,7 +12,18 @@ import {
 } from "@/components/ui/select";
 import BannersTable from "./table";
 import AddEditBannerDialog from "./add-edit-banner-dialog";
-import type { BannerListItem } from "@/hooks/api/banners";
+import { useDeleteBanner, type BannerListItem } from "@/hooks/api/banners";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
+import { Spinner } from "@/components/ui/spinner";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -24,7 +35,17 @@ export default function BannersPage() {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("true,false");
-
+  const [bannerToDelete, setBannerToDelete] = useState<BannerListItem | null>(
+    null,
+  );
+  const { mutate: deleteBanner, isPending: isDeleting } = useDeleteBanner();
+  const handleConfirmDelete = () => {
+    if (bannerToDelete) {
+      deleteBanner(bannerToDelete._id, {
+        onSettled: () => setBannerToDelete(null),
+      });
+    }
+  };
   useEffect(() => {
     const id = setTimeout(
       () => setSearchQuery(searchInput.trim()),
@@ -81,6 +102,35 @@ export default function BannersPage() {
           />
         </div>
       </div>
+
+      <AlertDialog
+        open={bannerToDelete !== null}
+        onOpenChange={(open) => !open && setBannerToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete banner</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{bannerToDelete?.title}
+              &quot;? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button
+                variant="destructive"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting && <Spinner className="size-4" />}
+                Delete
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <BannersTable
         search={searchQuery || undefined}
         status={statusFilter}
@@ -88,6 +138,7 @@ export default function BannersPage() {
           setEditingBanner(banner);
           setDialogOpen(true);
         }}
+        onDelete={setBannerToDelete}
       />
     </div>
   );
