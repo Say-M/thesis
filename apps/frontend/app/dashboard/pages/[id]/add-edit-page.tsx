@@ -16,42 +16,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Spinner } from "@/components/ui/spinner";
-import { AssetSelectorField } from "@/components/ui/asset-selector";
 import { pageSchema, type PageSchemaType } from "@repo/common/schemas/page";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { useGetPage, useCreatePage, useUpdatePage } from "@/hooks/api/pages";
 import { Search } from "lucide-react";
-import { SerializedEditorState } from "lexical";
-import { Editor } from "@/components/blocks/editor-00/editor";
+import PlateEditor from "@/components/plugins/editor";
 
-function getContentInitialState(
-  fieldValue: unknown,
-  isCreate: boolean,
-  pageContent: unknown,
-): SerializedEditorState | undefined {
-  const hasContent =
-    fieldValue != null &&
-    (typeof fieldValue !== "object" ||
-      Object.keys(fieldValue as object).length > 0);
-  if (hasContent) return fieldValue as SerializedEditorState;
-  if (isCreate || pageContent == null) return undefined;
-  if (typeof pageContent === "string") {
-    try {
-      return JSON.parse(pageContent) as SerializedEditorState;
-    } catch {
-      return undefined;
-    }
-  }
-  return pageContent as SerializedEditorState;
-}
 
 const defaultValues: PageSchemaType = {
   title: "",
   slug: "",
   tag: "",
   content: null as PageSchemaType["content"],
-  featuredImage: null,
   seo: null,
   status: true,
   showInHeader: false,
@@ -64,7 +41,6 @@ function pageToFormValues(page: {
   slug: string;
   tag: string;
   content?: unknown;
-  featuredImage?: { _id: string; name: string; path: string };
   status: boolean;
   showInHeader: boolean;
   showInFooter: boolean;
@@ -75,7 +51,6 @@ function pageToFormValues(page: {
     slug: page.slug ?? "",
     tag: page.tag ?? "",
     content: page.content ?? null,
-    featuredImage: page.featuredImage?._id,
     seo: null,
     status: page.status ?? true,
     showInHeader: page.showInHeader ?? false,
@@ -253,6 +228,24 @@ export default function AddEditPage({ id }: { id: string }) {
             <Controller
               name="content"
               control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid} className="mt-4">
+                  <FieldLabel htmlFor="content">Content</FieldLabel>
+                  <div>
+                    <PlateEditor
+                      onChange={field.onChange}
+                      value={page.content}
+                    />
+                  </div>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+            {/* <Controller
+              name="content"
+              control={form.control}
               render={({ field, fieldState }) => {
                 const content = field.value;
                 const hasContent =
@@ -278,18 +271,7 @@ export default function AddEditPage({ id }: { id: string }) {
                   </Field>
                 );
               }}
-            />
-            <div className="mt-4 space-y-2">
-              <AssetSelectorField
-                label="Featured image (optional)"
-                description="Image for the page."
-                value={form.watch("featuredImage") || null}
-                onChange={(v) =>
-                  form.setValue("featuredImage", typeof v === "string" ? v : "")
-                }
-                multiple={false}
-              />
-            </div>
+            /> */}
             <FieldGroup className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
               <Controller
                 name="order"

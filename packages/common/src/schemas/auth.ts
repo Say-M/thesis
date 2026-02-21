@@ -18,14 +18,6 @@ export const addressSchema = z.object({
     .string({ error: "City is required" })
     .trim()
     .nonempty({ error: "City is required" }),
-  state: z
-    .string({ error: "State is required" })
-    .trim()
-    .nonempty({ error: "State is required" }),
-  postalCode: z
-    .string({ error: "Postal code is required" })
-    .trim()
-    .nonempty({ error: "Postal code is required" }),
 });
 
 export const loginSchema = z.object({

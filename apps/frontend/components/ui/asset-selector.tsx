@@ -18,9 +18,8 @@ import {
   useCreateBulkAssets,
   useCreateAsset,
 } from "@/hooks/api/assets";
-import type { AssetListItem } from "@/hooks/api/assets";
 import { Image as ImageIcon, Check, Upload } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, isImage, formatBytes } from "@/lib/utils";
 import { ScrollArea } from "./scroll-area";
 import Image from "next/image";
 import { AspectRatio } from "./aspect-ratio";
@@ -29,17 +28,6 @@ import { useInView } from "react-intersection-observer";
 const SEARCH_DEBOUNCE_MS = 300;
 const PAGE_SIZE = 24;
 
-function isImage(mimetype: string): boolean {
-  return mimetype?.startsWith("image/") ?? false;
-}
-
-function formatBytes(bytes: number): string {
-  if (!bytes || bytes < 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  const value = bytes / Math.pow(1024, i);
-  return `${value.toFixed(value >= 10 ? 0 : 1)} ${units[i]}`;
-}
 
 export interface AssetSelectDialogProps {
   open: boolean;
@@ -75,8 +63,6 @@ export function AssetSelectDialog({
     Record<string, { width: number; height: number }>
   >({});
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const { mutate: createAsset, isPending: isUploading } = useCreateAsset();
   const { mutate: createBulkAssets, isPending: isBulkUploading } =
     useCreateBulkAssets();
 
@@ -111,7 +97,7 @@ export function AssetSelectDialog({
     [data?.pages],
   );
 
-  const { ref, inView } = useInView();
+  const { ref, inView } = useInView({ threshold: 0.8 });
   useEffect(() => {
     if (inView) {
       fetchNextPage();
@@ -158,20 +144,7 @@ export function AssetSelectDialog({
     if (!files || files.length === 0) return;
 
     const fileList = Array.from(files);
-    if (fileList.length === 1) {
-      createAsset(
-        { file: fileList[0] },
-        {
-          onSuccess: (res) => {
-            const created = (res as { data?: { asset?: { _id: string } } })
-              ?.data?.asset;
-            if (created) {
-              setPendingIds((prev) => new Set([created._id.toString()]));
-            }
-          },
-        },
-      );
-    } else {
+    if (fileList.length) {
       createBulkAssets(
         { files: fileList },
         {
@@ -219,9 +192,9 @@ export function AssetSelectDialog({
             type="button"
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
-            disabled={isBulkUploading || isUploading}
+            disabled={isBulkUploading}
           >
-            {isBulkUploading || isUploading ? (
+            {isBulkUploading ? (
               <Spinner className="size-4" />
             ) : (
               <Upload className="size-4" />

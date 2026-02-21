@@ -58,7 +58,7 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
   const shipping = invoice.shippingAddress;
   const shippingAddressLine =
     shipping &&
-    [shipping.address, shipping.city, shipping.state, shipping.postalCode]
+    [shipping.address, shipping.city]
       .filter(Boolean)
       .join(", ");
 

@@ -13,7 +13,6 @@ const schema = new Schema(
       index: true,
     },
     content: { type: Schema.Types.Mixed },
-    featuredImage: { type: Types.ObjectId, ref: "Asset" },
     seo: { type: Types.ObjectId, ref: "Seo" },
     status: { type: Boolean, default: true, index: true },
     showInHeader: { type: Boolean, default: false },

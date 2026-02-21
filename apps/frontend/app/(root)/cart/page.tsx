@@ -254,8 +254,6 @@ export default function CartPage() {
         phone: "",
         address: "",
         city: "",
-        state: "",
-        postalCode: "",
       },
       notes: "",
       sameAsBilling: false,
@@ -294,8 +292,6 @@ export default function CartPage() {
       phone: shippingFromProfile?.phone ?? customer.phone,
       address: shippingFromProfile?.address ?? "",
       city: shippingFromProfile?.city ?? "",
-      state: shippingFromProfile?.state ?? "",
-      postalCode: shippingFromProfile?.postalCode ?? "",
     };
     const current = form.getValues();
     form.reset({
@@ -798,40 +794,6 @@ export default function CartPage() {
                         {form.formState.errors.shippingAddress?.city && (
                           <p className="text-sm text-destructive">
                             {form.formState.errors.shippingAddress.city.message}
-                          </p>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="shippingAddress.state">State *</Label>
-                        <Input
-                          id="shippingAddress.state"
-                          {...form.register("shippingAddress.state")}
-                          placeholder="State / Division"
-                        />
-                        {form.formState.errors.shippingAddress?.state && (
-                          <p className="text-sm text-destructive">
-                            {
-                              form.formState.errors.shippingAddress.state
-                                .message
-                            }
-                          </p>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="shippingAddress.postalCode">
-                          Postal code *
-                        </Label>
-                        <Input
-                          id="shippingAddress.postalCode"
-                          {...form.register("shippingAddress.postalCode")}
-                          placeholder="Postal code"
-                        />
-                        {form.formState.errors.shippingAddress?.postalCode && (
-                          <p className="text-sm text-destructive">
-                            {
-                              form.formState.errors.shippingAddress.postalCode
-                                .message
-                            }
                           </p>
                         )}
                       </div>

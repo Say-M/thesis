@@ -175,11 +175,7 @@ export default function InvoiceDetailPage() {
                 {invoice.shippingAddress.phone}
               </p>
               <p className="text-sm text-muted-foreground">
-                {invoice.shippingAddress.address}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {invoice.shippingAddress.city}, {invoice.shippingAddress.state}{" "}
-                {invoice.shippingAddress.postalCode}
+                {invoice.shippingAddress.address}, {invoice.shippingAddress.city}
               </p>
             </div>
           </CardContent>

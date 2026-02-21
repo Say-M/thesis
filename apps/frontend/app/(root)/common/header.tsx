@@ -24,9 +24,12 @@ import { formatCurrency } from "@/lib/format-currency-base";
 import { Badge } from "@/components/ui/badge";
 import {
   HeartIcon,
+  LayoutDashboard,
   Loader2Icon,
+  LogOut,
   SearchIcon,
   ShoppingCartIcon,
+  User,
   User2Icon,
 } from "lucide-react";
 import { DiscountType } from "@repo/common/enums/discount";
@@ -37,6 +40,18 @@ import { useCartWishlist } from "@/contexts/cart-wishlist";
 import { Role } from "@repo/common/enums/role";
 import Image from "next/image";
 import { useConfigContext } from "@/contexts/config";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ChevronDown } from "lucide-react";
+import { getInitials } from "@/lib/utils";
+import { useLogout } from "@/hooks/api/auth";
 
 const SEARCH_DEBOUNCE_MS = 300;
 const SEARCH_MIN_LENGTH = 2;
@@ -122,6 +137,7 @@ export default function Header() {
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
+  const { mutate: logout, isPending: isLoggingOut } = useLogout();
 
   useEffect(() => {
     const id = setTimeout(() => {
@@ -175,25 +191,6 @@ export default function Header() {
                       )}
                     </Fragment>
                   ))}
-                </>
-              )}
-            </div>
-            <div className="flex items-center gap-4 text-sm font-medium">
-              {user ? (
-                <>
-                  {user?.role !== Role.USER && (
-                    <>
-                      <Link href="/dashboard">Dashboard</Link>
-                      <Separator orientation="vertical" className="h-3!" />
-                    </>
-                  )}
-                  <Link href="/profile">Profile</Link>
-                </>
-              ) : (
-                <>
-                  <Link href="/auth/login">Login</Link>
-                  <Separator orientation="vertical" className="h-3!" />
-                  <Link href="/auth/register">Register</Link>
                 </>
               )}
             </div>
@@ -305,112 +302,13 @@ export default function Header() {
             </Popover>
           </div>
 
-          {/* Mobile Search - Icon Only */}
-          <div className="md:hidden flex gap-x-2 items-center">
-            <Popover open={searchOpen} onOpenChange={setSearchOpen}>
-              <PopoverAnchor asChild>
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="outline"
-                  onClick={() => setSearchOpen(true)}
-                  aria-label="Search"
-                >
-                  <SearchIcon />
-                </Button>
-              </PopoverAnchor>
-              <PopoverContent
-                id="header-search-results-mobile"
-                className="w-svw md:hidden sm:w-md max-h-[min(70vh,400px)] overflow-y-auto p-0"
-                align="start"
-                sideOffset={8}
-                // onOpenAutoFocus={(e) => e.preventDefault()}
-              >
-                <div className="border-b bg-background p-4">
-                  <InputGroup>
-                    <InputGroupInput
-                      autoComplete="off"
-                      placeholder="Search products…"
-                      value={searchInput}
-                      onChange={(e) => setSearchInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Escape") {
-                          setSearchOpen(false);
-                        }
-                      }}
-                      aria-expanded={searchOpen}
-                      aria-autocomplete="list"
-                      aria-controls="header-search-results-mobile"
-                      id="header-search-input-mobile"
-                      autoFocus
-                    />
-                    <InputGroupAddon align="inline-end">
-                      <InputGroupButton
-                        type="button"
-                        aria-label="Search"
-                        onClick={() => {
-                          if (searchInput.trim()) {
-                            router.push(
-                              `/products?search=${encodeURIComponent(searchInput.trim())}`,
-                            );
-                            setSearchOpen(false);
-                          }
-                        }}
-                      >
-                        <SearchIcon className="size-4" />
-                      </InputGroupButton>
-                    </InputGroupAddon>
-                  </InputGroup>
-                </div>
-
-                {searchInput.trim().length < SEARCH_MIN_LENGTH ? (
-                  <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-                    Type at least {SEARCH_MIN_LENGTH} characters to search
-                  </div>
-                ) : searchLoading ? (
-                  <div className="flex items-center justify-center gap-2 px-4 py-8">
-                    <Loader2Icon className="size-5 animate-spin text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      Searching…
-                    </span>
-                  </div>
-                ) : searchProducts.length === 0 ? (
-                  <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-                    No products found
-                  </div>
-                ) : (
-                  <ul className="py-2" role="listbox">
-                    {searchProducts.map((product) => (
-                      <SearchResultItem
-                        key={product._id}
-                        product={product}
-                        onSelect={() => handleSelectProduct(product.slug)}
-                      />
-                    ))}
-                  </ul>
-                )}
-                {debouncedSearch.length >= SEARCH_MIN_LENGTH &&
-                  searchProducts.length > 0 && (
-                    <div className="border-t p-2 text-center">
-                      <Link
-                        href={`/products?search=${encodeURIComponent(debouncedSearch)}`}
-                        className="text-sm font-medium text-primary hover:underline"
-                        onClick={() => setSearchOpen(false)}
-                      >
-                        View all results for &quot;{debouncedSearch}&quot;
-                      </Link>
-                    </div>
-                  )}
-              </PopoverContent>
-            </Popover>
-            <Button size="icon" variant="secondary" asChild>
-              <Link href={user ? "/profile" : "/auth/login"}>
-                <User2Icon />
-              </Link>
-            </Button>
-          </div>
-          <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" size="icon-sm" className="relative" asChild>
+          <div className="flex items-center md:gap-4 gap-2">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="relative hidden md:inline-flex"
+              asChild
+            >
               <Link
                 href="/cart"
                 aria-label={`Shopping cart${cartCount > 0 ? ` (${cartCount} items)` : ""}`}
@@ -423,7 +321,12 @@ export default function Header() {
                 )}
               </Link>
             </Button>
-            <Button variant="ghost" size="icon-sm" className="relative" asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="relative hidden md:inline-flex"
+              asChild
+            >
               <Link
                 href="/wishlist"
                 aria-label={`Wishlist${wishlist?.length ? ` (${wishlist.length} items)` : ""}`}
@@ -436,6 +339,159 @@ export default function Header() {
                 )}
               </Link>
             </Button>
+            <div className="md:hidden block">
+              <Popover open={searchOpen} onOpenChange={setSearchOpen}>
+                <PopoverAnchor asChild>
+                  <Button
+                    type="button"
+                    size="icon-sm"
+                    variant="ghost"
+                    onClick={() => setSearchOpen(true)}
+                    aria-label="Search"
+                  >
+                    <SearchIcon />
+                  </Button>
+                </PopoverAnchor>
+                <PopoverContent
+                  id="header-search-results-mobile"
+                  className="w-svw md:hidden sm:w-md max-h-[min(70vh,400px)] overflow-y-auto p-0"
+                  align="start"
+                  sideOffset={8}
+                  // onOpenAutoFocus={(e) => e.preventDefault()}
+                >
+                  <div className="border-b bg-background p-4">
+                    <InputGroup>
+                      <InputGroupInput
+                        autoComplete="off"
+                        placeholder="Search products…"
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Escape") {
+                            setSearchOpen(false);
+                          }
+                        }}
+                        aria-expanded={searchOpen}
+                        aria-autocomplete="list"
+                        aria-controls="header-search-results-mobile"
+                        id="header-search-input-mobile"
+                        autoFocus
+                      />
+                      <InputGroupAddon align="inline-end">
+                        <InputGroupButton
+                          type="button"
+                          aria-label="Search"
+                          onClick={() => {
+                            if (searchInput.trim()) {
+                              router.push(
+                                `/products?search=${encodeURIComponent(searchInput.trim())}`,
+                              );
+                              setSearchOpen(false);
+                            }
+                          }}
+                        >
+                          <SearchIcon className="size-4" />
+                        </InputGroupButton>
+                      </InputGroupAddon>
+                    </InputGroup>
+                  </div>
+
+                  {searchInput.trim().length < SEARCH_MIN_LENGTH ? (
+                    <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+                      Type at least {SEARCH_MIN_LENGTH} characters to search
+                    </div>
+                  ) : searchLoading ? (
+                    <div className="flex items-center justify-center gap-2 px-4 py-8">
+                      <Loader2Icon className="size-5 animate-spin text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        Searching…
+                      </span>
+                    </div>
+                  ) : searchProducts.length === 0 ? (
+                    <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+                      No products found
+                    </div>
+                  ) : (
+                    <ul className="py-2" role="listbox">
+                      {searchProducts.map((product) => (
+                        <SearchResultItem
+                          key={product._id}
+                          product={product}
+                          onSelect={() => handleSelectProduct(product.slug)}
+                        />
+                      ))}
+                    </ul>
+                  )}
+                  {debouncedSearch.length >= SEARCH_MIN_LENGTH &&
+                    searchProducts.length > 0 && (
+                      <div className="border-t p-2 text-center">
+                        <Link
+                          href={`/products?search=${encodeURIComponent(debouncedSearch)}`}
+                          className="text-sm font-medium text-primary hover:underline"
+                          onClick={() => setSearchOpen(false)}
+                        >
+                          View all results for &quot;{debouncedSearch}&quot;
+                        </Link>
+                      </div>
+                    )}
+                </PopoverContent>
+              </Popover>
+            </div>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Avatar className="size-8 cursor-pointer">
+                    <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                      {getInitials(user?.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="bottom" align="end" className="w-56">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col gap-0.5">
+                      <p className="font-medium">{user?.name ?? "User"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {user?.email ?? user?.mobile ?? ""}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">
+                      <User className="size-4" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  {user?.role !== Role.USER && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard" target="_blank">
+                        <LayoutDashboard className="size-4" />
+                        Go to Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => logout()}
+                    disabled={isLoggingOut}
+                  >
+                    <LogOut className="size-4" />
+                    {isLoggingOut ? "Logging out…" : "Log out"}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="relative"
+                asChild
+              >
+                <Link href="/auth/login">
+                  <User2Icon className="size-4" />
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       </div>

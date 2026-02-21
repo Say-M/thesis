@@ -17,7 +17,6 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-
 export default function DashboardLayout({
   children,
 }: Readonly<{

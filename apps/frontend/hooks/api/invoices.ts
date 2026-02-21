@@ -60,8 +60,6 @@ export type InvoiceDetail = InvoiceListItem & {
     phone: string;
     address: string;
     city: string;
-    state: string;
-    postalCode: string;
   };
   // Transaction calculation fields (inherited from InvoiceListItem)
   paidAmount?: number;

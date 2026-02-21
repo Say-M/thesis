@@ -1,15 +1,13 @@
 "use client";
 
-import { useUpdateProfile, useLogout } from "@/hooks/api/auth";
+import { useUpdateProfile } from "@/hooks/api/auth";
 import type { UpdateProfilePayload } from "@/hooks/api/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2Icon, LogOut } from "lucide-react";
+import { Loader2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useCartWishlist } from "@/contexts/cart-wishlist";
-import { Separator } from "@/components/ui/separator";
 
 type UserProfile = {
   name?: string | null;
@@ -21,15 +19,11 @@ type UserProfile = {
     phone?: string;
     address?: string;
     city?: string;
-    state?: string;
-    postalCode?: string;
   } | null;
 };
 
 export function ProfileTab({ user }: { user: UserProfile }) {
-  const updateProfile = useUpdateProfile();
-  const logout = useLogout();
-  const { clearCart, clearWishlist } = useCartWishlist();
+  const updateProfile = useUpdateProfile();``
   const [form, setForm] = useState<UpdateProfilePayload>({
     name: "",
     shippingAddress: {},
@@ -47,8 +41,6 @@ export function ProfileTab({ user }: { user: UserProfile }) {
             phone: user.shippingAddress.phone,
             address: user.shippingAddress.address,
             city: user.shippingAddress.city,
-            state: user.shippingAddress.state,
-            postalCode: user.shippingAddress.postalCode,
           }
         : {},
     }));
@@ -67,12 +59,6 @@ export function ProfileTab({ user }: { user: UserProfile }) {
       name: form.name.trim(),
       shippingAddress: clean(form.shippingAddress as Record<string, string | undefined>),
     });
-  };
-
-  const handleLogout = () => {
-    clearCart();
-    clearWishlist();
-    logout.mutate();
   };
 
   return (
@@ -149,22 +135,6 @@ export function ProfileTab({ user }: { user: UserProfile }) {
                   }
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="shipping-postalCode">Postal code</Label>
-                <Input
-                  id="shipping-postalCode"
-                  value={form.shippingAddress?.postalCode ?? ""}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      shippingAddress: {
-                        ...prev.shippingAddress,
-                        postalCode: e.target.value,
-                      },
-                    }))
-                  }
-                />
-              </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="shipping-address">Address</Label>
                 <Input
@@ -197,22 +167,6 @@ export function ProfileTab({ user }: { user: UserProfile }) {
                   }
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="shipping-state">State</Label>
-                <Input
-                  id="shipping-state"
-                  value={form.shippingAddress?.state ?? ""}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      shippingAddress: {
-                        ...prev.shippingAddress,
-                        state: e.target.value,
-                      },
-                    }))
-                  }
-                />
-              </div>
             </div>
           </div>
 
@@ -223,35 +177,6 @@ export function ProfileTab({ user }: { user: UserProfile }) {
             Save profile
           </Button>
         </form>
-
-        <Separator className="my-6" />
-
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-destructive">Danger zone</h3>
-          <p className="text-sm text-muted-foreground">
-            Log out of your account. You will need to sign in again to access your
-            profile.
-          </p>
-          <Button
-            type="button"
-            variant="destructive"
-            onClick={handleLogout}
-            disabled={logout.isPending}
-            className="w-full sm:w-auto"
-          >
-            {logout.isPending ? (
-              <>
-                <Loader2Icon className="mr-2 size-4 animate-spin" />
-                Logging out...
-              </>
-            ) : (
-              <>
-                <LogOut className="mr-2 size-4" />
-                Log out
-              </>
-            )}
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );
