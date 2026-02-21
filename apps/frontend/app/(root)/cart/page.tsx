@@ -11,17 +11,12 @@ import {
   createInvoiceSchema,
   type CreateInvoiceSchemaType,
 } from "@repo/common/schemas/invoice";
-import {
-  InvoiceType,
-  PaymentMethod,
-  PaymentType,
-} from "@repo/common/enums/invoice";
+import { InvoiceType, PaymentType } from "@repo/common/enums/invoice";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
   CardContent,
@@ -54,20 +49,22 @@ import { toast } from "sonner";
 import { useConfigContext } from "@/contexts/config";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ComboboxApiSearch } from "@/components/ui/combobox-api-search";
 import { UserSearchOption, useUserSearch } from "@/hooks/use-user-search";
 import { Role } from "@repo/common/enums/role";
 import { roundTo2 } from "@repo/common/utils/round-to-2";
-import { FieldError } from "@/components/ui/field";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Image from "next/image";
+import { districts } from "@/app/data/districts.json";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { FieldError } from "@/components/ui/field";
 
 const checkoutFormSchema = createInvoiceSchema
   .omit({ items: true, type: true })
@@ -672,11 +669,9 @@ export default function CartPage() {
                           minQueryLength={1}
                           clearable
                         />
-                        {form.formState.errors.customer?.name && (
-                          <p className="text-sm text-destructive">
-                            {form.formState.errors.customer.name.message}
-                          </p>
-                        )}
+                        <FieldError
+                          errors={[form.formState.errors.customer?.user]}
+                        />
                       </div>
                     )}
                     <div className="space-y-2 sm:col-span-2">
@@ -686,11 +681,9 @@ export default function CartPage() {
                         {...form.register("customer.name")}
                         placeholder="Full name"
                       />
-                      {form.formState.errors.customer?.name && (
-                        <p className="text-sm text-destructive">
-                          {form.formState.errors.customer.name.message}
-                        </p>
-                      )}
+                      <FieldError
+                        errors={[form.formState.errors.customer?.name]}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="customer.email">Email</Label>
@@ -700,11 +693,9 @@ export default function CartPage() {
                         {...form.register("customer.email")}
                         placeholder="email@example.com"
                       />
-                      {form.formState.errors.customer?.email && (
-                        <p className="text-sm text-destructive">
-                          {form.formState.errors.customer.email.message}
-                        </p>
-                      )}
+                      <FieldError
+                        errors={[form.formState.errors.customer?.email]}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="customer.phone">Phone *</Label>
@@ -713,11 +704,9 @@ export default function CartPage() {
                         {...form.register("customer.phone")}
                         placeholder="Phone number"
                       />
-                      {form.formState.errors.customer?.phone && (
-                        <p className="text-sm text-destructive">
-                          {form.formState.errors.customer.phone.message}
-                        </p>
-                      )}
+                      <FieldError
+                        errors={[form.formState.errors.customer?.phone]}
+                      />
                     </div>
                   </div>
                 </div>
@@ -735,11 +724,9 @@ export default function CartPage() {
                           {...form.register("shippingAddress.name")}
                           placeholder="Full name"
                         />
-                        {form.formState.errors.shippingAddress?.name && (
-                          <p className="text-sm text-destructive">
-                            {form.formState.errors.shippingAddress.name.message}
-                          </p>
-                        )}
+                        <FieldError
+                          errors={[form.formState.errors.shippingAddress?.name]}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="shippingAddress.email">Email</Label>
@@ -757,45 +744,47 @@ export default function CartPage() {
                           {...form.register("shippingAddress.phone")}
                           placeholder="Phone"
                         />
-                        {form.formState.errors.shippingAddress?.phone && (
-                          <p className="text-sm text-destructive">
-                            {
-                              form.formState.errors.shippingAddress.phone
-                                .message
-                            }
-                          </p>
-                        )}
+                        <FieldError
+                          errors={[
+                            form.formState.errors.shippingAddress?.phone,
+                          ]}
+                        />
                       </div>
                       <div className="space-y-2 sm:col-span-2">
                         <Label htmlFor="shippingAddress.address">
                           Address *
                         </Label>
-                        <Input
+                        <Textarea
                           id="shippingAddress.address"
                           {...form.register("shippingAddress.address")}
                           placeholder="Street address"
                         />
-                        {form.formState.errors.shippingAddress?.address && (
-                          <p className="text-sm text-destructive">
-                            {
-                              form.formState.errors.shippingAddress.address
-                                .message
-                            }
-                          </p>
-                        )}
+                        <FieldError
+                          errors={[
+                            form.formState.errors.shippingAddress?.address,
+                          ]}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="shippingAddress.city">City *</Label>
-                        <Input
-                          id="shippingAddress.city"
-                          {...form.register("shippingAddress.city")}
-                          placeholder="City"
+                        <Combobox
+                          items={districts?.map((district) => district.name)}
+                        >
+                          <ComboboxInput placeholder="Select a city" />
+                          <ComboboxContent>
+                            <ComboboxEmpty>No items found.</ComboboxEmpty>
+                            <ComboboxList>
+                              {(item) => (
+                                <ComboboxItem key={item} value={item}>
+                                  {item}
+                                </ComboboxItem>
+                              )}
+                            </ComboboxList>
+                          </ComboboxContent>
+                        </Combobox>
+                        <FieldError
+                          errors={[form.formState.errors.shippingAddress?.city]}
                         />
-                        {form.formState.errors.shippingAddress?.city && (
-                          <p className="text-sm text-destructive">
-                            {form.formState.errors.shippingAddress.city.message}
-                          </p>
-                        )}
                       </div>
                     </div>
                   </div>
