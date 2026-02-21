@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 function PlateEditor({
   onChange,
-  value,
+  value = [],
   readOnly,
 }: {
   onChange?: (value: Value) => void;

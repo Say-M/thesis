@@ -123,7 +123,6 @@ const menus = [
   },
 ];
 
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useContext(AuthContext);
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
@@ -213,7 +212,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="flex items-center gap-2 pl-2! pr-1.5!"
+                className="flex items-center justify-between gap-2 pl-2! pr-1.5!"
                 aria-label="Open user menu"
                 size="lg"
               >
@@ -222,10 +221,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     {getInitials(user?.name)}
                   </AvatarFallback>
                 </Avatar>
-                <span className="hidden max-w-32 truncate text-sm font-medium sm:inline lg:inline">
-                  {user?.name ?? "User"}
-                </span>
-                <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
+                <div className="flex items-center gap-2">
+                  <span className="inline max-w-48 truncate text-sm font-medium">
+                    {user?.name}
+                  </span>
+                  <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
+                </div>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="right" align="end" className="w-56">

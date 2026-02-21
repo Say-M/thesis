@@ -23,7 +23,6 @@ import { useGetPage, useCreatePage, useUpdatePage } from "@/hooks/api/pages";
 import { Search } from "lucide-react";
 import PlateEditor from "@/components/plugins/editor";
 
-
 const defaultValues: PageSchemaType = {
   title: "",
   slug: "",
@@ -234,7 +233,7 @@ export default function AddEditPage({ id }: { id: string }) {
                   <div>
                     <PlateEditor
                       onChange={field.onChange}
-                      value={page.content}
+                      value={page?.content}
                     />
                   </div>
                   {fieldState.invalid && (
