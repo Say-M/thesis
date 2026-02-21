@@ -33,7 +33,7 @@ const customerSchema = z.object({
   user: z.string().trim().nullish(),
 });
 
-export const createInvoiceSchema = z.object({
+export const invoiceSchema = z.object({
   type: z.enum(InvoiceType, { error: "Invalid invoice type" }).nullish(),
   paymentType: z.enum(PaymentType, { error: "Invalid payment type" }),
   customer: customerSchema,
@@ -45,13 +45,31 @@ export const createInvoiceSchema = z.object({
   isSavedForLater: z.boolean().nullish(),
   shippingAddress: addressSchema,
   shippingChargeName: z.string().trim().nullish(),
-  // transaction: z.object({
-  //   paymentMethod: z.enum(PaymentMethod, { error: "Invalid payment method" }),
-  //   reference: z
-  //     .string({ error: "Reference is required" })
-  //     .trim()
-  //     .nonempty({ error: "Reference is required" }),
-  // }),
+  transaction: z.object({
+    paymentMethod: z
+      .enum(PaymentMethod, { error: "Invalid payment method" })
+      .nullish(),
+    reference: z.string({ error: "Reference is required" }).trim().nullish(),
+  }),
+});
+
+export const createInvoiceSchema = invoiceSchema.superRefine((data, ctx) => {
+  if (data.paymentType === PaymentType.ONLINE) {
+    if (!data.transaction.paymentMethod) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["transaction", "paymentMethod"],
+        message: "Payment method is required for online payment",
+      });
+    }
+    if (!data.transaction.reference) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["transaction", "reference"],
+        message: "Reference is required for online payment",
+      });
+    }
+  }
 });
 
 export const updateInvoiceSchema = z

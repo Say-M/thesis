@@ -5,6 +5,7 @@ import {
   InvoiceType,
   TransactionStatus,
   TransactionType,
+  PaymentType,
 } from "../enums/invoice";
 import { addressSchema } from "./user";
 
@@ -56,6 +57,11 @@ const schema = new Schema(
       enum: InvoiceType,
       default: InvoiceType.ONLINE,
       index: true,
+    },
+    paymentType: {
+      type: String,
+      enum: PaymentType,
+      required: true,
     },
     customer: {
       type: customerSchema,

@@ -32,7 +32,7 @@ import sslcommerz, {
 export const createInvoiceService = async (
   user: User | null | undefined,
   payload: CreateInvoiceSchemaType,
-  { origin, host }: { origin?: string; host?: string },
+  { origin }: { origin?: string },
 ): Promise<ResponseType> => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -45,7 +45,7 @@ export const createInvoiceService = async (
       notes,
       shippingAddress,
       shippingChargeName,
-      // transaction: transactionPayload,
+      transaction: transactionPayload,
       paymentType,
     } = payload;
 
@@ -398,10 +398,8 @@ export const createInvoiceService = async (
         {
           invoiceNumber,
           type: invoiceType,
-          customer: {
-            ...customer,
-            user: customerUserId,
-          },
+          paymentType,
+          customer: { ...customer, user: customerUserId },
           items: lineItems,
           subtotal,
           coupon: couponId,
@@ -429,24 +427,25 @@ export const createInvoiceService = async (
     }
 
     // Create initial transaction from payload (payment info at checkout)
-    // const invoiceId = invoice[0]?._id;
-    // if (invoiceId && transactionPayload) {
-    //   if (total > 0) {
-    //     await Transaction.create(
-    //       [
-    //         {
-    //           invoice: invoiceId,
-    //           amount: total,
-    //           type: TransactionType.PAYMENT,
-    //           status: TransactionStatus.PENDING,
-    //           paymentMethod: transactionPayload.paymentMethod,
-    //           reference: transactionPayload.reference,
-    //         },
-    //       ],
-    //       { session },
-    //     );
-    //   }
-    // }
+    const invoiceId = invoice[0]?._id;
+    if (invoiceId && transactionPayload) {
+      if (total > 0) {
+        await Transaction.create(
+          [
+            {
+              invoice: invoiceId,
+              amount: total,
+              store_amount: total,
+              type: TransactionType.PAYMENT,
+              status: TransactionStatus.PENDING,
+              paymentMethod: transactionPayload.paymentMethod,
+              reference: transactionPayload.reference,
+            },
+          ],
+          { session },
+        );
+      }
+    }
 
     // Adjust stock levels
     for (const stockUpdate of stockUpdates) {
@@ -481,43 +480,41 @@ export const createInvoiceService = async (
 
     const createdInvoice = invoice[0]?.toObject();
 
-    if (createdInvoice && paymentType === PaymentType.ONLINE) {
-      const success_url = process.env.SERVER_URL + "/api/payments/success";
-      const fail_url = process.env.SERVER_URL + "/api/payments/fail";
-      const cancel_url = process.env.SERVER_URL + "/api/payments/cancel";
-      const ipn_url = process.env.SERVER_URL + "/api/payments/ipn";
-      const response = await sslcommerz.createPaymentSession({
-        total_amount: createdInvoice.total,
-        currency: createdInvoice.currency,
-        tran_id: createdInvoice.invoiceNumber,
-        success_url,
-        fail_url,
-        cancel_url,
-        ipn_url,
-        shipping_method: ShippingMethod.NO,
-        product_name: createdInvoice.items.map((item) => item.name).join(", "),
-        product_category: "Products",
-        product_profile: ProductProfile.GENERAL,
-        cus_name: createdInvoice.customer.name,
-        cus_email: createdInvoice.customer.email || "",
-        cus_phone: createdInvoice.customer.phone || "",
-        value_a: createdInvoice.invoiceNumber,
-        value_b: origin,
-        value_c: createdInvoice._id?.toString(),
-      });
+    // if (createdInvoice && paymentType === PaymentType.ONLINE) {
+    //   const success_url = process.env.SERVER_URL + "/api/payments/success";
+    //   const fail_url = process.env.SERVER_URL + "/api/payments/fail";
+    //   const cancel_url = process.env.SERVER_URL + "/api/payments/cancel";
+    //   const ipn_url = process.env.SERVER_URL + "/api/payments/ipn";
+    //   const response = await sslcommerz.createPaymentSession({
+    //     total_amount: createdInvoice.total,
+    //     currency: createdInvoice.currency,
+    //     tran_id: createdInvoice.invoiceNumber,
+    //     success_url,
+    //     fail_url,
+    //     cancel_url,
+    //     ipn_url,
+    //     shipping_method: ShippingMethod.NO,
+    //     product_name: createdInvoice.items.map((item) => item.name).join(", "),
+    //     product_category: "Products",
+    //     product_profile: ProductProfile.GENERAL,
+    //     cus_name: createdInvoice.customer.name,
+    //     cus_email: createdInvoice.customer.email || "",
+    //     cus_phone: createdInvoice.customer.phone || "",
+    //     value_a: createdInvoice.invoiceNumber,
+    //     value_b: origin,
+    //     value_c: createdInvoice._id?.toString(),
+    //   });
 
-      console.log({ response });
-
-      if (response.status === "SUCCESS") {
-        await session.commitTransaction();
-        return {
-          status: 201,
-          message: "OK",
-          timestamp: new Date().toISOString(),
-          data: { redirectUrl: response.GatewayPageURL },
-        };
-      }
-    }
+    //   if (response.status === "SUCCESS") {
+    //     await session.commitTransaction();
+    //     return {
+    //       status: 201,
+    //       message: "OK",
+    //       timestamp: new Date().toISOString(),
+    //       data: { redirectUrl: response.GatewayPageURL },
+    //     };
+    //   }
+    // }
 
     await session.commitTransaction();
     return {

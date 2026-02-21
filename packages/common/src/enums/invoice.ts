@@ -24,11 +24,11 @@ export enum TransactionType {
 }
 
 export enum PaymentMethod {
+  BKASH = "Bkash",
+  NAGAD = "Nagad",
+  ROCKET = "Rocket",
   CASH = "Cash",
   BANK_TRANSFER = "Bank Transfer",
-  BKASH = "Bkash",
-  ROCKET = "Rocket",
-  NAGAD = "Nagad",
   SSLCOMMERZ = "SSLCommerz",
   OTHER = "Other",
 }
