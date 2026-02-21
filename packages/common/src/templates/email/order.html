@@ -1,0 +1,206 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>New Order - {{invoiceNumber}}</title>
+  </head>
+
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background: #f5f6fa;
+      font-family: Arial, Helvetica, sans-serif;
+    "
+  >
+    <table width="100%" cellpadding="0" cellspacing="0" style="padding: 20px">
+      <tr>
+        <td align="center">
+          <table
+            width="650"
+            cellpadding="0"
+            cellspacing="0"
+            style="background: #ffffff; border-radius: 8px; overflow: hidden"
+          >
+            <!-- Header -->
+            <tr>
+              <td
+                style="
+                  background: #0b3d91;
+                  color: #ffffff;
+                  padding: 20px;
+                  text-align: center;
+                "
+              >
+                <h2 style="margin: 0">New Order Received</h2>
+                <p style="margin: 5px 0 0 0">Invoice: {{invoiceNumber}}</p>
+              </td>
+            </tr>
+
+            <!-- Content -->
+            <tr>
+              <td style="padding: 20px; color: #333">
+                <!-- Customer Info -->
+                <h3>Customer Information</h3>
+
+                <table width="100%" cellpadding="5">
+                  <tr>
+                    <td width="150"><strong>Name:</strong></td>
+                    <td>{{customerName}}</td>
+                  </tr>
+
+                  <tr>
+                    <td><strong>Phone:</strong></td>
+                    <td>{{customerPhone}}</td>
+                  </tr>
+
+                  <tr>
+                    <td><strong>Email:</strong></td>
+                    <td>{{customerEmail}}</td>
+                  </tr>
+                </table>
+
+                <!-- Shipping Address -->
+                <h3>Shipping Address</h3>
+
+                <table width="100%" cellpadding="5">
+                  <tr>
+                    <td width="150"><strong>Recipient:</strong></td>
+                    <td>{{shippingAddressName}}</td>
+                  </tr>
+
+                  <tr>
+                    <td><strong>Phone:</strong></td>
+                    <td>{{shippingAddressPhone}}</td>
+                  </tr>
+
+                  <tr>
+                    <td><strong>Address:</strong></td>
+                    <td>
+                      {{shippingAddressAddress}}<br />
+                      {{shippingAddressCity}}
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Order Info -->
+                <h3>Order Information</h3>
+
+                <table width="100%" cellpadding="5">
+                  <tr>
+                    <td width="150"><strong>Payment Type:</strong></td>
+                    <td>{{paymentType}}</td>
+                  </tr>
+
+                  <tr>
+                    <td><strong>Status:</strong></td>
+                    <td>{{status}}</td>
+                  </tr>
+
+                  <tr>
+                    <td><strong>Date:</strong></td>
+                    <td>{{createdAt}}</td>
+                  </tr>
+                </table>
+
+                <!-- Items -->
+                <h3>Order Items</h3>
+
+                <table
+                  width="100%"
+                  cellpadding="8"
+                  cellspacing="0"
+                  border="1"
+                  style="border-collapse: collapse; border-color: #ddd"
+                >
+                  <tr style="background: #f2f2f2">
+                    <th align="left">Product</th>
+
+                    <th align="center">Qty</th>
+
+                    <th align="right">Unit Price</th>
+
+                    <th align="right">Discount</th>
+
+                    <th align="right">Total</th>
+                  </tr>
+
+                  {{items}}
+                </table>
+
+                <!-- Summary -->
+                <h3>Payment Summary</h3>
+
+                <table width="100%" cellpadding="5">
+                  <tr>
+                    <td>Subtotal</td>
+                    <td align="right">৳{{subtotal}}</td>
+                  </tr>
+
+                  <tr>
+                    <td>Coupon Discount</td>
+                    <td align="right">৳{{couponDiscountAmount}}</td>
+                  </tr>
+
+                  <tr>
+                    <td>Shipping</td>
+                    <td align="right">৳{{shippingAmount}}</td>
+                  </tr>
+
+                  <tr>
+                    <td><strong>Total</strong></td>
+
+                    <td align="right"><strong>৳{{total}}</strong></td>
+                  </tr>
+                </table>
+
+                <!-- Notes -->
+                <h3>Notes</h3>
+
+                <p>{{notes}}</p>
+
+                <!-- Admin Button -->
+
+                <table width="100%" style="margin-top: 20px">
+                  <tr>
+                    <td align="center">
+                      <a
+                        href="{{adminUrl}}"
+                        style="
+                          background: #0b3d91;
+                          color: #fff;
+                          padding: 12px 25px;
+                          text-decoration: none;
+                          border-radius: 5px;
+                          display: inline-block;
+                        "
+                      >
+                        View Order
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+
+            <tr>
+              <td
+                style="
+                  background: #f2f2f2;
+                  padding: 15px;
+                  text-align: center;
+                  font-size: 12px;
+                  color: #888;
+                "
+              >
+                © {{year}} {{storeName}}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

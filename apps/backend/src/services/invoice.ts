@@ -17,7 +17,6 @@ import { DiscountType } from "@repo/common/enums/discount";
 import {
   InvoiceStatus,
   InvoiceType,
-  PaymentType,
   TransactionStatus,
   TransactionType,
 } from "@repo/common/enums/invoice";
@@ -28,6 +27,7 @@ import sslcommerz, {
   ShippingMethod,
   ProductProfile,
 } from "@repo/sslcommerz/sslcommerz";
+import { sendEmail } from "@repo/common/utils/send-email";
 
 export const createInvoiceService = async (
   user: User | null | undefined,
@@ -515,6 +515,67 @@ export const createInvoiceService = async (
     //     };
     //   }
     // }
+
+    const itemsHtml = createdInvoice?.items
+      .map(
+        (item) => `
+      <tr>
+      <td>
+      ${item.name}
+      ${item.variantLabel ? `<br><small>${item.variantLabel}</small>` : ""}
+      </td>
+      
+      <td align="center">
+      ${item.quantity}
+      </td>
+      
+      <td align="right">
+      ৳${item.unitPrice}
+      </td>
+      
+      <td align="right">
+      ৳${item.discountAmount}
+      </td>
+      
+      <td align="right">
+      ৳${item.total}
+      </td>
+      
+      </tr>
+      `,
+      )
+      .join("");
+
+    if (process.env.ADMIN_EMAIL)
+      sendEmail({
+        to: process.env.ADMIN_EMAIL,
+        template: "order.html",
+        subject: "New Order Received",
+        payload: {
+          invoiceNumber,
+          customerName: createdInvoice?.customer?.name,
+          customerPhone: createdInvoice?.customer?.phone || "N/A",
+          customerEmail: createdInvoice?.customer?.email || "N/A",
+          shippingAddressName: createdInvoice?.shippingAddress?.name,
+          shippingAddressPhone: createdInvoice?.shippingAddress?.phone,
+          shippingAddressAddress: createdInvoice?.shippingAddress?.address,
+          shippingAddressCity: createdInvoice?.shippingAddress?.city,
+          paymentType: createdInvoice?.paymentType,
+          status: createdInvoice?.status,
+          createdAt: createdInvoice?.createdAt,
+          items: itemsHtml,
+          subtotal: createdInvoice?.subtotal,
+          couponDiscountAmount: createdInvoice?.couponDiscountAmount || 0,
+          shippingAmount: createdInvoice?.shippingAmount || 0,
+          total: createdInvoice?.total,
+          notes: createdInvoice?.notes || "N/A",
+          adminUrl: `${origin}/dashboard/invoices/${createdInvoice?._id}`,
+          year: new Date().getFullYear(),
+          storeName: process.env.STORE_NAME || "Your Store",
+        },
+      }).catch((err) => {
+        console.log({ err });
+      });
 
     await session.commitTransaction();
     return {
