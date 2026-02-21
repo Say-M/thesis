@@ -66,11 +66,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/static ./apps/frontend/.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/public ./apps/frontend/public
 
-ARG PORT
+ARG NEXT_PORT
 
-EXPOSE $PORT
+EXPOSE $NEXT_PORT
 
-ENV PORT=$PORT
+ENV PORT=$NEXT_PORT
 
 # server.js is created by next build from the standalone output
 # https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
