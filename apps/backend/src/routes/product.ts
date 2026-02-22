@@ -61,7 +61,7 @@ route.get(
   }),
   async (c) => {
     const user = c.var.user;
-    const slug = c.req.param("slug");
+    const slug = decodeURIComponent(c.req.param("slug"));
     const response = await getProductBySlugService(user, slug);
     return c.json(response, response.status);
   },

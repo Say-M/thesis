@@ -95,7 +95,7 @@ export default function ProductCard({
 
   return (
     <Card className="relative overflow-hidden border hover:border-primary/60 hover:shadow-md transition-all pt-0">
-      <Link href={`/products/${slug}`} aria-label={name}>
+      <Link href={`/products/${encodeURIComponent(slug)}`} aria-label={name}>
         <div className="relative">
           <AspectRatio className="bg-muted">
             <img
