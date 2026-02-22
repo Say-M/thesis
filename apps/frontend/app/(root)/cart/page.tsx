@@ -291,6 +291,16 @@ export default function CartPage() {
   });
   const hasPrefilledUser = useRef(false);
 
+  useEffect(() => {
+    const ssc = shippingCharges.find((c) =>
+      c.name
+        .toLowerCase()
+        .includes(form.watch("shippingAddress.city").toLowerCase()),
+    );
+    if (ssc) setSelectedShippingCharge(ssc);
+    else setSelectedShippingCharge(shippingCharges[shippingCharges.length - 1]);
+  }, [form.watch("shippingAddress.city"), shippingCharges]);
+
   // Update shippingChargeName when selectedShippingCharge changes
   useEffect(() => {
     if (selectedShippingCharge) {
@@ -515,9 +525,9 @@ export default function CartPage() {
       </div>
 
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="flex flex-col lg:flex-row gap-8">
           {/* Cart Items */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="flex-1 space-y-4">
             {cartItems?.map((item) => (
               <Card key={item._id}>
                 <CardContent>
@@ -790,6 +800,10 @@ export default function CartPage() {
                       <Label htmlFor="shippingAddress.city">City *</Label>
                       <Combobox
                         items={districts?.map((district) => district.name)}
+                        value={form.watch("shippingAddress.city")}
+                        onValueChange={(value) => {
+                          value && form.setValue("shippingAddress.city", value);
+                        }}
                       >
                         <ComboboxInput placeholder="Select a city" />
                         <ComboboxContent>
@@ -865,84 +879,12 @@ export default function CartPage() {
                     </RadioGroup>
                   </div>
                 )}
-
-                <Separator />
-
-                <div className="space-y-4">
-                  <h4 className="text-sm font-medium flex items-center gap-2">
-                    <CreditCard className="size-4" />
-                    Payment information
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="transaction.paymentMethod">
-                        Payment method *
-                      </Label>
-                      <Select
-                        value={form.watch("transaction.paymentMethod") ?? ""}
-                        onValueChange={(v) =>
-                          form.setValue(
-                            "transaction.paymentMethod",
-                            v as PaymentMethod,
-                          )
-                        }
-                      >
-                        <SelectTrigger
-                          id="transaction.paymentMethod"
-                          className="w-full"
-                        >
-                          <SelectValue placeholder="Select method" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.values(PaymentMethod)
-                            .filter(
-                              (method) =>
-                                method !== PaymentMethod.CASH &&
-                                method !== PaymentMethod.SSLCOMMERZ,
-                            )
-                            .map((method) => (
-                              <SelectItem key={method} value={method}>
-                                {method}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                      <FieldError
-                        errors={
-                          form.formState.errors.transaction?.paymentMethod
-                            ? [form.formState.errors.transaction.paymentMethod]
-                            : undefined
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="transaction.reference">
-                        Reference (optional)
-                      </Label>
-                      <Input
-                        id="transaction.reference"
-                        {...form.register("transaction.reference")}
-                        placeholder="e.g. transaction ID"
-                      />
-                      <FieldError
-                        errors={
-                          form.formState.errors.transaction?.reference
-                            ? [form.formState.errors.transaction.reference]
-                            : undefined
-                        }
-                      />
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Amount to pay: {formatCurrency(total)} (see Order Summary)
-                  </p>
-                </div>
               </CardContent>
             </Card>
           </div>
 
           {/* Order Summary */}
-          <div className="lg:col-span-1">
+          <div className="lg:max-w-sm w-full">
             <Card className="sticky top-6">
               <CardHeader>
                 <CardTitle>Order Summary</CardTitle>
@@ -1053,6 +995,81 @@ export default function CartPage() {
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-2">
+                {form.watch("paymentType") === PaymentType.ONLINE && (
+                  <>
+                    <div className="space-y-4 w-full">
+                      <div className="space-y-2">
+                        <Label htmlFor="transaction.paymentMethod">
+                          Payment method *
+                        </Label>
+                        <Select
+                          value={form.watch("transaction.paymentMethod") ?? ""}
+                          onValueChange={(v) =>
+                            form.setValue(
+                              "transaction.paymentMethod",
+                              v as PaymentMethod,
+                            )
+                          }
+                        >
+                          <SelectTrigger
+                            id="transaction.paymentMethod"
+                            className="w-full"
+                          >
+                            <SelectValue placeholder="Select method" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.values(PaymentMethod)
+                              .filter(
+                                (method) =>
+                                  method !== PaymentMethod.CASH &&
+                                  method !== PaymentMethod.SSLCOMMERZ,
+                              )
+                              .map((method) => (
+                                <SelectItem key={method} value={method}>
+                                  {method}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                        <FieldError
+                          errors={
+                            form.formState.errors.transaction?.paymentMethod
+                              ? [
+                                  form.formState.errors.transaction
+                                    .paymentMethod,
+                                ]
+                              : undefined
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="transaction.reference">Reference</Label>
+                        <Input
+                          id="transaction.reference"
+                          {...form.register("transaction.reference")}
+                          placeholder="e.g. transaction ID"
+                        />
+                        <FieldError
+                          errors={
+                            form.formState.errors.transaction?.reference
+                              ? [form.formState.errors.transaction.reference]
+                              : undefined
+                          }
+                        />
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground w-full">
+                      <span>Need help with payment?</span>
+                      <Link
+                        href="/payment-instructions"
+                        className="text-primary underline ml-1"
+                      >
+                        Read payment instructions
+                      </Link>
+                    </p>
+                  </>
+                )}
+
                 <Button
                   type="button"
                   className="w-full"
