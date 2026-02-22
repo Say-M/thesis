@@ -198,6 +198,8 @@ export default function AddEditProduct({ id }: { id: string }) {
     defaultValues,
   });
 
+  console.log(form.formState.errors);
+
   const { mutate: createProduct, isPending: isCreating } = useCreateProduct();
   const { mutate: updateProduct, isPending: isUpdating } = useUpdateProduct();
   const isPending = isCreating || isUpdating;
@@ -222,7 +224,6 @@ export default function AddEditProduct({ id }: { id: string }) {
 
   const hasVariants = form.watch("hasVariants");
   useEffect(() => {
-    console.log({ hasVariants, variants: form.watch("variants") });
     if (hasVariants && !form.watch("variants")?.length) {
       appendVariant(defaultVariant);
       form.setValue("buyingPrice", undefined);
