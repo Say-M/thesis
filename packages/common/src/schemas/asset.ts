@@ -33,16 +33,24 @@ export const updateAssetSchema = createAssetSchema
 export type UpdateAssetSchemaType = z.infer<typeof updateAssetSchema>;
 
 export const createBulkAssetSchema = z.object({
-  files: z
-    .array(z.file())
-    .refine(
-      (files) =>
-        files
-          ? files.every((file) => acceptedImageMimeTypes.includes(file.type))
-          : true,
-      { message: "Invalid image files" },
-    )
-    .min(1, { message: "At least one file is required" }),
+  files: z.union([
+    z
+      .array(z.file())
+      .refine(
+        (files) =>
+          files
+            ? files.every((file) => acceptedImageMimeTypes.includes(file.type))
+            : true,
+        { message: "Invalid image files" },
+      )
+      .min(1, { message: "At least one file is required" }),
+    z
+      .file()
+      .refine(
+        (file) => (file ? acceptedImageMimeTypes.includes(file.type) : true),
+        { message: "Invalid image file" },
+      ),
+  ]),
 });
 
 export type CreateBulkAssetSchemaType = z.infer<typeof createBulkAssetSchema>;

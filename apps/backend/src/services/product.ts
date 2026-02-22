@@ -28,6 +28,11 @@ export const createProductService = async (
     delete createPayload.discountType;
     delete createPayload.discountValue;
     delete createPayload.sku;
+    delete createPayload.minQuantity;
+    delete createPayload.maxQuantity;
+    delete createPayload.weight;
+    delete createPayload.weightUnit;
+    delete createPayload.unit;
   } else {
     delete createPayload.variants;
   }
@@ -119,12 +124,14 @@ export const listProductsService = async (
     ...rest
   } = query;
   const filter: QueryFilter<Product> = { ...rest };
-  if (cursor) filter._id = { $gt: cursor };
+  if (cursor) filter._id = { $lt: cursor };
   if (status && status?.length) filter.status = { $in: status };
   if (featured != null) filter.featured = featured;
-  if (hasVariants && hasVariants?.length) filter.hasVariants = { $in: hasVariants };
+  if (hasVariants && hasVariants?.length)
+    filter.hasVariants = { $in: hasVariants };
   if (categories && categories?.length) filter.category = { $in: categories };
-  if (subcategories && subcategories?.length) filter.subcategory = { $in: subcategories };
+  if (subcategories && subcategories?.length)
+    filter.subcategory = { $in: subcategories };
   if (productIds && productIds?.length) filter._id = { $in: productIds };
   if (search)
     filter.$or = [
@@ -155,7 +162,7 @@ export const listProductsService = async (
     .lean();
 
   const hasMore = items.length > limit;
-  const products = hasMore ? items.slice(0, limit) : items;
+  const products = hasMore ? items.slice(0, -1) : items;
   const nextCursor =
     !productIds?.length && hasMore && products.length > 0
       ? products?.[products.length - 1]?._id.toString()
@@ -226,6 +233,11 @@ export const updateProductService = async (
     payload.discountType = null;
     payload.discountValue = null;
     payload.sku = null;
+    payload.minQuantity = null;
+    payload.maxQuantity = null;
+    payload.weight = null;
+    payload.weightUnit = null;
+    payload.unit = null;
   }
   if (payload?.hasVariants === false) {
     payload.variants = [];

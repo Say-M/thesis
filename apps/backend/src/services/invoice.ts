@@ -698,7 +698,7 @@ export const listInvoicesService = async (
 ): Promise<ResponseType> => {
   const { limit = 24, cursor, status, search, type, userId, ...rest } = query;
   const filter: QueryFilter<Invoice> = { ...rest };
-  if (cursor) filter._id = { $gt: cursor };
+  if (cursor) filter._id = { $lt: cursor };
   if (status?.length) filter.status = { $in: status };
   if (type?.length) filter.type = { $in: type };
   if (userId) filter["customer.user"] = userId;
@@ -722,7 +722,7 @@ export const listInvoicesService = async (
   }).lean();
 
   const hasMore = items.length > limit;
-  const invoices = hasMore ? items.slice(0, limit) : items;
+  const invoices = hasMore ? items.slice(0, -1) : items;
   const nextCursor =
     hasMore && invoices.length > 0
       ? invoices?.[invoices.length - 1]?._id.toString()

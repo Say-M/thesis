@@ -69,7 +69,7 @@ export const createBulkAssetsService = async (
     let assets: (Omit<Asset, "_id" | "createdAt" | "updatedAt"> & {
       providedId: string;
     })[] = [];
-    for (const file of files) {
+    for (const file of Array.isArray(files) ? files : [files]) {
       const uploadedFile = await imagekit.files.upload({
         file: file,
         fileName: file.name,
@@ -125,7 +125,7 @@ export const listAssetsService = async (
 ): Promise<ResponseType> => {
   const { limit = 24, cursor, search, ...rest } = query;
   const filter: QueryFilter<Asset> = { ...rest };
-  if (cursor) filter._id = { $gt: cursor };
+  if (cursor) filter._id = { $lt: cursor };
   if (search) {
     filter.$or = [{ name: { $regex: search, $options: "i" } }];
   }
@@ -135,8 +135,10 @@ export const listAssetsService = async (
     .limit(limit + 1)
     .lean();
 
+  console.log({ items: (await Asset.find(filter))?.length, limit });
+
   const hasMore = items.length > limit;
-  const assets = hasMore ? items.slice(0, limit) : items;
+  const assets = hasMore ? items.slice(0, -1) : items;
   const nextCursor =
     hasMore && assets.length > 0
       ? assets?.[assets.length - 1]?._id.toString()

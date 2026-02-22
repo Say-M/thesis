@@ -16,7 +16,7 @@ export const listUsersService = async (
 ): Promise<ResponseType> => {
   const { limit = 10, cursor, status, search, role, ...rest } = query;
   const filter: QueryFilter<UserType> = { ...rest };
-  if (cursor) filter._id = { $gt: cursor };
+  if (cursor) filter._id = { $lt: cursor };
   if (status?.length) filter.status = { $in: status };
   if (role?.length) filter.role = { $in: role };
   if (search) {
@@ -34,7 +34,7 @@ export const listUsersService = async (
     .lean();
 
   const hasMore = items.length > limit;
-  const users = hasMore ? items.slice(0, limit) : items;
+  const users = hasMore ? items.slice(0, -1) : items;
   const nextCursor =
     hasMore && users.length > 0
       ? (users[users.length - 1] as { _id: unknown })?._id?.toString()

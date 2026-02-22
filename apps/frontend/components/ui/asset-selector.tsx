@@ -28,7 +28,6 @@ import { useInView } from "react-intersection-observer";
 const SEARCH_DEBOUNCE_MS = 300;
 const PAGE_SIZE = 24;
 
-
 export interface AssetSelectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -87,15 +86,17 @@ export function AssetSelectDialog({
     }
   }, [open, value, multiple]);
 
-  const { data, status, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  const { data, status, fetchNextPage, isFetchingNextPage } =
     useListAssetsInfinite({
       search: searchQuery || undefined,
       limit: PAGE_SIZE,
     });
   const assets = useMemo(
-    () => data?.pages?.map((p) => p.assets).flat() ?? [],
-    [data?.pages],
+    () => data?.pages?.map((p) => p?.assets).flat() ?? [],
+    [data],
   );
+
+  console.log({ assets });
 
   const { ref, inView } = useInView({ threshold: 0.8 });
   useEffect(() => {
@@ -211,11 +212,7 @@ export function AssetSelectDialog({
           />
         </div>
         <div className="flex-1 min-h-0 overflow-auto rounded-md border bg-muted/20">
-          {isLoading ? (
-            <div className="flex items-center justify-center min-h-[200px]">
-              <Spinner />
-            </div>
-          ) : assets.length === 0 ? (
+          {!assets.length ? (
             <div className="flex flex-col items-center justify-center min-h-[200px] text-muted-foreground text-sm p-4 text-center">
               <ImageIcon className="size-10 mb-2 opacity-50" />
               <p>No assets found. Search or upload images above.</p>

@@ -137,6 +137,10 @@ export default function AssetsPage() {
       limit: DEFAULT_LIMIT,
     });
 
+  console.log({ data, status, isFetchingNextPage, fetchNextPage, inView });
+
+  const isLoading = status === "pending" || isFetchingNextPage;
+
   useEffect(() => {
     if (inView) {
       fetchNextPage();
@@ -315,6 +319,11 @@ export default function AssetsPage() {
             ))}
           </div>
           <div ref={ref} />
+          {isLoading && (
+            <div className="flex items-center justify-center min-h-[200px]">
+              <Spinner />
+            </div>
+          )}
         </>
       )}
     </div>

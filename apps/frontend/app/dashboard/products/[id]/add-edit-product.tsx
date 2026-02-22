@@ -53,6 +53,7 @@ import { Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import { DiscountType } from "@repo/common/enums/discount";
 import Image from "next/image";
 import PlateEditor from "@/components/plugins/editor";
+import { useConfigContext } from "@/contexts/config";
 
 type ProductFormValues = Omit<
   CreateProductSchemaType,
@@ -99,16 +100,16 @@ const defaultValues: ProductFormValues = {
   images: [],
   videoLink: undefined,
   hasVariants: false,
-  buyingPrice: 0,
-  sellingPrice: 0,
+  buyingPrice: undefined,
+  sellingPrice: undefined,
   discountType: DiscountType.PERCENTAGE,
-  discountValue: 0,
-  weight: 0,
+  discountValue: undefined,
+  weight: undefined,
   weightUnit: "",
   unit: "",
-  minQuantity: 0,
-  maxQuantity: 0,
-  stock: 0,
+  minQuantity: undefined,
+  maxQuantity: undefined,
+  stock: undefined,
   sku: "",
   variants: [],
   featured: false,
@@ -132,12 +133,12 @@ function productToFormValues(p: ProductDetail): Partial<ProductFormValues> {
         buyingPrice: v.buyingPrice,
         sellingPrice: v.sellingPrice,
         discountType: v.discountType ?? DiscountType.PERCENTAGE,
-        discountValue: v.discountValue ?? 0,
+        discountValue: v.discountValue ?? undefined,
         weight: v.weight ?? 0,
         weightUnit: v.weightUnit ?? "",
         unit: v.unit ?? "",
-        minQuantity: v.minQuantity ?? 0,
-        maxQuantity: v.maxQuantity ?? 0,
+        minQuantity: v.minQuantity ?? undefined,
+        maxQuantity: v.maxQuantity ?? undefined,
         stock: v.stock,
       }))
     : [];
@@ -157,12 +158,12 @@ function productToFormValues(p: ProductDetail): Partial<ProductFormValues> {
     buyingPrice: p.buyingPrice ?? undefined,
     sellingPrice: p.sellingPrice ?? undefined,
     discountType: p.discountType ?? DiscountType.PERCENTAGE,
-    discountValue: p.discountValue ?? 0,
-    weight: p.weight ?? 0,
+    discountValue: p.discountValue ?? undefined,
+    weight: p.weight ?? undefined,
     weightUnit: p.weightUnit ?? "",
     unit: p.unit ?? "",
-    minQuantity: p.minQuantity ?? 0,
-    maxQuantity: p.maxQuantity ?? 0,
+    minQuantity: p.minQuantity ?? undefined,
+    maxQuantity: p.maxQuantity ?? undefined,
     stock: p.stock ?? undefined,
     sku: p.sku ?? "",
     variants,
@@ -180,6 +181,8 @@ function productToFormValues(p: ProductDetail): Partial<ProductFormValues> {
 export default function AddEditProduct({ id }: { id: string }) {
   const isCreate = id === "create";
   const router = useRouter();
+  const { config } = useConfigContext();
+  const currency = config?.currency ?? "BDT";
 
   const {
     data: productData,
@@ -219,8 +222,23 @@ export default function AddEditProduct({ id }: { id: string }) {
 
   const hasVariants = form.watch("hasVariants");
   useEffect(() => {
-    if (hasVariants && form.getValues("variants")?.length === 0) {
+    console.log({ hasVariants, variants: form.watch("variants") });
+    if (hasVariants && !form.watch("variants")?.length) {
       appendVariant(defaultVariant);
+      form.setValue("buyingPrice", undefined);
+      form.setValue("sellingPrice", undefined);
+      form.setValue("discountValue", undefined);
+      form.setValue("weight", undefined);
+      form.setValue("weightUnit", undefined);
+      form.setValue("unit", undefined);
+      form.setValue("minQuantity", undefined);
+      form.setValue("maxQuantity", undefined);
+      form.setValue("stock", undefined);
+      form.setValue("sku", undefined);
+    }
+
+    if (!hasVariants && form.watch("variants")?.length) {
+      form.setValue("variants", undefined);
     }
   }, [hasVariants, appendVariant, form]);
 
@@ -651,7 +669,7 @@ export default function AddEditProduct({ id }: { id: string }) {
                             type="number"
                             min={0}
                             step="0.01"
-                            value={field.value ?? ""}
+                            value={field.value || ""}
                             onChange={(e) =>
                               field.onChange(
                                 e.target.value
@@ -661,7 +679,7 @@ export default function AddEditProduct({ id }: { id: string }) {
                             }
                           />
                           <InputGroupAddon align="inline-start">
-                            <InputGroupText>$</InputGroupText>
+                            <InputGroupText>{currency}</InputGroupText>
                           </InputGroupAddon>
                         </InputGroup>
                         {fieldState.invalid && (
@@ -685,7 +703,7 @@ export default function AddEditProduct({ id }: { id: string }) {
                             type="number"
                             min={0}
                             step="0.01"
-                            value={field.value ?? ""}
+                            value={field.value || ""}
                             onChange={(e) =>
                               field.onChange(
                                 e.target.value
@@ -695,7 +713,7 @@ export default function AddEditProduct({ id }: { id: string }) {
                             }
                           />
                           <InputGroupAddon align="inline-start">
-                            <InputGroupText>$</InputGroupText>
+                            <InputGroupText>{currency}</InputGroupText>
                           </InputGroupAddon>
                         </InputGroup>
                         {fieldState.invalid && (
@@ -715,7 +733,7 @@ export default function AddEditProduct({ id }: { id: string }) {
                           id="stock"
                           type="number"
                           min={0}
-                          value={field.value ?? ""}
+                          value={field.value || ""}
                           onChange={(e) =>
                             field.onChange(
                               e.target.value
@@ -743,7 +761,7 @@ export default function AddEditProduct({ id }: { id: string }) {
                             type="number"
                             min={0}
                             step="0.01"
-                            value={field.value ?? ""}
+                            value={field.value || ""}
                             onChange={(e) =>
                               field.onChange(
                                 e.target.value
@@ -815,7 +833,7 @@ export default function AddEditProduct({ id }: { id: string }) {
                             {...field}
                             id="minQuantity"
                             type="number"
-                            value={field.value ?? ""}
+                            value={field.value || ""}
                             onChange={(e) =>
                               field.onChange(
                                 e.target.value
@@ -844,7 +862,7 @@ export default function AddEditProduct({ id }: { id: string }) {
                             {...field}
                             id="maxQuantity"
                             type="number"
-                            value={field.value ?? ""}
+                            value={field.value || ""}
                             onChange={(e) =>
                               field.onChange(
                                 e.target.value
@@ -888,7 +906,7 @@ export default function AddEditProduct({ id }: { id: string }) {
                           <InputGroupInput
                             {...field}
                             type="number"
-                            value={field.value ?? 0}
+                            value={field.value || 0}
                             onChange={(e) =>
                               field.onChange(Number(e.target.value) || 0)
                             }
@@ -947,7 +965,7 @@ export default function AddEditProduct({ id }: { id: string }) {
                   <FieldDescription>
                     Add at least one variant with SKU, prices and stock.
                   </FieldDescription>
-                  {!!variantFields?.length && (
+                  {!!form.watch("variants")?.length && (
                     <div className="space-y-4 mt-2">
                       {variantFields.map((variantField, index) => (
                         <div
@@ -1018,7 +1036,7 @@ export default function AddEditProduct({ id }: { id: string }) {
                                       type="number"
                                       min={0}
                                       step="0.01"
-                                      value={f.value ?? ""}
+                                      value={f.value || ""}
                                       onChange={(e) =>
                                         f.onChange(
                                           e.target.value
@@ -1028,7 +1046,9 @@ export default function AddEditProduct({ id }: { id: string }) {
                                       }
                                     />
                                     <InputGroupAddon align="inline-start">
-                                      <InputGroupText>$</InputGroupText>
+                                      <InputGroupText>
+                                        {currency}
+                                      </InputGroupText>
                                     </InputGroupAddon>
                                   </InputGroup>
                                   {fs.invalid && (
@@ -1048,7 +1068,7 @@ export default function AddEditProduct({ id }: { id: string }) {
                                       type="number"
                                       min={0}
                                       step="0.01"
-                                      value={f.value ?? ""}
+                                      value={f.value || ""}
                                       onChange={(e) =>
                                         f.onChange(
                                           e.target.value
@@ -1058,7 +1078,9 @@ export default function AddEditProduct({ id }: { id: string }) {
                                       }
                                     />
                                     <InputGroupAddon align="inline-start">
-                                      <InputGroupText>$</InputGroupText>
+                                      <InputGroupText>
+                                        {currency}
+                                      </InputGroupText>
                                     </InputGroupAddon>
                                   </InputGroup>
                                   {fs.invalid && (
@@ -1076,7 +1098,7 @@ export default function AddEditProduct({ id }: { id: string }) {
                                   <Input
                                     type="number"
                                     min={0}
-                                    value={f.value ?? ""}
+                                    value={f.value || ""}
                                     onChange={(e) =>
                                       f.onChange(
                                         e.target.value
@@ -1102,7 +1124,7 @@ export default function AddEditProduct({ id }: { id: string }) {
                                       type="number"
                                       min={0}
                                       step="0.01"
-                                      value={f.value ?? ""}
+                                      value={f.value || ""}
                                       onChange={(e) =>
                                         f.onChange(
                                           e.target.value
@@ -1174,7 +1196,7 @@ export default function AddEditProduct({ id }: { id: string }) {
                                   <InputGroup>
                                     <InputGroupInput
                                       type="number"
-                                      value={f.value ?? ""}
+                                      value={f.value || ""}
                                       onChange={(e) =>
                                         f.onChange(
                                           e.target.value
@@ -1199,7 +1221,7 @@ export default function AddEditProduct({ id }: { id: string }) {
                                   <InputGroup>
                                     <InputGroupInput
                                       type="number"
-                                      value={f.value ?? ""}
+                                      value={f.value || ""}
                                       onChange={(e) =>
                                         f.onChange(
                                           e.target.value
@@ -1225,7 +1247,7 @@ export default function AddEditProduct({ id }: { id: string }) {
                                     <InputGroupInput
                                       type="number"
                                       min={0}
-                                      value={field.value ?? 0}
+                                      value={field.value || 0}
                                       onChange={(e) =>
                                         field.onChange(
                                           Number(e.target.value) || 0,

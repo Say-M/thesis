@@ -107,7 +107,11 @@ export const useCreateBulkAssets = () => {
   return useMutation({
     mutationFn: async (payload: CreateBulkAssetSchemaType) => {
       const formData = new FormData();
-      payload.files.forEach((file) => formData.append("files", file));
+      if (Array.isArray(payload.files)) {
+        payload.files.forEach((file) => formData.append("files", file));
+      } else {
+        formData.append("files", payload.files);
+      }
       const { data } = await api.post("/assets/bulk", formData);
       return data;
     },

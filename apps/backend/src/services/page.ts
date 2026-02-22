@@ -67,7 +67,7 @@ export const listPagesService = async (
     all,
   } = query;
   const filter: QueryFilter<Page> = {};
-  if (cursor) filter._id = { $gt: cursor };
+  if (cursor) filter._id = { $lt: cursor };
   if (status?.length) filter.status = { $in: status };
   if (showInHeader === true) filter.showInHeader = true;
   if (showInFooter === true) filter.showInFooter = true;
@@ -86,7 +86,7 @@ export const listPagesService = async (
   const items = await Page.find(filter, {}, options).lean();
 
   const hasMore = items.length > limit;
-  const pages = hasMore ? items.slice(0, limit) : items;
+  const pages = hasMore ? items.slice(0, -1) : items;
   const nextCursor =
     hasMore && pages.length > 0
       ? pages?.[pages.length - 1]?._id.toString()

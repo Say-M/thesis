@@ -156,7 +156,7 @@ export const listCouponsService = async (
 ): Promise<ResponseType> => {
   const { limit = 24, cursor, status, search, ...rest } = query;
   const filter: QueryFilter<Coupon> = { ...rest };
-  if (cursor) filter._id = { $gt: cursor };
+  if (cursor) filter._id = { $lt: cursor };
   if (status?.length) filter.status = { $in: status };
   if (search)
     filter.$or = [
@@ -170,7 +170,7 @@ export const listCouponsService = async (
     .lean();
 
   const hasMore = items.length > limit;
-  const coupons = hasMore ? items.slice(0, limit) : items;
+  const coupons = hasMore ? items.slice(0, -1) : items;
   const nextCursor =
     hasMore && coupons.length > 0
       ? coupons?.[coupons.length - 1]?._id.toString()

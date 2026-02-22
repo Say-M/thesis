@@ -41,7 +41,7 @@ export const listBannersService = async (
 ): Promise<ResponseType> => {
   const { limit = 24, cursor, search, all, status, ...rest } = query;
   const filter: QueryFilter<Banner> = { ...rest };
-  if (cursor) filter._id = { $gt: cursor };
+  if (cursor) filter._id = { $lt: cursor };
   if (status?.length) filter.status = { $in: status };
   if (search)
     filter.$or = [
@@ -64,7 +64,7 @@ export const listBannersService = async (
   const items = await Banner.find(filter, {}, options).populate("image").lean();
 
   const hasMore = !all && items.length > limit;
-  const banners = hasMore ? items.slice(0, limit) : items;
+  const banners = hasMore ? items.slice(0, -1) : items;
   const nextCursor =
     !all && hasMore && banners.length > 0
       ? banners?.[banners.length - 1]?._id.toString()

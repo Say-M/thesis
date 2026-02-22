@@ -20,6 +20,8 @@ export const createCategoryService = async (
     featured: payload.featured ?? false,
   };
 
+  if (!filteredPayload.parentCategory) delete filteredPayload.parentCategory;
+
   const category = (
     await (
       await Category.create(filteredPayload)
@@ -78,7 +80,7 @@ export const listCategoriesService = async (
     ...rest
   } = query;
   const filter: QueryFilter<Category> = { ...rest };
-  if (cursor) filter._id = { $gt: cursor };
+  if (cursor) filter._id = { $lt: cursor };
   if (status?.length) filter.status = { $in: status };
   if (featured != null) filter.featured = featured;
   if (type?.length === 1) {
@@ -89,7 +91,7 @@ export const listCategoriesService = async (
     filter.parentCategory = { $in: parentCategories };
   if (search) filter.$or = [{ name: { $regex: search, $options: "i" } }];
 
-  const options: QueryOptions<Category> = { sort: { _id: 1 } };
+  const options: QueryOptions<Category> = { sort: { _id: -1 } };
   if (!all) options.limit = limit + 1;
 
   const items = await Category.find(filter, {}, options)
@@ -106,7 +108,7 @@ export const listCategoriesService = async (
     .lean();
 
   const hasMore = !all && items.length > limit;
-  const categories = hasMore ? items.slice(0, limit) : items;
+  const categories = hasMore ? items.slice(0, -1) : items;
   const nextCursor =
     !all && hasMore && categories.length > 0
       ? categories?.[categories.length - 1]?._id.toString()
