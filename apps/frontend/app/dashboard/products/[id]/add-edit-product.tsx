@@ -132,7 +132,7 @@ function productToFormValues(p: ProductDetail): Partial<ProductFormValues> {
         images: undefined,
         buyingPrice: v.buyingPrice,
         sellingPrice: v.sellingPrice,
-        discountType: v.discountType ?? DiscountType.PERCENTAGE,
+        discountType: v.discountType,
         discountValue: v.discountValue ?? undefined,
         weight: v.weight ?? 0,
         weightUnit: v.weightUnit ?? "",
@@ -157,7 +157,7 @@ function productToFormValues(p: ProductDetail): Partial<ProductFormValues> {
     hasVariants: p.hasVariants ?? false,
     buyingPrice: p.buyingPrice ?? undefined,
     sellingPrice: p.sellingPrice ?? undefined,
-    discountType: p.discountType ?? DiscountType.PERCENTAGE,
+    discountType: p.discountType,
     discountValue: p.discountValue ?? undefined,
     weight: p.weight ?? undefined,
     weightUnit: p.weightUnit ?? "",
@@ -197,8 +197,6 @@ export default function AddEditProduct({ id }: { id: string }) {
     ) as Resolver<ProductFormValues>,
     defaultValues,
   });
-
-  console.log(form.formState.errors);
 
   const { mutate: createProduct, isPending: isCreating } = useCreateProduct();
   const { mutate: updateProduct, isPending: isUpdating } = useUpdateProduct();
@@ -919,7 +917,9 @@ export default function AddEditProduct({ id }: { id: string }) {
                               render={({ field }) => (
                                 <Select
                                   value={field.value ?? undefined}
-                                  onValueChange={field.onChange}
+                                  onValueChange={(v) =>
+                                    v && field.onChange(v as DiscountType)
+                                  }
                                 >
                                   <SelectTrigger
                                     className="border-none ring-0! px-0"
@@ -1261,7 +1261,7 @@ export default function AddEditProduct({ id }: { id: string }) {
                                         control={form.control}
                                         render={({ field }) => (
                                           <Select
-                                            value={field.value ?? undefined}
+                                            value={field.value || undefined}
                                             onValueChange={field.onChange}
                                           >
                                             <SelectTrigger

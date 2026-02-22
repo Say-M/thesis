@@ -96,8 +96,6 @@ export function AssetSelectDialog({
     [data],
   );
 
-  console.log({ assets });
-
   const { ref, inView } = useInView({ threshold: 0.8 });
   useEffect(() => {
     if (inView) {
