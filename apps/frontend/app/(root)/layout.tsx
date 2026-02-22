@@ -1,7 +1,7 @@
 import Header from "./common/header";
 import Footer from "./common/footer";
 import AppBar from "./common/app-bar";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function RootLayout({
   children,
@@ -11,7 +11,7 @@ export default function RootLayout({
   return (
     <section className="flex flex-col h-svh overflow-hidden">
       <Header />
-      <ScrollArea className="flex-1 overflow-hidden">
+      <ScrollArea className="flex-1 overflow-hidden [&>div>div]:block!">
         <main className="print:p-0">{children}</main>
         <Footer />
       </ScrollArea>

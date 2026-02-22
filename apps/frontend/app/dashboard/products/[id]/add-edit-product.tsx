@@ -397,8 +397,9 @@ export default function AddEditProduct({ id }: { id: string }) {
                     </FieldLabel>
                     <div>
                       <PlateEditor
-                        onChange={field.onChange}
+                        // onChange={field.onChange}
                         value={product?.description}
+                        readOnly
                       />
                     </div>
                     {fieldState.invalid && (

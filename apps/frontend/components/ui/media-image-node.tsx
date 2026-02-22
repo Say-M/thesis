@@ -26,7 +26,12 @@ import {
   ResizeHandle,
 } from "./resize-handle";
 import { ToggleGroup, ToggleGroupItem } from "./toggle-group";
-import { AlignLeftIcon, AlignCenterIcon, AlignRightIcon, Trash2Icon } from "lucide-react";
+import {
+  AlignLeftIcon,
+  AlignCenterIcon,
+  AlignRightIcon,
+  Trash2Icon,
+} from "lucide-react";
 import { TextAlignPlugin } from "@platejs/basic-styles/react";
 import { Alignment } from "@platejs/basic-styles";
 import { Button } from "./button";
@@ -78,7 +83,11 @@ export const ImageElement = withHOC(
                       <AlignRightIcon />
                     </ToggleGroupItem>
                   </ToggleGroup>
-                  <Button size="icon-xs" className="rounded-sm" {...buttonProps}>
+                  <Button
+                    size="icon-xs"
+                    className="rounded-sm"
+                    {...buttonProps}
+                  >
                     <Trash2Icon />
                   </Button>
                 </div>
@@ -90,8 +99,9 @@ export const ImageElement = withHOC(
               <Image
                 ref={handleRef}
                 className={cn(
-                  "block w-full max-w-full cursor-pointer object-cover px-0",
+                  "block w-full max-w-full object-cover px-0",
                   "rounded-sm",
+                  !readOnly && "cursor-pointer",
                   focused && selected && "ring-2 ring-ring ring-offset-2",
                   isDragging && "opacity-50",
                 )}
