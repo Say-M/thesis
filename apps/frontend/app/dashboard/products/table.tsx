@@ -74,7 +74,6 @@ export default function ProductsTable({
             <TableHead className="min-w-[140px]">Subcategory</TableHead>
             <TableHead className="w-[120px]">Price</TableHead>
             <TableHead className="w-[100px]">Stock</TableHead>
-            <TableHead className="w-[120px]">Weight</TableHead>
             <TableHead className="w-[100px]">Unit</TableHead>
             <TableHead className="w-[100px]">Status</TableHead>
             <TableHead className="w-[100px]">Featured</TableHead>
@@ -139,33 +138,6 @@ export default function ProductsTable({
                 {typeof (product as any)?.totalStock === "number"
                   ? (product as any).totalStock
                   : (product?.stock ?? 0)}
-              </TableCell>
-              <TableCell className="text-muted-foreground">
-                {product?.hasVariants && Array.isArray(product?.variants)
-                  ? (() => {
-                      const weights = (product?.variants ?? [])
-                        .map((v) => v?.weight)
-                        .filter(
-                          (v): v is number => typeof v === "number" && v > 0,
-                        );
-                      if (!weights.length) {
-                        const productWeight = product?.weight;
-                        return productWeight && productWeight > 0
-                          ? `${productWeight} ${product?.weightUnit || "kg"}`
-                          : "—";
-                      }
-                      const min = Math.min(...weights);
-                      const max = Math.max(...weights);
-                      const unit =
-                        product?.variants?.[0]?.weightUnit ||
-                        product?.weightUnit ||
-                        "kg";
-                      if (min === max) return `${min} ${unit}`;
-                      return `${min}-${max} ${unit}`;
-                    })()
-                  : product?.weight != null && product.weight > 0
-                    ? `${product.weight} ${product?.weightUnit || "kg"}`
-                    : "—"}
               </TableCell>
               <TableCell className="text-muted-foreground">
                 {product?.hasVariants && Array.isArray(product?.variants)

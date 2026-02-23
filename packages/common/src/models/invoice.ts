@@ -15,8 +15,6 @@ const lineItemSchema = new Schema(
     variantId: { type: Types.ObjectId },
     name: { type: String, required: true, trim: true },
     variantLabel: { type: String, trim: true },
-    weight: { type: Number, min: 0, default: 0 },
-    weightUnit: { type: String, trim: true },
     unit: { type: String, trim: true },
     quantity: { type: Number, required: true, min: 1 },
     buyingPrice: { type: Number, required: true, min: 0 },

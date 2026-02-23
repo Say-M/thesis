@@ -30,8 +30,6 @@ export const createProductService = async (
     delete createPayload.sku;
     delete createPayload.minQuantity;
     delete createPayload.maxQuantity;
-    delete createPayload.weight;
-    delete createPayload.weightUnit;
     delete createPayload.unit;
   } else {
     delete createPayload.variants;
@@ -235,8 +233,6 @@ export const updateProductService = async (
     payload.sku = null;
     payload.minQuantity = null;
     payload.maxQuantity = null;
-    payload.weight = null;
-    payload.weightUnit = null;
     payload.unit = null;
   }
   if (payload?.hasVariants === false) {

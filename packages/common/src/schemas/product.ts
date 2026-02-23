@@ -18,11 +18,6 @@ const variantSchema = z.object({
     .min(0, { message: "Selling price can not be negative" }),
   discountType: z.enum(DiscountType).nullish(),
   discountValue: z.number().min(0).nullish(),
-  weight: z.coerce
-    .number({ error: "Weight is required" })
-    .min(0, { message: "Weight can not be negative" })
-    .nullish(),
-  weightUnit: z.string().trim().nullish(),
   unit: z.string().trim().nullish(),
   minQuantity: z.coerce
     .number({ error: "Min quantity is required" })
@@ -74,11 +69,6 @@ const productSchema = z.object({
     .number({ error: "Discount value is required" })
     .min(0, { message: "Discount can not be negative" })
     .nullish(),
-  weight: z.coerce
-    .number({ error: "Weight is required" })
-    .min(0, { message: "Weight can not be negative" })
-    .nullish(),
-  weightUnit: z.string().trim().nullish(),
   unit: z.string().trim().nullish(),
   minQuantity: z.coerce
     .number({ error: "Min quantity is required" })

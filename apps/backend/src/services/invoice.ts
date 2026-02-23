@@ -87,8 +87,6 @@ export const createInvoiceService = async (
         // Handle variant products
         let discountType = product.discountType || DiscountType.PERCENTAGE;
         let discountValue = product.discountValue ?? 0;
-        let weight = product.weight ?? 0;
-        let weightUnit = product.weightUnit ?? "";
         let unit = product.unit ?? "";
         let buyingPrice = product.buyingPrice ?? 0;
 
@@ -167,8 +165,6 @@ export const createInvoiceService = async (
           variantId = variant._id;
           discountType = variant.discountType || DiscountType.PERCENTAGE;
           discountValue = variant.discountValue ?? 0;
-          weight = variant.weight ?? 0;
-          weightUnit = variant.weightUnit ?? "";
           unit = variant.unit ?? "";
           buyingPrice = variant.buyingPrice ?? 0;
 
@@ -258,8 +254,6 @@ export const createInvoiceService = async (
           name: product.name,
           variantName,
           quantity: item.quantity,
-          weight,
-          weightUnit,
           unit,
           buyingPrice,
           unitPrice,

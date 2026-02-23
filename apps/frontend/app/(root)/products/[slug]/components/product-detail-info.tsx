@@ -89,15 +89,6 @@ export function ProductDetailInfo({
     return stockCap;
   })();
 
-  // Derive weight, weightUnit, and unit from variant or product
-  const displayWeight =
-    selectedVariant?.weight != null && selectedVariant.weight > 0
-      ? selectedVariant.weight
-      : product.weight != null && product.weight > 0
-        ? product.weight
-        : null;
-  const displayWeightUnit =
-    selectedVariant?.weightUnit || product.weightUnit || null;
   const displayUnit = selectedVariant?.unit || product.unit || null;
 
   const handleAddToCart = () => {
@@ -186,25 +177,6 @@ export function ProductDetailInfo({
           )}
         </div>
       </div>
-
-      {(displayWeight != null || displayUnit) && (
-        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-          {displayWeight != null && (
-            <div className="flex items-center gap-1">
-              <span className="font-medium">Weight:</span>
-              <span>
-                {displayWeight} {displayWeightUnit || ""}
-              </span>
-            </div>
-          )}
-          {displayUnit && (
-            <div className="flex items-center gap-1">
-              <span className="font-medium">Unit:</span>
-              <span>{displayUnit}</span>
-            </div>
-          )}
-        </div>
-      )}
 
       {variants.length > 0 && (
         <div className="space-y-2">
