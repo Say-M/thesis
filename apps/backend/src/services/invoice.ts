@@ -865,6 +865,19 @@ export const listInvoicesService = async (
   };
 };
 
+export const invoiceStatusCountService = async (): Promise<ResponseType> => {
+  const statusCount = await Invoice.aggregate([
+    { $group: { _id: "$status", count: { $sum: 1 } } },
+  ]);
+
+  return {
+    status: 200,
+    message: "OK",
+    timestamp: new Date().toISOString(),
+    data: { statusCount },
+  };
+};
+
 const ALLOWED_UPDATE_FIELDS: (keyof UpdateInvoiceSchemaType)[] = [
   "invoiceNumber",
   "status",

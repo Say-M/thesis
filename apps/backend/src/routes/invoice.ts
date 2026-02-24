@@ -14,6 +14,7 @@ import {
   createInvoiceService,
   getInvoiceByIdService,
   listInvoicesService,
+  invoiceStatusCountService,
   updateInvoiceService,
   deleteInvoiceService,
 } from "@/services/invoice";
@@ -39,11 +40,8 @@ route.post(
     const user = c.get("user");
     const payload = c.req.valid("json");
     const origin = c.req.header("Origin");
-    const host = c.req.header("Host");
-    const response = await createInvoiceService(user, payload, {
-      origin,
-      host,
-    });
+
+    const response = await createInvoiceService(user, payload, { origin });
     return c.json(response, response.status);
   },
 );
@@ -62,6 +60,20 @@ route.get(
     const query = c.req.valid("query");
 
     const response = await listInvoicesService(user, query);
+    return c.json(response, response.status);
+  },
+);
+
+route.get(
+  "/status-count",
+  roleGuard({ allowedRoles: [Role.SUPER_ADMIN, Role.ADMIN] }),
+  describeRoute({
+    tags: ["Invoices"],
+    summary: "Get invoice status count",
+    responses: { 200: { description: "OK" } },
+  }),
+  async (c) => {
+    const response = await invoiceStatusCountService();
     return c.json(response, response.status);
   },
 );

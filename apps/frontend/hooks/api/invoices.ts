@@ -113,6 +113,22 @@ export const useListInvoices = (
   });
 };
 
+export const useInvoiceStatusCount = () => {
+  const api = useApi();
+  return useQuery<
+    {
+      _id: string;
+      count: number;
+    }[]
+  >({
+    queryKey: [...INVOICES_QUERY_KEY, "status-count"],
+    queryFn: async () => {
+      const { data } = await api.get(`/invoices/status-count`);
+      return data?.data?.statusCount;
+    },
+  });
+};
+
 export const useGetInvoice = (id: string | null) => {
   const api = useApi();
   return useQuery<ResponseType & { data: { invoice: InvoiceDetail } }>({

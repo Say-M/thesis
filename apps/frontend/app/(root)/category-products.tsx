@@ -79,10 +79,8 @@ export default function CategoryProducts() {
     .filter((s) => s.products.length > 0);
 
   const isLoading =
-    categoriesStatus === "pending" ||
-    productsStatus === "pending" ||
-    isFetchingNextCategoriesPage ||
-    isFetchingNextProductsPage;
+    categoryIds?.length &&
+    (categoriesStatus === "pending" || productsStatus === "pending");
 
   if (isLoading) {
     return (

@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import InvoicesTable from "./table";
+import InvoicesTable, { STATUS_COLORS } from "./table";
 import {
   InvoiceStatus,
   InvoiceType,
@@ -26,7 +26,11 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 import { Spinner } from "@/components/ui/spinner";
-import { useDeleteInvoice, type InvoiceListItem } from "@/hooks/api/invoices";
+import {
+  useDeleteInvoice,
+  useInvoiceStatusCount,
+  type InvoiceListItem,
+} from "@/hooks/api/invoices";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -51,6 +55,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -62,6 +67,8 @@ export default function InvoicesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<InvoiceStatusFilter>("all");
   const [typeFilter, setTypeFilter] = useState<InvoiceTypeFilter>("all");
+
+  const { data: statusCount } = useInvoiceStatusCount();
 
   const form = useForm<ProcessSteadfastInvoicesSchemaType>({
     resolver: zodResolver(processSteadfastInvoicesSchema),
@@ -301,6 +308,17 @@ export default function InvoicesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <div className="flex gap-2 white-nowrap flex-wrap">
+        {statusCount?.map((item) => (
+          <Badge
+            key={item?._id}
+            className={STATUS_COLORS[item?._id as InvoiceStatus]}
+          >
+            {item?._id}: {item?.count}
+          </Badge>
+        ))}
+      </div>
 
       <InvoicesTable
         search={searchQuery || undefined}

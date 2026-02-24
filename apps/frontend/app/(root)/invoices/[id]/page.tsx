@@ -3,21 +3,11 @@
 import { useConfigContext } from "@/contexts/config";
 import { useGetInvoice } from "@/hooks/api/invoices";
 import type { InvoiceDetail } from "@/hooks/api/invoices";
-import { Loader2Icon, Mail, MapPin, Phone } from "lucide-react";
+import { Loader2Icon, Phone } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { format } from "date-fns";
-import { Separator } from "@/components/ui/separator";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useContext } from "react";
 import { AuthContext } from "@/contexts/auth";
 
@@ -34,12 +24,8 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
   const currency = invoice.currency ?? "BDT";
 
   const siteName = config?.siteName?.trim() || null;
-  const siteAddress = config?.siteAddress?.trim() || null;
-  const siteEmail = config?.siteEmail?.trim() || null;
   const sitePhone = config?.sitePhone?.trim() || null;
   const siteLogo = config?.siteLogo;
-  const hasCompanyInfo =
-    siteName || siteAddress || siteEmail || sitePhone || siteLogo;
 
   const recipient = invoice.shippingAddress ?? invoice.customer;
   const recipientName =
@@ -57,10 +43,7 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
 
   const shipping = invoice.shippingAddress;
   const shippingAddressLine =
-    shipping &&
-    [shipping.address, shipping.city]
-      .filter(Boolean)
-      .join(", ");
+    shipping && [shipping.address, shipping.city].filter(Boolean).join(", ");
 
   return (
     <div className="min-h-screen bg-muted/50 py-8 px-4 sm:px-6 print:bg-white print:py-0 print:px-0">
@@ -86,290 +69,213 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
           </button>
         </div>
 
-        {/* Invoice card - only this is visible when printing */}
-        <article className="overflow-hidden rounded-xl bg-card text-card-foreground shadow-lg print:shadow-none print:rounded-none">
-          <div className="p-8 sm:p-10">
-            {/* Top: Company + Invoice title */}
-            <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
-              {hasCompanyInfo ? (
-                <div>
-                  {siteLogo?.path && (
-                    <Image
-                      src={siteLogo.path}
-                      alt={siteName ?? "Company logo"}
-                      height={48}
-                      width={48}
-                    />
-                  )}
-                  <div className="mt-4">
-                    {siteName && (
-                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        {siteName}
-                      </p>
-                    )}
-                    {siteAddress ? (
-                      <p
-                        className={
-                          siteName ? "mt-1 text-foreground" : "text-foreground"
-                        }
-                      >
-                        {siteAddress}
-                      </p>
-                    ) : null}
-                    <div className="mt-2 flex flex-col gap-1 text-sm text-muted-foreground">
-                      {siteEmail ? (
-                        <span className="flex items-center gap-2">
-                          <Mail className="size-3.5 shrink-0" />
-                          {siteEmail}
-                        </span>
-                      ) : null}
-                      {sitePhone ? (
-                        <span className="flex items-center gap-2">
-                          <Phone className="size-3.5 shrink-0" />
-                          {sitePhone}
-                        </span>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-              <div
-                className={`text-left sm:text-right ${!hasCompanyInfo ? "sm:ml-0" : ""}`}
-              >
-                <h1 className="text-2xl font-bold text-foreground mb-2">
-                  Invoice
-                </h1>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {invoice.invoiceNumber ?? invoice._id}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {format(new Date(invoice.createdAt), "PP hh:mm aa")}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground print:hidden">
-                  Payment Status: {invoice.isFullyPaid ? "Paid" : "Pending"}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground print:hidden">
-                  Shipping Status: {invoice.status}
-                </p>
-              </div>
-            </div>
-            <Separator className="my-8" />
-            {/* Recipient & Shipping */}
-            <div className="grid gap-8 sm:grid-cols-2">
-              <div className="space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Bill To
-                </p>
-                <p className="font-medium text-foreground">{recipientName}</p>
-                {recipientEmail && (
-                  <a
-                    href={`mailto:${recipientEmail}`}
-                    className="text-sm text-muted-foreground flex items-center gap-1.5"
-                  >
-                    <Mail className="size-3 shrink-0" />
-                    {recipientEmail}
-                  </a>
-                )}
-                {recipientPhone && (
-                  <a
-                    href={`tel:${recipientPhone}`}
-                    className="text-sm text-muted-foreground flex items-center gap-1.5"
-                  >
-                    <Phone className="size-3 shrink-0" />
-                    {recipientPhone}
-                  </a>
+        {/* Invoice card */}
+        <article className="overflow-hidden bg-white text-black shadow-lg print:shadow-none print:rounded-none max-w-4xl mx-auto font-sans">
+          <div className="p-8 sm:p-12">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start pt-2 border-b border-gray-100 pb-8 mb-8 gap-4">
+              <div className="flex-1">
+                {siteLogo?.path ? (
+                  <Image
+                    src={siteLogo.path}
+                    alt={siteName ?? "Company logo"}
+                    height={180}
+                    width={62}
+                    className="object-contain h-16 w-auto"
+                  />
+                ) : (
+                  <h2 className="text-2xl font-bold text-blue-600 uppercase">
+                    {siteName || "DESIGNER BOOK"}
+                  </h2>
                 )}
               </div>
-
-              {shipping && (
-                <div className="space-y-1">
-                  <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Ship to
-                    <span className="print:hidden">({invoice.status})</span>
+              <div className="flex-1 text-center flex flex-col items-center justify-center pt-2">
+                <h2 className="text-xl font-bold text-gray-900">
+                  {siteName || "Designer Book"}
+                </h2>
+                {sitePhone && (
+                  <p className="flex items-center gap-1 text-sm text-gray-600 mt-1">
+                    <Phone className="size-3.5" /> {sitePhone}
                   </p>
-                  <p className="font-medium text-foreground">{shipping.name}</p>
-                  {shippingAddressLine && (
-                    <p className="text-sm text-muted-foreground">
-                      {shippingAddressLine}
-                    </p>
-                  )}
-                  {shipping.email && (
-                    <a
-                      href={`mailto:${shipping.email}`}
-                      className="text-sm text-muted-foreground flex items-center gap-1.5"
-                    >
-                      <Mail className="size-3 shrink-0" />
-                      {shipping.email}
-                    </a>
-                  )}
-                  {shipping.phone && (
-                    <a
-                      href={`tel:${shipping.phone}`}
-                      className="text-sm text-muted-foreground flex items-center gap-1.5"
-                    >
-                      <Phone className="size-3 shrink-0" />
-                      {shipping.phone}
-                    </a>
-                  )}
-                </div>
-              )}
+                )}
+              </div>
+              <div className="flex-1 text-center sm:text-right flex flex-col sm:justify-center pt-2">
+                <h1 className="text-xl font-bold text-gray-900">Quotation</h1>
+              </div>
             </div>
 
-            {/* Items table */}
-            <div className="mt-8">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-b">
-                    <TableHead className="font-medium pl-0">
+            {/* Billing Info */}
+            <div className="flex justify-between items-start mb-8 text-sm">
+              <div className="space-y-1">
+                <p className="font-bold text-gray-900">To,</p>
+                <p className="font-bold text-gray-900">{recipientName}</p>
+                {shippingAddressLine && (
+                  <p className="text-gray-700">{shippingAddressLine}</p>
+                )}
+                {!shippingAddressLine && recipientPhone && (
+                  <p className="text-gray-700">{recipientPhone}</p>
+                )}
+                {!shippingAddressLine && !recipientPhone && recipientEmail && (
+                  <p className="text-gray-700">{recipientEmail}</p>
+                )}
+              </div>
+              <div className="text-right space-y-1">
+                <p>
+                  <span className="font-bold text-gray-900">Quotation#</span>{" "}
+                  <span className="text-gray-700 ml-3">
+                    {invoice.invoiceNumber ?? invoice._id}
+                  </span>
+                </p>
+                <p>
+                  <span className="font-bold text-gray-900">Date:</span>{" "}
+                  <span className="text-gray-700 ml-3">
+                    {format(new Date(invoice.createdAt), "dd-MM-yyyy")}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            {/* Greeting */}
+            <div className="mb-6 text-sm text-gray-800 space-y-2">
+              <p>Dear Sir/Mam,</p>
+              <p>
+                Thank you for your valuable inquiry. We are pleased to quote as
+                below:
+              </p>
+            </div>
+
+            {/* Table */}
+            <div className="w-full mb-8">
+              <table className="w-full text-sm text-left border-collapse">
+                <thead>
+                  <tr className="border-y-2 border-gray-200">
+                    <th className="py-3 px-2 font-bold w-12 text-center text-gray-900">
+                      #
+                    </th>
+                    <th className="py-3 px-2 font-bold uppercase text-gray-900">
                       Description
-                    </TableHead>
-                    <TableHead className="w-20 text-right font-medium">
+                    </th>
+                    <th className="py-3 px-2 font-bold text-center uppercase text-gray-900 w-24">
                       Qty
-                    </TableHead>
-                    <TableHead className="w-28 text-right font-medium">
-                      Rate
-                    </TableHead>
-                    <TableHead className="w-24 text-right font-medium">
+                    </th>
+                    <th className="py-3 px-2 font-bold text-right uppercase text-gray-900 w-32">
+                      Price
+                    </th>
+                    <th className="py-3 px-2 font-bold text-right uppercase text-gray-900 w-32">
                       Discount
-                    </TableHead>
-                    <TableHead className="w-32 text-right font-medium">
-                      Amount
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+                    </th>
+                    <th className="py-3 px-2 font-bold text-right uppercase text-gray-900 w-32">
+                      Total
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
                   {invoice.items?.map((item, i) => (
-                    <TableRow
-                      key={i}
-                      className="border-b border-border text-foreground"
-                    >
-                      <TableCell className="pl-0">
-                        <span className="font-medium">{item.name}</span>
+                    <tr key={i} className="border-b border-gray-100">
+                      <td className="py-3 px-2 text-center text-gray-700">
+                        {i + 1}
+                      </td>
+                      <td className="py-3 px-2">
+                        <span className="font-bold text-gray-900">
+                          {item.name}
+                        </span>
                         {item.variantLabel && (
-                          <span className="ml-1 text-muted-foreground">
+                          <span className="ml-1 text-gray-500 font-normal">
                             ({item.variantLabel})
                           </span>
                         )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {item.quantity}
-                      </TableCell>
-                      <TableCell className="text-right">
+                      </td>
+                      <td className="py-3 px-2 text-center text-gray-700">
+                        <div>{item.quantity}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">
+                          {"unit" in item &&
+                          typeof (item as any).unit === "string" &&
+                          (item as any).unit
+                            ? (item as any).unit
+                            : "pcs"}
+                        </div>
+                      </td>
+                      <td className="py-3 px-2 text-right text-gray-700">
                         {formatMoney(item.unitPrice, currency)}
-                      </TableCell>
-                      <TableCell className="text-right">
+                      </td>
+                      <td className="py-3 px-2 text-right text-gray-700">
                         {(item.discountAmount ?? 0) > 0
                           ? formatMoney(item.discountAmount ?? 0, currency)
                           : "—"}
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
+                      </td>
+                      <td className="py-3 px-2 text-right text-gray-700">
                         {formatMoney(item.total, currency)}
-                      </TableCell>
-                    </TableRow>
+                      </td>
+                    </tr>
                   ))}
-                </TableBody>
-                <TableFooter className="bg-background">
-                  <TableRow>
-                    <TableCell
-                      colSpan={4}
-                      className="text-muted-foreground pl-0"
-                    >
-                      Subtotal
-                    </TableCell>
-                    <TableCell className="text-right text-muted-foreground">
-                      {formatMoney(invoice.subtotal ?? 0, currency)}
-                    </TableCell>
-                  </TableRow>
-                  {(invoice.couponDiscountAmount ?? 0) > 0 && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={4}
-                        className="text-muted-foreground pl-0"
-                      >
-                        Discount ({invoice?.coupon?.code})
-                      </TableCell>
-                      <TableCell className="text-right text-destructive">
-                        -
-                        {formatMoney(
-                          invoice.couponDiscountAmount ?? 0,
-                          currency,
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  {(invoice.shippingAmount ?? 0) > 0 && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={4}
-                        className="text-muted-foreground pl-0"
-                      >
-                        Shipping
-                      </TableCell>
-                      <TableCell className="text-right text-muted-foreground">
-                        {formatMoney(invoice.shippingAmount ?? 0, currency)}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  {/* {(invoice.taxAmount ?? 0) > 0 && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={4}
-                        className="text-muted-foreground pl-0"
-                      >
-                        Tax
-                      </TableCell>
-                      <TableCell className="text-right text-muted-foreground">
-                        {formatMoney(invoice.taxAmount ?? 0, currency)}
-                      </TableCell>
-                    </TableRow>
-                  )} */}
-                  {/* {(invoice.codAmount ?? 0) > 0 && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={4}
-                        className="text-muted-foreground pl-0"
-                      >
-                        Cash on delivery
-                      </TableCell>
-                      <TableCell className="text-right text-muted-foreground">
-                        {formatMoney(invoice.codAmount ?? 0, currency)}
-                      </TableCell>
-                    </TableRow>
-                  )} */}
-                  <TableRow>
-                    <TableCell
-                      colSpan={4}
-                      className="border-t border-border text-base font-semibold text-primary pl-0"
-                    >
-                      Total
-                    </TableCell>
-                    <TableCell className="border-t border-border text-right text-base font-semibold text-primary">
-                      {formatMoney(invoice.total ?? 0, currency)}
-                    </TableCell>
-                  </TableRow>
-                </TableFooter>
-              </Table>
+                </tbody>
+              </table>
             </div>
 
-            {/* Payment / status note */}
-            <div className="mt-10 print:hidden">
-              {invoice?.notes && <p>{invoice.notes}</p>}
-              {/* <p className="text-xs text-muted-foreground">
-                Status:{" "}
-                <span className="font-medium capitalize text-foreground">
-                  {invoice.status}
-                </span>
-                {invoice.isFullyPaid && (
-                  <span className="ml-2 text-primary">(Paid)</span>
+            {/* Totals */}
+            <div className="flex justify-end mb-10">
+              <div className="w-full sm:w-[50%] border-t-2 border-b-2 border-gray-200 py-3 flex flex-col gap-2 font-bold text-sm text-gray-900">
+                {(invoice.shippingAmount ?? 0) > 0 && (
+                  <div className="flex justify-between font-normal text-gray-700">
+                    <span>Shipping</span>
+                    <span>
+                      {formatMoney(invoice.shippingAmount ?? 0, currency)}
+                    </span>
+                  </div>
                 )}
+                {(invoice.couponDiscountAmount ?? 0) > 0 && (
+                  <div className="flex justify-between font-normal text-gray-700">
+                    <span>Discount ({invoice?.coupon?.code})</span>
+                    <span className="text-red-600">
+                      -
+                      {formatMoney(invoice.couponDiscountAmount ?? 0, currency)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between pt-1">
+                  <span className="uppercase">Grand Total</span>
+                  <span>{formatMoney(invoice.total ?? 0, currency)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Text */}
+            <div className="text-sm text-gray-800 mb-16">
+              <p>
+                We hope you find our offer to be in line with your requirement.
               </p>
-              <p className="mt-3 text-xs text-muted-foreground">
-                Transfer the amount to the business account below. Please
-                include the invoice number on your payment.
-              </p>
-              <p className="mt-1 text-xs font-medium text-foreground">
-                Bank: — &nbsp; IBAN: —
-              </p> */}
+            </div>
+
+            {/* Signature Area */}
+            <div className="flex justify-end mt-16 text-sm text-gray-900">
+              <div className="text-center flex flex-col items-center">
+                <p className="font-bold mb-10">
+                  For, {siteName?.toUpperCase() || "DESIGNER BOOK"}
+                </p>
+                <div className="w-48 border-b border-gray-400 mb-2 relative flex justify-center h-12">
+                  <svg
+                    viewBox="0 0 200 60"
+                    className="h-10 opacity-30 text-gray-800 absolute bottom-1"
+                    preserveAspectRatio="none"
+                  >
+                    <path
+                      d="M10,40 C30,10 50,50 70,30 C90,10 110,60 130,20 C150,0 170,50 190,30"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      fill="none"
+                      fillRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <p className="text-xs uppercase text-gray-600 font-medium tracking-wider">
+                  Authorized Signature
+                </p>
+              </div>
+            </div>
+
+            {/* Payment / status note - only screen */}
+            <div className="mt-10 print:hidden text-muted-foreground text-sm">
+              {invoice?.notes && <p>{invoice.notes}</p>}
             </div>
           </div>
         </article>
