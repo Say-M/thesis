@@ -77,6 +77,7 @@ export default function ProductsTable({
             <TableHead className="w-[100px]">Unit</TableHead>
             <TableHead className="w-[100px]">Status</TableHead>
             <TableHead className="w-[100px]">Featured</TableHead>
+            <TableHead className="w-[100px]">Free shipping</TableHead>
             <TableHead className="w-8"></TableHead>
           </TableRow>
         </TableHeader>
@@ -173,6 +174,14 @@ export default function ProductsTable({
                   {product?.featured ? "Featured" : "Not Featured"}
                 </Badge>
               </TableCell>
+              <TableCell>
+                <Badge
+                  variant={product?.isFreeShipping ? "default" : "secondary"}
+                  className={!product?.isFreeShipping ? "opacity-75" : ""}
+                >
+                  {product?.isFreeShipping ? "Yes" : "No"}
+                </Badge>
+              </TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -242,6 +251,21 @@ export default function ProductsTable({
                       {product?.featured
                         ? "Mark as not featured"
                         : "Mark as featured"}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={() =>
+                        updateProduct({
+                          id: product?._id ?? "",
+                          payload: {
+                            isFreeShipping: !product?.isFreeShipping,
+                            deleteImages: [],
+                          },
+                        })
+                      }
+                    >
+                      {product?.isFreeShipping
+                        ? "Mark as not free shipping"
+                        : "Mark as free shipping"}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

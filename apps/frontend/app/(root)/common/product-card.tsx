@@ -32,6 +32,7 @@ export type ProductCardProps = {
   hasVariants?: boolean;
   variantId?: string;
   variantLabel?: string;
+  isFreeShipping?: boolean;
 };
 
 export default function ProductCard({
@@ -47,6 +48,7 @@ export default function ProductCard({
   stock = 0,
   hasVariants = false,
   variantId,
+  isFreeShipping = false,
 }: ProductCardProps) {
   const discountAmount = oldPrice ? oldPrice - price : 0;
 
@@ -125,6 +127,16 @@ export default function ProductCard({
               {stockBadge.label}
             </Badge>
           </div>
+          {isFreeShipping && (
+            <div className="absolute left-2 bottom-2">
+              <Badge
+                variant="default"
+                className="text-background bg-green-600 dark:bg-green-400 dark:text-foreground"
+              >
+                Free shipping
+              </Badge>
+            </div>
+          )}
         </div>
       </Link>
 

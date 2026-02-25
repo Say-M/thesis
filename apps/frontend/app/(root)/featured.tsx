@@ -24,6 +24,7 @@ function toProductCardProps(p: ProductDetail): ProductCardProps {
     stock,
     hasVariants: p.hasVariants ?? false,
     variantId,
+    isFreeShipping: p.isFreeShipping ?? false,
   };
 }
 

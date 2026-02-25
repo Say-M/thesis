@@ -132,6 +132,10 @@ const schema = new Schema(
       type: Boolean,
       default: true,
     },
+    isFreeShipping: {
+      type: Boolean,
+      default: false,
+    },
     faqs: [
       {
         question: {

@@ -113,6 +113,7 @@ const defaultValues: ProductFormValues = {
   isDeleteThumbnail: false,
   deleteImages: [],
   status: true,
+  isFreeShipping: false,
 };
 
 function productToFormValues(p: ProductDetail): Partial<ProductFormValues> {
@@ -167,6 +168,7 @@ function productToFormValues(p: ProductDetail): Partial<ProductFormValues> {
     images: [],
     videoLink: p.videoLink ?? undefined,
     status: p.status ?? true,
+    isFreeShipping: p.isFreeShipping ?? false,
   };
 }
 
@@ -1311,7 +1313,23 @@ export default function AddEditProduct({ id }: { id: string }) {
                       onCheckedChange={field.onChange}
                     />
                     <FieldLabel htmlFor="featured" className="font-normal">
-                      Featured (optional)
+                      Featured
+                    </FieldLabel>
+                  </Field>
+                )}
+              />
+              <Controller
+                name="isFreeShipping"
+                control={form.control}
+                render={({ field }) => (
+                  <Field orientation="horizontal">
+                    <Switch
+                      id="isFreeShipping"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                    <FieldLabel htmlFor="isFreeShipping" className="font-normal">
+                      Free shipping
                     </FieldLabel>
                   </Field>
                 )}

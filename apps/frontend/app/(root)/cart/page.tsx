@@ -248,6 +248,12 @@ export default function CartPage() {
     () => buildCartItems(cart, products),
     [cart, products],
   );
+
+  const [isAnyProductFreeShipping, setIsAnyProductFreeShipping] =
+    useState(false);
+  useEffect(() => {
+    setIsAnyProductFreeShipping(products.some((p) => p.isFreeShipping));
+  }, [products]);
   const [couponCode, setCouponCode] = useState("");
   /** When a coupon is applied: server coupon details used for live discount calculation. */
   const [appliedCoupon, setAppliedCoupon] = useState<{
@@ -964,7 +970,11 @@ export default function CartPage() {
                       {appliedFreeShipping && shippingAmount > 0 ? (
                         <span className="text-green-600">Free (coupon)</span>
                       ) : shippingAmount > 0 ? (
-                        formatCurrency(shippingAmount)
+                        isAnyProductFreeShipping ? (
+                          <span className="text-green-600">Free</span>
+                        ) : (
+                          formatCurrency(shippingAmount)
+                        )
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}

@@ -89,6 +89,7 @@ const productSchema = z.object({
   variants: z.array(variantSchema).nullish(),
   featured: z.boolean(),
   status: z.boolean(),
+  isFreeShipping: z.boolean(),
   faqs: z
     .array(
       z.object({

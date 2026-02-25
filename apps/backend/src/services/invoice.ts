@@ -71,6 +71,8 @@ export const createInvoiceService = async (
       quantity: number;
     }> = [];
 
+    let isAnyProductFreeShipping = false;
+
     const lineItems = await Promise.all(
       items.map(async (item) => {
         const product = products.find((p) => p._id.toString() === item.product);
@@ -79,6 +81,8 @@ export const createInvoiceService = async (
             message: "A product in your order could not be found",
           });
         }
+
+        if (product.isFreeShipping) isAnyProductFreeShipping = true;
 
         let unitPrice = 0;
         let variantName = null;
@@ -361,6 +365,8 @@ export const createInvoiceService = async (
         throw new HTTPException(400, { message: "Failed to validate coupon" });
       }
     }
+
+    if (isAnyProductFreeShipping) shippingAmount = 0;
 
     // Calculate tax from config
     const taxAmount = defaultTaxAmount;

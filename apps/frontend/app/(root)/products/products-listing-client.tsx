@@ -49,6 +49,7 @@ function toCardProps(p: ProductDetail): ProductCardProps {
     status: p.status,
     hasVariants: p.hasVariants,
     variantId,
+    isFreeShipping: p.isFreeShipping ?? false,
   };
 }
 
