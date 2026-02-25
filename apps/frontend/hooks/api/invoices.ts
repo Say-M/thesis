@@ -14,6 +14,7 @@ import type {
 } from "@repo/common/schemas/invoice";
 import type { Invoice } from "@repo/common/models/invoice";
 import type { ResponseType } from "@repo/common/schemas/response";
+import { InvoiceStatus } from "@repo/common/enums/invoice";
 
 const INVOICES_QUERY_KEY = ["invoices"] as const;
 
@@ -124,7 +125,16 @@ export const useInvoiceStatusCount = () => {
     queryKey: [...INVOICES_QUERY_KEY, "status-count"],
     queryFn: async () => {
       const { data } = await api.get(`/invoices/status-count`);
-      return data?.data?.statusCount;
+      const statusCount = data?.data?.statusCount as {
+        _id: string;
+        count: number;
+      }[];
+      return Object.values(InvoiceStatus).map((status) => {
+        return {
+          _id: status,
+          count: statusCount.find((item) => item._id === status)?.count ?? 0,
+        };
+      });
     },
   });
 };
