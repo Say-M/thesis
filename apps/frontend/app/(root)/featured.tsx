@@ -69,7 +69,7 @@ export default function Featured() {
       </div>
       {hasNextPage && (
         <div className="text-center mt-6">
-          <Button onClick={() => fetchNextPage()}>Load more</Button>
+          <Button variant="secondary" onClick={() => fetchNextPage()}>Load more</Button>
         </div>
       )}
     </section>
