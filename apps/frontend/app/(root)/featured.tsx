@@ -7,6 +7,7 @@ import {
   productListItemToCardProps,
   type ProductDetail,
 } from "@/hooks/api/products";
+import { Button } from "@/components/ui/button";
 
 function toProductCardProps(p: ProductDetail): ProductCardProps {
   const { price, oldPrice, stock, variantId } = productListItemToCardProps(p);
@@ -29,7 +30,12 @@ function toProductCardProps(p: ProductDetail): ProductCardProps {
 }
 
 export default function Featured() {
-  const { data: productsData, status: productsStatus } = useListProducts({
+  const {
+    data: productsData,
+    status: productsStatus,
+    hasNextPage,
+    fetchNextPage,
+  } = useListProducts({
     featured: "true",
     status: "true",
     limit: 12,
@@ -39,26 +45,6 @@ export default function Featured() {
     () => productsData?.pages?.map((page) => page.products).flat() ?? [],
     [productsData],
   );
-
-  if (productsStatus === "pending") {
-    return (
-      <section className="max-w-7xl mx-auto px-4 md:px-8 my-8">
-        <div className="flex items-baseline justify-between gap-2 mb-4">
-          <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">
-            Featured products
-          </h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="rounded-lg border bg-card h-80 animate-pulse"
-            />
-          ))}
-        </div>
-      </section>
-    );
-  }
 
   if (products.length === 0 && productsStatus === "error") return null;
 
@@ -73,7 +59,19 @@ export default function Featured() {
         {products.map((product) => (
           <ProductCard key={product._id} {...toProductCardProps(product)} />
         ))}
+        {productsStatus === "pending" &&
+          Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="rounded-lg border bg-card h-80 animate-pulse"
+            />
+          ))}
       </div>
+      {hasNextPage && (
+        <div className="text-center mt-6">
+          <Button onClick={() => fetchNextPage()}>Load more</Button>
+        </div>
+      )}
     </section>
   );
 }
