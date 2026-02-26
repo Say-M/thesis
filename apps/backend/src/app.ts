@@ -13,7 +13,7 @@ import { PinoLogger, pinoLogger } from "hono-pino";
 import { pino } from "pino";
 import { PinoPretty } from "pino-pretty";
 import { requestId } from "hono/request-id";
-import { User } from "./models/user";
+import { User } from "@repo/common/models/user";
 
 export interface AppBindings {
   Variables: {

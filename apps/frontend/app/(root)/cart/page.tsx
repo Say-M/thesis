@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  createInvoiceSchema,
+  invoiceSchema,
   type CreateInvoiceSchemaType,
 } from "@repo/common/schemas/invoice";
 import {
@@ -21,7 +21,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
   CardContent,
@@ -54,6 +53,22 @@ import { toast } from "sonner";
 import { useConfigContext } from "@/contexts/config";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import { ComboboxApiSearch } from "@/components/ui/combobox-api-search";
+import { UserSearchOption, useUserSearch } from "@/hooks/use-user-search";
+import { Role } from "@repo/common/enums/role";
+import { roundTo2 } from "@repo/common/utils/round-to-2";
+import Image from "next/image";
+import { districts } from "@/app/data/districts.json";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { FieldError } from "@/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -61,18 +76,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ComboboxApiSearch } from "@/components/ui/combobox-api-search";
-import { UserSearchOption, useUserSearch } from "@/hooks/use-user-search";
-import { Role } from "@repo/common/enums/role";
-import { roundTo2 } from "@repo/common/utils/round-to-2";
-import { FieldError } from "@/components/ui/field";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import Image from "next/image";
 
-const checkoutFormSchema = createInvoiceSchema
-  .omit({ items: true, type: true })
-  .extend({
-    sameAsBilling: z.boolean().default(false),
+const checkoutFormSchema = invoiceSchema
+  .omit({
+    items: true,
+    type: true,
+  })
+  .superRefine((data, ctx) => {
+    if (data.paymentType === PaymentType.ONLINE) {
+      if (!data.transaction.paymentMethod) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["transaction", "paymentMethod"],
+          message: "Payment method is required for online payment",
+        });
+      }
+      if (!data.transaction.reference) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["transaction", "reference"],
+          message: "Reference is required for online payment",
+        });
+      }
+    }
   });
 
 type CheckoutFormValues = z.infer<typeof checkoutFormSchema>;
@@ -222,6 +248,12 @@ export default function CartPage() {
     () => buildCartItems(cart, products),
     [cart, products],
   );
+
+  const [isAnyProductFreeShipping, setIsAnyProductFreeShipping] =
+    useState(false);
+  useEffect(() => {
+    setIsAnyProductFreeShipping(products.some((p) => p.isFreeShipping));
+  }, [products]);
   const [couponCode, setCouponCode] = useState("");
   /** When a coupon is applied: server coupon details used for live discount calculation. */
   const [appliedCoupon, setAppliedCoupon] = useState<{
@@ -254,21 +286,26 @@ export default function CartPage() {
         phone: "",
         address: "",
         city: "",
-        state: "",
-        postalCode: "",
       },
       notes: "",
-      sameAsBilling: false,
       shippingChargeName: defaultShippingCharge?.name ?? null,
-      // transaction: {
-      //   paymentMethod: PaymentMethod.CASH,
-      //   reference: "",
-      // },
+      transaction: {
+        paymentMethod: undefined,
+        reference: "",
+      },
     },
   });
-
-  const sameAsBilling = form.watch("sameAsBilling");
   const hasPrefilledUser = useRef(false);
+
+  useEffect(() => {
+    const ssc = shippingCharges.find((c) =>
+      c.name
+        .toLowerCase()
+        .includes(form.watch("shippingAddress.city").toLowerCase()),
+    );
+    if (ssc) setSelectedShippingCharge(ssc);
+    else setSelectedShippingCharge(shippingCharges[shippingCharges.length - 1]);
+  }, [form.watch("shippingAddress.city"), shippingCharges]);
 
   // Update shippingChargeName when selectedShippingCharge changes
   useEffect(() => {
@@ -294,8 +331,6 @@ export default function CartPage() {
       phone: shippingFromProfile?.phone ?? customer.phone,
       address: shippingFromProfile?.address ?? "",
       city: shippingFromProfile?.city ?? "",
-      state: shippingFromProfile?.state ?? "",
-      postalCode: shippingFromProfile?.postalCode ?? "",
     };
     const current = form.getValues();
     form.reset({
@@ -430,6 +465,10 @@ export default function CartPage() {
     };
     createInvoice(payload, {
       onSuccess: ({ data }) => {
+        const redirectUrl = data?.redirectUrl;
+        if (redirectUrl) {
+          window.location.href = redirectUrl;
+        }
         const invoiceNumber = data?.invoice?.invoiceNumber;
         clearCart();
         setCouponCode("");
@@ -492,9 +531,9 @@ export default function CartPage() {
       </div>
 
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="flex flex-col lg:flex-row gap-8">
           {/* Cart Items */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="flex-1 space-y-4">
             {cartItems?.map((item) => (
               <Card key={item._id}>
                 <CardContent>
@@ -672,11 +711,9 @@ export default function CartPage() {
                           minQueryLength={1}
                           clearable
                         />
-                        {form.formState.errors.customer?.name && (
-                          <p className="text-sm text-destructive">
-                            {form.formState.errors.customer.name.message}
-                          </p>
-                        )}
+                        <FieldError
+                          errors={[form.formState.errors.customer?.user]}
+                        />
                       </div>
                     )}
                     <div className="space-y-2 sm:col-span-2">
@@ -686,11 +723,9 @@ export default function CartPage() {
                         {...form.register("customer.name")}
                         placeholder="Full name"
                       />
-                      {form.formState.errors.customer?.name && (
-                        <p className="text-sm text-destructive">
-                          {form.formState.errors.customer.name.message}
-                        </p>
-                      )}
+                      <FieldError
+                        errors={[form.formState.errors.customer?.name]}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="customer.email">Email</Label>
@@ -700,11 +735,9 @@ export default function CartPage() {
                         {...form.register("customer.email")}
                         placeholder="email@example.com"
                       />
-                      {form.formState.errors.customer?.email && (
-                        <p className="text-sm text-destructive">
-                          {form.formState.errors.customer.email.message}
-                        </p>
-                      )}
+                      <FieldError
+                        errors={[form.formState.errors.customer?.email]}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="customer.phone">Phone *</Label>
@@ -713,127 +746,89 @@ export default function CartPage() {
                         {...form.register("customer.phone")}
                         placeholder="Phone number"
                       />
-                      {form.formState.errors.customer?.phone && (
-                        <p className="text-sm text-destructive">
-                          {form.formState.errors.customer.phone.message}
-                        </p>
-                      )}
+                      <FieldError
+                        errors={[form.formState.errors.customer?.phone]}
+                      />
                     </div>
                   </div>
                 </div>
 
                 <Separator />
 
-                {!sameAsBilling && (
-                  <div className="space-y-4">
-                    <h4 className="text-sm font-medium">Shipping address</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2 sm:col-span-2">
-                        <Label htmlFor="shippingAddress.name">Name *</Label>
-                        <Input
-                          id="shippingAddress.name"
-                          {...form.register("shippingAddress.name")}
-                          placeholder="Full name"
-                        />
-                        {form.formState.errors.shippingAddress?.name && (
-                          <p className="text-sm text-destructive">
-                            {form.formState.errors.shippingAddress.name.message}
-                          </p>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="shippingAddress.email">Email</Label>
-                        <Input
-                          id="shippingAddress.email"
-                          type="email"
-                          {...form.register("shippingAddress.email")}
-                          placeholder="email@example.com"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="shippingAddress.phone">Phone *</Label>
-                        <Input
-                          id="shippingAddress.phone"
-                          {...form.register("shippingAddress.phone")}
-                          placeholder="Phone"
-                        />
-                        {form.formState.errors.shippingAddress?.phone && (
-                          <p className="text-sm text-destructive">
-                            {
-                              form.formState.errors.shippingAddress.phone
-                                .message
-                            }
-                          </p>
-                        )}
-                      </div>
-                      <div className="space-y-2 sm:col-span-2">
-                        <Label htmlFor="shippingAddress.address">
-                          Address *
-                        </Label>
-                        <Input
-                          id="shippingAddress.address"
-                          {...form.register("shippingAddress.address")}
-                          placeholder="Street address"
-                        />
-                        {form.formState.errors.shippingAddress?.address && (
-                          <p className="text-sm text-destructive">
-                            {
-                              form.formState.errors.shippingAddress.address
-                                .message
-                            }
-                          </p>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="shippingAddress.city">City *</Label>
-                        <Input
-                          id="shippingAddress.city"
-                          {...form.register("shippingAddress.city")}
-                          placeholder="City"
-                        />
-                        {form.formState.errors.shippingAddress?.city && (
-                          <p className="text-sm text-destructive">
-                            {form.formState.errors.shippingAddress.city.message}
-                          </p>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="shippingAddress.state">State *</Label>
-                        <Input
-                          id="shippingAddress.state"
-                          {...form.register("shippingAddress.state")}
-                          placeholder="State / Division"
-                        />
-                        {form.formState.errors.shippingAddress?.state && (
-                          <p className="text-sm text-destructive">
-                            {
-                              form.formState.errors.shippingAddress.state
-                                .message
-                            }
-                          </p>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="shippingAddress.postalCode">
-                          Postal code *
-                        </Label>
-                        <Input
-                          id="shippingAddress.postalCode"
-                          {...form.register("shippingAddress.postalCode")}
-                          placeholder="Postal code"
-                        />
-                        {form.formState.errors.shippingAddress?.postalCode && (
-                          <p className="text-sm text-destructive">
-                            {
-                              form.formState.errors.shippingAddress.postalCode
-                                .message
-                            }
-                          </p>
-                        )}
-                      </div>
+                <div className="space-y-4">
+                  <h4 className="text-sm font-medium">Shipping address</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label htmlFor="shippingAddress.name">Name *</Label>
+                      <Input
+                        id="shippingAddress.name"
+                        {...form.register("shippingAddress.name")}
+                        placeholder="Full name"
+                      />
+                      <FieldError
+                        errors={[form.formState.errors.shippingAddress?.name]}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="shippingAddress.email">Email</Label>
+                      <Input
+                        id="shippingAddress.email"
+                        type="email"
+                        {...form.register("shippingAddress.email")}
+                        placeholder="email@example.com"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="shippingAddress.phone">Phone *</Label>
+                      <Input
+                        id="shippingAddress.phone"
+                        {...form.register("shippingAddress.phone")}
+                        placeholder="Phone"
+                      />
+                      <FieldError
+                        errors={[form.formState.errors.shippingAddress?.phone]}
+                      />
+                    </div>
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label htmlFor="shippingAddress.address">Address *</Label>
+                      <Textarea
+                        id="shippingAddress.address"
+                        {...form.register("shippingAddress.address")}
+                        placeholder="Street address"
+                      />
+                      <FieldError
+                        errors={[
+                          form.formState.errors.shippingAddress?.address,
+                        ]}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="shippingAddress.city">City *</Label>
+                      <Combobox
+                        items={districts?.map((district) => district.name)}
+                        value={form.watch("shippingAddress.city")}
+                        onValueChange={(value) => {
+                          value && form.setValue("shippingAddress.city", value);
+                        }}
+                      >
+                        <ComboboxInput placeholder="Select a city" />
+                        <ComboboxContent>
+                          <ComboboxEmpty>No items found.</ComboboxEmpty>
+                          <ComboboxList>
+                            {(item) => (
+                              <ComboboxItem key={item} value={item}>
+                                {item}
+                              </ComboboxItem>
+                            )}
+                          </ComboboxList>
+                        </ComboboxContent>
+                      </Combobox>
+                      <FieldError
+                        errors={[form.formState.errors.shippingAddress?.city]}
+                      />
                     </div>
                   </div>
-                )}
+                </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="notes">Order notes</Label>
@@ -890,78 +885,12 @@ export default function CartPage() {
                     </RadioGroup>
                   </div>
                 )}
-
-                <Separator />
-
-                {/* <div className="space-y-4">
-                  <h4 className="text-sm font-medium flex items-center gap-2">
-                    <CreditCard className="size-4" />
-                    Payment information
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="transaction.paymentMethod">
-                        Payment method *
-                      </Label>
-                      <Select
-                        value={form.watch("transaction.paymentMethod")}
-                        onValueChange={(v) =>
-                          form.setValue(
-                            "transaction.paymentMethod",
-                            v as PaymentMethod,
-                          )
-                        }
-                      >
-                        <SelectTrigger
-                          id="transaction.paymentMethod"
-                          className="w-full"
-                        >
-                          <SelectValue placeholder="Select method" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.values(PaymentMethod).map((method) => (
-                            <SelectItem key={method} value={method}>
-                              {method}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FieldError
-                        errors={
-                          form.formState.errors.transaction?.paymentMethod
-                            ? [form.formState.errors.transaction.paymentMethod]
-                            : undefined
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="transaction.reference">
-                        Reference (optional)
-                      </Label>
-                      <Input
-                        id="transaction.reference"
-                        {...form.register("transaction.reference")}
-                        placeholder="e.g. transaction ID"
-                      />
-                      <FieldError
-                        errors={
-                          form.formState.errors.transaction?.reference
-                            ? [form.formState.errors.transaction.reference]
-                            : undefined
-                        }
-                      />
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Amount to pay: {formatCurrency(total)} (see Order Summary)
-                  </p>
-                </div> */}
               </CardContent>
             </Card>
           </div>
 
           {/* Order Summary */}
-          <div className="lg:col-span-1">
+          <div className="lg:max-w-sm w-full">
             <Card className="sticky top-6">
               <CardHeader>
                 <CardTitle>Order Summary</CardTitle>
@@ -1041,7 +970,11 @@ export default function CartPage() {
                       {appliedFreeShipping && shippingAmount > 0 ? (
                         <span className="text-green-600">Free (coupon)</span>
                       ) : shippingAmount > 0 ? (
-                        formatCurrency(shippingAmount)
+                        isAnyProductFreeShipping ? (
+                          <span className="text-green-600">Free</span>
+                        ) : (
+                          formatCurrency(shippingAmount)
+                        )
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
@@ -1072,6 +1005,81 @@ export default function CartPage() {
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-2">
+                {form.watch("paymentType") === PaymentType.ONLINE && (
+                  <>
+                    <div className="space-y-4 w-full">
+                      <div className="space-y-2">
+                        <Label htmlFor="transaction.paymentMethod">
+                          Payment method *
+                        </Label>
+                        <Select
+                          value={form.watch("transaction.paymentMethod") ?? ""}
+                          onValueChange={(v) =>
+                            form.setValue(
+                              "transaction.paymentMethod",
+                              v as PaymentMethod,
+                            )
+                          }
+                        >
+                          <SelectTrigger
+                            id="transaction.paymentMethod"
+                            className="w-full"
+                          >
+                            <SelectValue placeholder="Select method" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.values(PaymentMethod)
+                              .filter(
+                                (method) =>
+                                  method !== PaymentMethod.CASH &&
+                                  method !== PaymentMethod.SSLCOMMERZ,
+                              )
+                              .map((method) => (
+                                <SelectItem key={method} value={method}>
+                                  {method}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                        <FieldError
+                          errors={
+                            form.formState.errors.transaction?.paymentMethod
+                              ? [
+                                  form.formState.errors.transaction
+                                    .paymentMethod,
+                                ]
+                              : undefined
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="transaction.reference">Reference</Label>
+                        <Input
+                          id="transaction.reference"
+                          {...form.register("transaction.reference")}
+                          placeholder="e.g. transaction ID"
+                        />
+                        <FieldError
+                          errors={
+                            form.formState.errors.transaction?.reference
+                              ? [form.formState.errors.transaction.reference]
+                              : undefined
+                          }
+                        />
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground w-full">
+                      <span>Need help with payment?</span>
+                      <Link
+                        href="/payment-instructions"
+                        className="text-primary underline ml-1"
+                      >
+                        Read payment instructions
+                      </Link>
+                    </p>
+                  </>
+                )}
+
                 <Button
                   type="button"
                   className="w-full"

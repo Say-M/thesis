@@ -135,8 +135,6 @@ export const listAssetsService = async (
     .limit(limit + 1)
     .lean();
 
-  console.log({ items: (await Asset.find(filter))?.length, limit });
-
   const hasMore = items.length > limit;
   const assets = hasMore ? items.slice(0, -1) : items;
   const nextCursor =

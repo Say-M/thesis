@@ -28,6 +28,7 @@ import sslcommerz, {
   ProductProfile,
 } from "@repo/sslcommerz/sslcommerz";
 import { sendEmail } from "@repo/common/utils/send-email";
+import { Blocklist } from "@repo/common/models/blocklist";
 
 export const createInvoiceService = async (
   user: User | null | undefined,
@@ -48,6 +49,15 @@ export const createInvoiceService = async (
       transaction: transactionPayload,
       paymentType,
     } = payload;
+
+    const phone = customer?.phone || shippingAddress?.phone;
+
+    const isBlocklisted = await Blocklist.findOne({ mobile: phone }).lean();
+    if (isBlocklisted) {
+      throw new HTTPException(400, {
+        message: "You are not allowed to place an order",
+      });
+    }
 
     // Fetch all products
     const productIds = new Set(items.map((item) => item.product));

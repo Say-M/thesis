@@ -74,7 +74,6 @@ export default function AppBar() {
     allCategoriesData?.pages?.map((page) => page.categories).flat() ?? [];
 
   const groupedCategories = groupCategoriesByParent(allCategories);
-  console.log({ groupedCategories });
 
   return (
     <nav className="block md:hidden border-t z-50 bottom-0 bg-background px-4 py-2 print:hidden">

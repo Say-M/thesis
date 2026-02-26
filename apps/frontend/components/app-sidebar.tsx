@@ -31,6 +31,7 @@ import {
   ShoppingCart,
   LogOut,
   Globe,
+  UserX,
 } from "lucide-react";
 import {
   Sidebar,
@@ -110,6 +111,11 @@ const menus = [
     title: "Users",
     url: "/dashboard/users",
     icon: Users,
+  },
+  {
+    title: "Blocklist",
+    url: "/dashboard/blocklists",
+    icon: UserX,
   },
   {
     title: "Settings",
