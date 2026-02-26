@@ -67,7 +67,9 @@ export const useCreateBlocklist = () => {
       queryClient.invalidateQueries({ queryKey: [...BLOCKLISTS_QUERY_KEY] });
     },
     onError: (error: AxiosError<{ message?: string }>) => {
-      toast.error(error.response?.data?.message ?? "Failed to create blocklist");
+      toast.error(
+        error.response?.data?.message ?? "Failed to create blocklist",
+      );
     },
   });
 };
@@ -85,7 +87,9 @@ export const useDeleteBlocklist = () => {
       queryClient.invalidateQueries({ queryKey: [...BLOCKLISTS_QUERY_KEY] });
     },
     onError: (error: AxiosError<{ message?: string }>) => {
-      toast.error(error.response?.data?.message ?? "Failed to delete blocklist");
+      toast.error(
+        error.response?.data?.message ?? "Failed to delete blocklist",
+      );
     },
   });
 };

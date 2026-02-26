@@ -5,7 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import BlocklistsTable from "./table";
 import AddBlocklistDialog from "./add-blocklist-dialog";
-import { useDeleteBlocklist, type BlocklistListItem } from "@/hooks/api/blocklists";
+import {
+  useDeleteBlocklist,
+  type BlocklistListItem,
+} from "@/hooks/api/blocklists";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -63,10 +66,7 @@ export default function BlocklistsPage() {
             open={dialogOpen}
             onOpenChange={(open) => setDialogOpen(open)}
             button={
-              <Button
-                type="button"
-                onClick={() => setDialogOpen(true)}
-              >
+              <Button type="button" onClick={() => setDialogOpen(true)}>
                 Add Blocklist
               </Button>
             }
