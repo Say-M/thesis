@@ -135,7 +135,12 @@ export function ProductDetailInfo({
           </div>
           <h1 className="text-3xl font-bold">{product.name}</h1>
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex gap-2">
+          {product?.isFreeShipping && (
+            <Badge className="text-background bg-green-600 dark:bg-green-400 dark:text-foreground">
+              Free Shipping
+            </Badge>
+          )}
           <Badge
             variant={
               stockStatus === "out"

@@ -39,7 +39,7 @@ export const useListPages = (
   params: Partial<
     Omit<
       ListPageQuerySchemaType,
-      "status" | "showInHeader" | "showInFooter" | "all"
+      "status" | "showInHeader" | "showInFooter" | "showInMenu" | "all"
     >
   > & {
     limit?: number;
@@ -47,6 +47,7 @@ export const useListPages = (
     status?: string;
     showInHeader?: string;
     showInFooter?: string;
+    showInMenu?: string;
     all?: string;
   } = {},
 ) => {

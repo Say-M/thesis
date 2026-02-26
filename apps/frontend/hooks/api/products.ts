@@ -110,7 +110,12 @@ export function productListItemUnitPriceAndStock(
 export type UseListProductsQuery = Partial<
   Omit<
     ListProductQuerySchemaType,
-    "status" | "featured" | "categories" | "subcategories" | "productIds"
+    | "status"
+    | "isFreeShipping"
+    | "featured"
+    | "categories"
+    | "subcategories"
+    | "productIds"
   >
 > & {
   limit?: number;
@@ -118,6 +123,7 @@ export type UseListProductsQuery = Partial<
   /** When false, the query is disabled (e.g. when dependent IDs are empty). */
   enabled?: boolean;
   status?: string;
+  isFreeShipping?: string;
   featured?: string;
   categories?: string;
   subcategories?: string;

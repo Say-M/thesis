@@ -136,6 +136,9 @@ const schema = new Schema(
       type: Boolean,
       default: false,
     },
+    serial: {
+      type: Number,
+    },
     faqs: [
       {
         question: {

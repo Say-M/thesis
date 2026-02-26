@@ -75,6 +75,7 @@ export default function ProductsTable({
             <TableHead className="w-[120px]">Price</TableHead>
             <TableHead className="w-[100px]">Stock</TableHead>
             <TableHead className="w-[100px]">Unit</TableHead>
+            <TableHead className="w-[80px]">Serial</TableHead>
             <TableHead className="w-[100px]">Status</TableHead>
             <TableHead className="w-[100px]">Featured</TableHead>
             <TableHead className="w-[100px]">Free shipping</TableHead>
@@ -157,6 +158,9 @@ export default function ProductsTable({
                       return `${uniqueUnits.length} units`;
                     })()
                   : product?.unit || "—"}
+              </TableCell>
+              <TableCell>
+                {Number.isNaN(Number(product?.serial)) ? "—" : product?.serial}
               </TableCell>
               <TableCell>
                 <Badge

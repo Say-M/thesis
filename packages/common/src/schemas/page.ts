@@ -13,6 +13,7 @@ export const pageSchema = z.object({
   status: z.boolean().nullish(),
   showInHeader: z.boolean().nullish(),
   showInFooter: z.boolean().nullish(),
+  showInMenu: z.boolean().nullish(),
   order: z.number().int().nullish().default(0),
 });
 
@@ -33,6 +34,11 @@ export const listPageQuerySchema = cursorPaginationQuerySchema.extend({
     .nullish()
     .transform((val) => val === "true"),
   showInFooter: z
+    .string()
+    .trim()
+    .nullish()
+    .transform((val) => val === "true"),
+  showInMenu: z
     .string()
     .trim()
     .nullish()

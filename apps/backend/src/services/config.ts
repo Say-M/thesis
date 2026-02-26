@@ -11,6 +11,7 @@ const defaultConfig = {
   siteDescription: undefined,
   siteLogo: undefined,
   siteFavicon: undefined,
+  siteSignature: undefined,
   siteEmail: undefined,
   sitePhone: undefined,
   siteAddress: undefined,
@@ -24,6 +25,7 @@ export const getConfigService = async (): Promise<ResponseType> => {
     .populate([
       { path: "siteLogo" },
       { path: "siteFavicon" },
+      { path: "siteSignature" },
       { path: "seo.ogImage" },
       { path: "seo.twitterImage" },
     ])
@@ -86,6 +88,11 @@ export const updateConfigService = async (
     } else if (payload.siteFavicon) {
       update.siteFavicon = new Types.ObjectId(payload.siteFavicon);
     }
+    if (payload.siteSignature === "" || payload.siteSignature === null) {
+      update.siteSignature = null;
+    } else if (payload.siteSignature) {
+      update.siteSignature = new Types.ObjectId(payload.siteSignature);
+    }
 
     // Handle SEO updates
     if (payload.seo !== undefined) {
@@ -143,6 +150,7 @@ export const updateConfigService = async (
       .populate([
         { path: "siteLogo" },
         { path: "siteFavicon" },
+        { path: "siteSignature" },
         { path: "seo.ogImage" },
         { path: "seo.twitterImage" },
       ])
@@ -154,10 +162,9 @@ export const updateConfigService = async (
     const data = config
       ? {
           ...config,
-          _id: config._id?.toString?.() ?? config._id,
-          siteLogo: config.siteLogo?.toString?.() ?? config.siteLogo ?? null,
-          siteFavicon:
-            config.siteFavicon?.toString?.() ?? config.siteFavicon ?? null,
+          siteLogo: config.siteLogo,
+          siteFavicon: config.siteFavicon,
+          siteSignature: config.siteSignature,
           socials:
             config.socials instanceof Map
               ? Object.fromEntries(config.socials.entries())

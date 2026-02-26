@@ -11,11 +11,12 @@ const CONFIG_QUERY_KEY = ["config"] as const;
 
 export type ConfigData = Omit<
   Config,
-  "_id" | "siteLogo" | "siteFavicon" | "socials"
+  "_id" | "siteLogo" | "siteFavicon" | "siteSignature" | "socials"
 > & {
   _id: string;
   siteLogo?: Asset | null;
   siteFavicon?: Asset | null;
+  siteSignature?: Asset | null;
   socials?: Record<string, { name?: string; url?: string }> | null;
 };
 

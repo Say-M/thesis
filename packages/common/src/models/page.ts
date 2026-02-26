@@ -17,6 +17,7 @@ const schema = new Schema(
     status: { type: Boolean, default: true, index: true },
     showInHeader: { type: Boolean, default: false },
     showInFooter: { type: Boolean, default: false },
+    showInMenu: { type: Boolean, default: false },
     order: { type: Number, default: 0 },
   },
   { timestamps: true },

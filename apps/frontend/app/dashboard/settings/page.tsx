@@ -71,6 +71,7 @@ function toFormValues(c: ConfigData | null): UpdateConfigSchemaType {
       siteDescription: "",
       siteLogo: null,
       siteFavicon: null,
+      siteSignature: null,
       siteEmail: "",
       sitePhone: "",
       siteAddress: "",
@@ -109,6 +110,7 @@ function toFormValues(c: ConfigData | null): UpdateConfigSchemaType {
     siteDescription: c.siteDescription ?? "",
     siteLogo: c.siteLogo?._id?.toString() ?? null,
     siteFavicon: c.siteFavicon?._id?.toString() ?? null,
+    siteSignature: c.siteSignature?._id?.toString() ?? null,
     siteEmail: c.siteEmail ?? "",
     sitePhone: c.sitePhone ?? "",
     siteAddress: c.siteAddress ?? "",
@@ -168,6 +170,7 @@ function toPayload(values: UpdateConfigSchemaType): UpdateConfigSchemaType {
 
   const siteLogo = values.siteLogo ?? null;
   const siteFavicon = values.siteFavicon ?? null;
+  const siteSignature = values.siteSignature ?? null;
 
   const seoData = values.seo
     ? {
@@ -216,6 +219,7 @@ function toPayload(values: UpdateConfigSchemaType): UpdateConfigSchemaType {
     siteDescription: values.siteDescription?.trim() || undefined,
     siteLogo: siteLogo || null,
     siteFavicon: siteFavicon || null,
+    siteSignature: siteSignature || null,
     siteEmail: values.siteEmail?.trim() || undefined,
     sitePhone: values.sitePhone?.trim() || undefined,
     siteAddress: values.siteAddress?.trim() || undefined,
@@ -410,7 +414,40 @@ export default function SettingsPage() {
                 />
               </Field>
               <Field className="w-auto">
-                <FieldLabel>Favicon</FieldLabel>
+                <FieldLabel>Site signature</FieldLabel>
+                {config?.siteSignature?.path && (
+                  <div className="relative">
+                    <Image
+                      src={config.siteSignature.path}
+                      alt={config.siteSignature.name || "Signature"}
+                      className="rounded-md border object-cover relative! max-w-80!"
+                      fill
+                    />
+                  </div>
+                )}
+                <AssetSelectorField
+                  value={form.watch("siteSignature") || null}
+                  onChange={(v) =>
+                    form.setValue(
+                      "siteSignature",
+                      typeof v === "string" ? v : null,
+                    )
+                  }
+                  placeholder="Select signature"
+                />
+              </Field>
+              <Field className="w-auto">
+                <FieldLabel>Favicon</FieldLabel>{" "}
+                {config?.siteFavicon?.path && (
+                  <div className="relative">
+                    <Image
+                      src={config.siteFavicon.path}
+                      alt={config.siteFavicon.name || "Favicon"}
+                      className="rounded-md border object-cover relative! max-w-20!"
+                      fill
+                    />
+                  </div>
+                )}
                 <AssetSelectorField
                   value={form.watch("siteFavicon") || null}
                   onChange={(v) =>

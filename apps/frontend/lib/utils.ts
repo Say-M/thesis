@@ -1,3 +1,4 @@
+import { CategoryDetail } from "@/hooks/api/categories";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -24,4 +25,36 @@ export function getInitials(name: string | null | undefined): string {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
   return name.slice(0, 2).toUpperCase();
+}
+
+export function groupCategoriesByParent(categories: CategoryDetail[]): Record<
+  string,
+  {
+    parentCategory: { _id: string; name: string };
+    subcategories: CategoryDetail[];
+  }
+> {
+  const grouped: Record<
+    string,
+    {
+      parentCategory: {
+        _id: string;
+        name: string;
+      };
+      subcategories: CategoryDetail[];
+    }
+  > = {};
+  for (const category of categories) {
+    if (!category.parentCategory?._id) continue;
+    if (!grouped[category.parentCategory?._id])
+      grouped[category.parentCategory?._id] = {
+        parentCategory: {
+          _id: category.parentCategory?._id,
+          name: category.parentCategory?.name ?? "",
+        },
+        subcategories: [],
+      };
+    grouped[category.parentCategory?._id].subcategories.push(category);
+  }
+  return grouped;
 }

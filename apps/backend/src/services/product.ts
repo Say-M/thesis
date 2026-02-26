@@ -114,6 +114,7 @@ export const listProductsService = async (
     cursor,
     status,
     featured,
+    isFreeShipping,
     hasVariants,
     categories,
     subcategories,
@@ -124,6 +125,8 @@ export const listProductsService = async (
   const filter: QueryFilter<Product> = { ...rest };
   if (cursor) filter._id = { $lt: cursor };
   if (status && status?.length) filter.status = { $in: status };
+  if (isFreeShipping && isFreeShipping?.length)
+    filter.isFreeShipping = { $in: isFreeShipping };
   if (featured != null) filter.featured = featured;
   if (hasVariants && hasVariants?.length)
     filter.hasVariants = { $in: hasVariants };
@@ -146,7 +149,10 @@ export const listProductsService = async (
     select["variants.buyingPrice"] = 0;
   }
 
-  const options: QueryOptions<Product> = { sort: { _id: -1 } };
+  const options: QueryOptions<Product> = {};
+
+  if (featured != null) options.sort = { serial: -1 };
+  else options.sort = { _id: -1 };
 
   if (!productIds?.length) options.limit = limit + 1;
 

@@ -90,6 +90,7 @@ const productSchema = z.object({
   featured: z.boolean(),
   status: z.boolean(),
   isFreeShipping: z.boolean(),
+  serial: z.number().nullish(),
   faqs: z
     .array(
       z.object({
@@ -186,6 +187,10 @@ export const listProductQuerySchema = cursorPaginationQuerySchema.extend({
     .nullish()
     .transform((val) => val && val?.split(",").map((v) => v.trim())),
   status: z
+    .string()
+    .nullish()
+    .transform((val) => val && val?.split(",").map((v) => v === "true")),
+  isFreeShipping: z
     .string()
     .nullish()
     .transform((val) => val && val?.split(",").map((v) => v === "true")),

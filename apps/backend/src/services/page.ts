@@ -64,6 +64,7 @@ export const listPagesService = async (
     search,
     showInHeader,
     showInFooter,
+    showInMenu,
     all,
   } = query;
   const filter: QueryFilter<Page> = {};
@@ -71,6 +72,7 @@ export const listPagesService = async (
   if (status?.length) filter.status = { $in: status };
   if (showInHeader === true) filter.showInHeader = true;
   if (showInFooter === true) filter.showInFooter = true;
+  if (showInMenu === true) filter.showInMenu = true;
   if (search)
     filter.$or = [
       { title: { $regex: search, $options: "i" } },

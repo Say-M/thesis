@@ -59,6 +59,7 @@ export default function ProductsListingClient() {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get("category") ?? undefined;
   const subcategoryParam = searchParams.get("subcategory") ?? undefined;
+  const isFreeShippingParam = searchParams.get("isFreeShipping") ?? undefined;
   const searchParam = searchParams.get("search") ?? "";
 
   const [searchInput, setSearchInput] = useState(searchParam);
@@ -77,6 +78,7 @@ export default function ProductsListingClient() {
     search: searchParam || undefined,
     categories: [categoryParam].filter(Boolean).join(","),
     subcategories: [subcategoryParam].filter(Boolean).join(","),
+    isFreeShipping: [isFreeShippingParam].filter(Boolean).join(","),
     status: "true",
     limit: 24,
   });
@@ -160,7 +162,9 @@ export default function ProductsListingClient() {
   const handleSubcategoryChange = (value: string) => {
     setParams({ subcategory: value === "all" ? null : value });
   };
-
+  const handleIsFreeShippingChange = (value: string) => {
+    setParams({ isFreeShipping: value === "all" ? null : value });
+  };
   const clearFilters = () => {
     setSearchInput("");
     setParams({ category: null, search: null, featured: null });
@@ -223,6 +227,20 @@ export default function ProductsListingClient() {
               ))}
             </SelectContent>
           </Select>
+
+          {/* <Select
+            value={isFreeShippingParam ?? "all"}
+            onValueChange={handleIsFreeShippingChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Free Shipping" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="true">Free Shipping</SelectItem>
+              <SelectItem value="false">Paid Shipping</SelectItem>
+            </SelectContent>
+          </Select> */}
 
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger>

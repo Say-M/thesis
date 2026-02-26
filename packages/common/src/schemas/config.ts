@@ -20,6 +20,7 @@ export const updateConfigSchema = z.object({
   siteDescription: z.string().trim().nullish(),
   siteLogo: z.string().trim().nullish(),
   siteFavicon: z.string().trim().nullish(),
+  siteSignature: z.string().trim().nullish(),
   siteEmail: z.string().trim().nullish(),
   sitePhone: z.string().trim().nullish(),
   siteAddress: z.string().trim().nullish(),

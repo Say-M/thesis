@@ -114,6 +114,7 @@ const defaultValues: ProductFormValues = {
   deleteImages: [],
   status: true,
   isFreeShipping: false,
+  serial: undefined,
 };
 
 function productToFormValues(p: ProductDetail): Partial<ProductFormValues> {
@@ -169,6 +170,7 @@ function productToFormValues(p: ProductDetail): Partial<ProductFormValues> {
     videoLink: p.videoLink ?? undefined,
     status: p.status ?? true,
     isFreeShipping: p.isFreeShipping ?? false,
+    serial: p.serial ?? undefined,
   };
 }
 
@@ -389,9 +391,8 @@ export default function AddEditProduct({ id }: { id: string }) {
                     </FieldLabel>
                     <div>
                       <PlateEditor
-                        // onChange={field.onChange}
+                        onChange={field.onChange}
                         value={product?.description}
-                        readOnly
                       />
                     </div>
                     {fieldState.invalid && (
@@ -1299,9 +1300,34 @@ export default function AddEditProduct({ id }: { id: string }) {
           <FieldSeparator />
 
           <FieldSet>
-            <FieldLegend>Product status</FieldLegend>
-            <FieldDescription>Set the status of the product.</FieldDescription>
+            <FieldLegend>Additional information</FieldLegend>
+            <FieldDescription>
+              Set additional information for the product.
+            </FieldDescription>
             <FieldGroup>
+              <Controller
+                name="serial"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid} className="max-w-3xs">
+                    <FieldLabel>Serial</FieldLabel>
+                    <Input
+                      {...field}
+                      type="number"
+                      min={0}
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(e.target.value ? Number(e.target.value) : 0)
+                      }
+                      placeholder="Serial"
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
               <Controller
                 name="featured"
                 control={form.control}
@@ -1328,7 +1354,10 @@ export default function AddEditProduct({ id }: { id: string }) {
                       checked={field.value}
                       onCheckedChange={field.onChange}
                     />
-                    <FieldLabel htmlFor="isFreeShipping" className="font-normal">
+                    <FieldLabel
+                      htmlFor="isFreeShipping"
+                      className="font-normal"
+                    >
                       Free shipping
                     </FieldLabel>
                   </Field>

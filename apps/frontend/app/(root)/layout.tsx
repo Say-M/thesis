@@ -9,7 +9,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <section className="flex flex-col h-svh overflow-hidden">
+    <section className="flex flex-col h-svh overflow-hidden print:h-auto print:overflow-visible">
       <Header />
       <ScrollArea className="flex-1 overflow-hidden [&>div>div]:block!">
         <main className="print:p-0">{children}</main>

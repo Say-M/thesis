@@ -45,6 +45,10 @@ const schema = new Schema(
       type: Types.ObjectId,
       ref: "Asset",
     },
+    siteSignature: {
+      type: Types.ObjectId,
+      ref: "Asset",
+    },
     siteEmail: {
       type: String,
       trim: true,

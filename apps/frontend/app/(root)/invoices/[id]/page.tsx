@@ -26,6 +26,7 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
   const siteName = config?.siteName?.trim() || null;
   const sitePhone = config?.sitePhone?.trim() || null;
   const siteLogo = config?.siteLogo;
+  const siteSignature = config?.siteSignature;
 
   const recipient = invoice.shippingAddress ?? invoice.customer;
   const recipientName =
@@ -46,7 +47,7 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
     shipping && [shipping.address, shipping.city].filter(Boolean).join(", ");
 
   return (
-    <div className="min-h-screen bg-muted/50 py-8 px-4 sm:px-6 print:bg-white print:py-0 print:px-0">
+    <div className="bg-muted/50 py-8 px-4 sm:px-6 print:bg-white print:py-0 print:px-0">
       <div className="mx-auto max-w-4xl print:max-w-none">
         {/* Print / back link - hidden when printing */}
         <div className="mb-6 flex items-center justify-between print:hidden">
@@ -70,7 +71,7 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
         </div>
 
         {/* Invoice card */}
-        <article className="overflow-hidden bg-white text-black shadow-lg print:shadow-none print:rounded-none max-w-4xl mx-auto font-sans">
+        <article className="bg-white text-black shadow-lg print:shadow-none print:rounded-none max-w-4xl print:max-w-none mx-auto font-sans">
           <div className="p-8 sm:p-12">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start pt-2 border-b border-gray-100 pb-8 mb-8 gap-4">
@@ -186,13 +187,8 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
                         )}
                       </td>
                       <td className="py-3 px-2 text-center text-gray-700">
-                        <div>{item.quantity}</div>
-                        <div className="text-xs text-gray-500 mt-0.5">
-                          {"unit" in item &&
-                          typeof (item as any).unit === "string" &&
-                          (item as any).unit
-                            ? (item as any).unit
-                            : "pcs"}
+                        <div>
+                          {item.quantity} {item.unit}
                         </div>
                       </td>
                       <td className="py-3 px-2 text-right text-gray-700">
@@ -249,24 +245,22 @@ function InvoiceContent({ invoice }: { invoice: InvoiceDetail }) {
             {/* Signature Area */}
             <div className="flex justify-end mt-16 text-sm text-gray-900">
               <div className="text-center flex flex-col items-center">
-                <p className="font-bold mb-10">
-                  For, {siteName?.toUpperCase() || "DESIGNER BOOK"}
-                </p>
-                <div className="w-48 border-b border-gray-400 mb-2 relative flex justify-center h-12">
-                  <svg
-                    viewBox="0 0 200 60"
-                    className="h-10 opacity-30 text-gray-800 absolute bottom-1"
-                    preserveAspectRatio="none"
-                  >
-                    <path
-                      d="M10,40 C30,10 50,50 70,30 C90,10 110,60 130,20 C150,0 170,50 190,30"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      fill="none"
-                      fillRule="evenodd"
+                {siteName && (
+                  <p className="font-bold mb-4">
+                    For, {siteName?.toUpperCase()}
+                  </p>
+                )}
+                {siteSignature && (
+                  <div className="w-48 border-b border-gray-400 pb-2 mb-2 relative flex justify-center h-12">
+                    <Image
+                      src={siteSignature.path}
+                      alt={siteSignature.name || siteName || "Signature"}
+                      height={100}
+                      width={100}
+                      className="object-contain"
                     />
-                  </svg>
-                </div>
+                  </div>
+                )}
                 <p className="text-xs uppercase text-gray-600 font-medium tracking-wider">
                   Authorized Signature
                 </p>
