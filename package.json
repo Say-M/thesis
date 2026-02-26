@@ -2,7 +2,7 @@
   "name": "computer-security",
   "devDependencies": {
     "prettier": "^3.8.1",
-    "turbo": "^2.8.3",
+    "turbo": "^2.8.11",
     "typescript": "5.9.2"
   },
   "engines": {
@@ -30,6 +30,6 @@
   ],
   "dependencies": {
     "dns": "^0.2.2",
-    "mongoose": "^9.1.6"
+    "mongoose": "^9.2.3"
   }
 }
