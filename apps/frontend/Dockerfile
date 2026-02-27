@@ -2,62 +2,39 @@
 FROM oven/bun:1.3.6-alpine AS base
 WORKDIR /app
 
-# Install dependencies only when needed
-FROM base AS deps
+# ---
+FROM base AS prepare
+RUN bun add --global turbo
+COPY . .
+# Add lockfile and package.json's of isolated subworkspace
+RUN turbo prune frontend --docker
 
-# Copy workspace root package files
-COPY package.json bun.lock ./
-
-# Copy all workspace package.json files for dependency resolution
-COPY packages/common/package.json ./packages/common/
-COPY packages/eslint-config/package.json ./packages/eslint-config/
-COPY packages/typescript-config/package.json ./packages/typescript-config/
-
-# Copy frontend app package.json
-COPY apps/frontend/package.json ./apps/frontend/
-
-# Install dependencies
-RUN bun install
-
-# Rebuild the source code only when needed
+# ---
 FROM base AS builder
+# First install the dependencies (as they change less often)
+COPY --from=prepare /app/out/json/ .
+RUN bun install
+# Build the project
+COPY --from=prepare /app/out/full/ .
 
-# Copy dependencies from deps stage
-COPY --from=deps /app/node_modules ./node_modules
+# Uncomment and use build args to enable remote caching
+# ARG TURBO_TEAM
+# ENV TURBO_TEAM=$TURBO_TEAM
 
-# Copy workspace packages source (need for @repo/* imports)
-COPY packages ./packages
-
-# Copy frontend app
-COPY apps/frontend ./apps/frontend
+# ARG TURBO_TOKEN
+# ENV TURBO_TOKEN=$TURBO_TOKEN
 
 ARG NEXT_PUBLIC_API_URL
 
-# Set environment variables for build
-ENV OUTPUT_TRACING_ROOT=/app
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-# Uncomment the following line in case you want to disable telemetry during runtime.
-ENV NEXT_TELEMETRY_DISABLED=1
 
-# Build the Next.js application directly (not using turbo for docker builds)
-WORKDIR /app/apps/frontend
+RUN bun turbo build
 
-# Create symlink to node_modules at workspace root so Next.js can find dependencies
-RUN ln -s /app/node_modules ./node_modules
-
-# Build with bun
-RUN bun --bun next build --turbopack
-
-# Production image, copy all the files and run next
+# ---
 FROM base AS runner
-
-ENV NODE_ENV=production
-# Uncomment the following line in case you want to disable telemetry during runtime.
-ENV NEXT_TELEMETRY_DISABLED=1
-
+# Don't run production as root for security reasons
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
-
 USER nextjs
 
 # Automatically leverage output traces to reduce image size
