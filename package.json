@@ -1,5 +1,5 @@
 {
-  "name": "computer-security",
+  "name": "designerbook",
   "devDependencies": {
     "prettier": "^3.8.1",
     "turbo": "^2.8.11",
@@ -27,9 +27,5 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ],
-  "dependencies": {
-    "dns": "^0.2.2",
-    "mongoose": "^9.2.3"
-  }
+  ]
 }

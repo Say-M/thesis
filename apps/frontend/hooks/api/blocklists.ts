@@ -82,7 +82,7 @@ export const useDeleteBlocklist = () => {
       const { data } = await api.delete(`/blocklist/${id}`);
       return data;
     },
-    onSuccess: (data, id) => {
+    onSuccess: (data) => {
       toast.success(data?.message ?? "Blocklist deleted");
       queryClient.invalidateQueries({ queryKey: [...BLOCKLISTS_QUERY_KEY] });
     },

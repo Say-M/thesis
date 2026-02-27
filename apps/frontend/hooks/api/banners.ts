@@ -102,7 +102,7 @@ export const useUpdateBanner = () => {
       const { data } = await api.patch(`/banners/${id}`, payload);
       return data;
     },
-    onSuccess: (data, { id }) => {
+    onSuccess: (data) => {
       toast.success(data?.message ?? "Banner updated");
       queryClient.invalidateQueries({ queryKey: [...BANNERS_QUERY_KEY] });
     },
@@ -120,7 +120,7 @@ export const useDeleteBanner = () => {
       const { data } = await api.delete(`/banners/${id}`);
       return data;
     },
-    onSuccess: (data, id) => {
+    onSuccess: (data) => {
       toast.success(data?.message ?? "Banner deleted");
       queryClient.invalidateQueries({ queryKey: [...BANNERS_QUERY_KEY] });
     },

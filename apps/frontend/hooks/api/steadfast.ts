@@ -1,10 +1,8 @@
 import useApi from "../use-api";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { ProcessSteadfastInvoicesSchemaType } from "@repo/common/schemas/steadfast";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
-
-const STEADFAST_QUERY_KEY = ["steadfast"] as const;
 
 export const useProcessSteadfast = () => {
   const api = useApi();

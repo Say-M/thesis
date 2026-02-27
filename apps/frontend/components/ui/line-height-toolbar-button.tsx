@@ -1,23 +1,22 @@
-'use client';
+"use client";
 
-import * as React from 'react';
+import * as React from "react";
 
-import type { DropdownMenuProps } from '@radix-ui/react-dropdown-menu';
+import type { DropdownMenuProps } from "@/components/ui/dropdown-menu";
 
-import { LineHeightPlugin } from '@platejs/basic-styles/react';
-import { DropdownMenuItemIndicator } from '@radix-ui/react-dropdown-menu';
-import { CheckIcon, WrapText } from 'lucide-react';
-import { useEditorRef, useSelectionFragmentProp } from 'platejs/react';
+import { LineHeightPlugin } from "@platejs/basic-styles/react";
+import { CheckIcon, WrapText } from "lucide-react";
+import { useEditorRef, useSelectionFragmentProp } from "platejs/react";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
+  DropdownMenuGroup,
+  DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 
-import { ToolbarButton } from './toolbar';
+import { ToolbarButton } from "./toolbar";
 
 export function LineHeightToolbarButton(props: DropdownMenuProps) {
   const editor = useEditorRef();
@@ -39,31 +38,32 @@ export function LineHeightToolbarButton(props: DropdownMenuProps) {
         </ToolbarButton>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="min-w-0" align="start">
-        <DropdownMenuRadioGroup
-          value={value}
-          onValueChange={(newValue) => {
-            editor
-              .getTransforms(LineHeightPlugin)
-              .lineHeight.setNodes(Number(newValue));
-            editor.tf.focus();
-          }}
-        >
-          {values.map((value) => (
-            <DropdownMenuRadioItem
-              key={value}
-              className="min-w-[180px] pl-2 *:first:[span]:hidden"
-              value={value}
+      <DropdownMenuContent
+        className="min-w-0"
+        align="start"
+        onCloseAutoFocus={(e) => {
+          e.preventDefault();
+          editor.tf.focus();
+        }}
+      >
+        <DropdownMenuGroup>
+          {values.map((itemValue) => (
+            <DropdownMenuCheckboxItem
+              key={itemValue}
+              className="min-w-[180px]"
+              checked={value === itemValue}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  editor
+                    .getTransforms(LineHeightPlugin)
+                    .lineHeight.setNodes(Number(itemValue));
+                }
+              }}
             >
-              <span className="pointer-events-none absolute right-2 flex size-3.5 items-center justify-center">
-                <DropdownMenuItemIndicator>
-                  <CheckIcon />
-                </DropdownMenuItemIndicator>
-              </span>
-              {value}
-            </DropdownMenuRadioItem>
+              {itemValue}
+            </DropdownMenuCheckboxItem>
           ))}
-        </DropdownMenuRadioGroup>
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

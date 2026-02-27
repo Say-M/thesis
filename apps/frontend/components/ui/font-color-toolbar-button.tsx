@@ -6,7 +6,7 @@ import React from 'react';
 import type {
   DropdownMenuItemProps,
   DropdownMenuProps,
-} from '@radix-ui/react-dropdown-menu';
+} from '@/components/ui/dropdown-menu';
 
 import { useComposedRef } from '@udecode/cn';
 import debounce from 'lodash/debounce';

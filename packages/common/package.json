@@ -19,6 +19,8 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@imagekit/nodejs": "^7.3.0",
+    "mongoose": "^9.2.3",
     "nodemailer": "^8.0.1"
   }
 }

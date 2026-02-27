@@ -5,6 +5,14 @@ import { Tooltip as TooltipPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
+export type TooltipContentProps = React.ComponentProps<typeof TooltipPrimitive.Content>
+
+function TooltipPortal({
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Portal>) {
+  return <TooltipPrimitive.Portal data-slot="tooltip-portal" {...props} />
+}
+
 function TooltipProvider({
   delayDuration = 0,
   ...props
@@ -54,4 +62,4 @@ function TooltipContent({
   )
 }
 
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider, TooltipPortal }

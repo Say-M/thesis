@@ -112,7 +112,7 @@ export const useUpdateCategory = () => {
       const { data } = await api.patch(`/categories/${id}`, payload);
       return data;
     },
-    onSuccess: (data, { id }) => {
+    onSuccess: (data) => {
       toast.success(data?.message ?? "Category updated");
       queryClient.invalidateQueries({ queryKey: CATEGORIES_QUERY_KEY });
     },

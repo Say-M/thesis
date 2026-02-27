@@ -2,10 +2,9 @@
 
 import * as React from "react";
 
-import type { DropdownMenuProps } from "@radix-ui/react-dropdown-menu";
 import type { TElement } from "platejs";
+import type { DropdownMenuProps } from "@/components/ui/dropdown-menu";
 
-import { DropdownMenuItemIndicator } from "@radix-ui/react-dropdown-menu";
 import {
   CheckIcon,
   ChevronRightIcon,
@@ -30,8 +29,10 @@ import { useEditorRef, useSelectionFragmentProp } from "platejs/react";
 
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuRadioItem,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getBlockType, setBlockType } from "@/components/transforms";
@@ -99,7 +100,9 @@ export const turnIntoItems = [
   },
 ];
 
-export function TurnIntoToolbarButton(props: DropdownMenuProps) {
+export function TurnIntoToolbarButton(
+  props: DropdownMenuProps,
+) {
   const editor = useEditorRef();
   const [open, setOpen] = React.useState(false);
 
@@ -135,29 +138,22 @@ export function TurnIntoToolbarButton(props: DropdownMenuProps) {
         }}
         align="start"
       >
-        <ToolbarMenuGroup
-          value={value}
-          onValueChange={(type) => {
-            setBlockType(editor, type);
-          }}
-          label="Turn into"
-        >
+        <DropdownMenuGroup>
           {turnIntoItems.map(({ icon, label, value: itemValue }) => (
-            <DropdownMenuRadioItem
+            <DropdownMenuCheckboxItem
               key={itemValue}
-              className="min-w-[180px] pl-2 *:first:[span]:hidden"
-              value={itemValue}
+              checked={value === itemValue}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  setBlockType(editor, itemValue);
+                }
+              }}
             >
-              <span className="pointer-events-none absolute right-2 flex size-3.5 items-center justify-center">
-                <DropdownMenuItemIndicator>
-                  <CheckIcon />
-                </DropdownMenuItemIndicator>
-              </span>
               {icon}
               {label}
-            </DropdownMenuRadioItem>
+            </DropdownMenuCheckboxItem>
           ))}
-        </ToolbarMenuGroup>
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );
