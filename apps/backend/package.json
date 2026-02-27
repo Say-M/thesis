@@ -1,5 +1,5 @@
 {
-  "name": "@app/backend",
+  "name": "backend",
   "exports": {
     "./*": "./src/*.ts"
   },
