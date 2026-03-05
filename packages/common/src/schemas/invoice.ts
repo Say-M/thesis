@@ -1,12 +1,9 @@
 import { z } from "zod";
-import {
-  InvoiceStatus,
-  InvoiceType,
-  PaymentMethod,
-  PaymentType,
-} from "../enums/invoice";
+import { InvoiceStatus, PaymentMethod, PaymentType } from "../enums/invoice";
 import { cursorPaginationQuerySchema } from "./common";
 import { addressSchema } from "./auth";
+import { DiscountType } from "../enums/discount";
+import { createTransactionSchema } from "./transaction";
 
 const lineItemSchema = z.object({
   product: z
@@ -34,7 +31,6 @@ const customerSchema = z.object({
 });
 
 export const invoiceSchema = z.object({
-  type: z.enum(InvoiceType, { error: "Invalid invoice type" }).nullish(),
   paymentType: z.enum(PaymentType, { error: "Invalid payment type" }),
   customer: customerSchema,
   items: z
@@ -52,6 +48,56 @@ export const invoiceSchema = z.object({
     reference: z.string({ error: "Reference is required" }).trim().nullish(),
   }),
 });
+
+export const createManualInvoiceSchema = invoiceSchema
+  .omit({
+    items: true,
+    coupon: true,
+    shippingChargeName: true,
+    isSavedForLater: true,
+  })
+  .extend({
+    customer: customerSchema.omit({ user: true }),
+    items: z.array(
+      z.object({
+        name: z
+          .string({ error: "Name is required" })
+          .trim()
+          .nonempty({ error: "Name is required" }),
+        quantity: z
+          .number({ error: "Quantity is required" })
+          .int()
+          .min(1, { message: "Quantity must be greater than 0" }),
+        unitPrice: z
+          .number({ error: "Unit price is required" })
+          .min(0, { message: "Unit price must be greater than 0" }),
+        buyingPrice: z
+          .number({ error: "Buying price is required" })
+          .min(0, { message: "Buying price must be greater than 0" }),
+        discountType: z
+          .enum(DiscountType, { error: "Invalid discount type" })
+          .nullish(),
+        discountValue: z
+          .number({ error: "Discount value is required" })
+          .min(0, { message: "Discount value must be greater than 0" })
+          .nullish(),
+        discountAmount: z
+          .number({ error: "Discount amount is required" })
+          .min(0, { message: "Discount amount must be greater than 0" })
+          .nullish(),
+        total: z
+          .number({ error: "Total is required" })
+          .min(0, { message: "Total must be greater than 0" }),
+      }),
+    ),
+    shippingAmount: z
+      .number({ error: "Shipping amount is required" })
+      .min(0, { message: "Shipping amount must be greater than 0" }),
+    taxAmount: z
+      .number({ error: "Tax amount is required" })
+      .min(0, { message: "Tax amount must be greater than 0" }),
+    transaction: createTransactionSchema,
+  });
 
 export const createInvoiceSchema = invoiceSchema.superRefine((data, ctx) => {
   if (data.paymentType === PaymentType.ONLINE) {
@@ -86,6 +132,9 @@ export const updateInvoiceSchema = z
   .partial();
 
 export type CreateInvoiceSchemaType = z.infer<typeof createInvoiceSchema>;
+export type CreateManualInvoiceSchemaType = z.infer<
+  typeof createManualInvoiceSchema
+>;
 export type UpdateInvoiceSchemaType = z.infer<typeof updateInvoiceSchema>;
 
 export const listInvoiceQuerySchema = cursorPaginationQuerySchema.extend({

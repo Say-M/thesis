@@ -11,7 +11,14 @@ import { addressSchema } from "./user";
 
 const lineItemSchema = new Schema(
   {
-    product: { type: Types.ObjectId, ref: "Product", required: true },
+    product: {
+      type: Types.ObjectId,
+      ref: "Product",
+      required: function () {
+        const parent = this.parent();
+        return parent && parent.type === InvoiceType.AUTOMATIC;
+      },
+    },
     variantId: { type: Types.ObjectId },
     name: { type: String, required: true, trim: true },
     variantLabel: { type: String, trim: true },
@@ -53,7 +60,7 @@ const schema = new Schema(
     type: {
       type: String,
       enum: InvoiceType,
-      default: InvoiceType.ONLINE,
+      default: InvoiceType.AUTOMATIC,
       index: true,
     },
     paymentType: {

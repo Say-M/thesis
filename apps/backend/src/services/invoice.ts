@@ -7,6 +7,7 @@ import { Transaction } from "@repo/common/models/transaction";
 import type { ResponseType } from "@repo/common/schemas/response";
 import type {
   CreateInvoiceSchemaType,
+  CreateManualInvoiceSchemaType,
   ListInvoiceQuerySchemaType,
   UpdateInvoiceSchemaType,
 } from "@repo/common/schemas/invoice";
@@ -42,7 +43,6 @@ export const createInvoiceService = async (
       items,
       customer,
       coupon: couponCode,
-      type,
       notes,
       shippingAddress,
       shippingChargeName,
@@ -301,9 +301,7 @@ export const createInvoiceService = async (
     let couponDiscountAmount = 0;
     let shippingAmount = defaultShippingAmount;
     const isUserRole = user?.role === Role.USER;
-    const invoiceType = isUserRole
-      ? InvoiceType.ONLINE
-      : type || InvoiceType.OFFLINE;
+    const invoiceType = InvoiceType.AUTOMATIC;
     const customerUserId = isUserRole
       ? user._id
       : customer.user
@@ -593,6 +591,70 @@ export const createInvoiceService = async (
       message: "Invoice created",
       timestamp: new Date().toISOString(),
       data: { invoice: createdInvoice },
+    };
+  } catch (err) {
+    console.log({ err });
+    await session.abortTransaction();
+    throw err;
+  } finally {
+    session.endSession();
+  }
+};
+
+export const createManualInvoiceService = async (
+  payload: CreateManualInvoiceSchemaType,
+): Promise<ResponseType> => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const {
+      customer,
+      items,
+      transaction: transactionPayload,
+      ...rest
+    } = payload;
+    let subtotal = items.reduce(
+      (acc, item) => acc + item.unitPrice * item.quantity,
+      0,
+    );
+    const shippingAmount = payload.shippingAmount;
+    const taxAmount = payload.taxAmount;
+    const total = subtotal + shippingAmount + taxAmount;
+    const [invoice] = await Invoice.create(
+      [
+        {
+          ...rest,
+          customer,
+          items,
+          type: InvoiceType.MANUAL,
+          subtotal,
+          shippingAmount,
+          taxAmount,
+          total,
+        },
+      ],
+      { session },
+    );
+
+    const [transaction] = await Transaction.create(
+      [
+        {
+          invoice: invoice?._id,
+          ...transactionPayload,
+        },
+      ],
+      { session },
+    );
+
+    const createdInvoice = invoice?.toObject();
+    const createdTransaction = transaction?.toObject();
+    await session.commitTransaction();
+
+    return {
+      status: 201,
+      message: "Invoice created",
+      timestamp: new Date().toISOString(),
+      data: { invoice: createdInvoice, transaction: createdTransaction },
     };
   } catch (err) {
     console.log({ err });
@@ -976,7 +1038,7 @@ export const updateInvoiceService = async (
         throw new HTTPException(404, { message: "Invoice not found" });
       await restoreStockForInvoice(
         invoice.items.map((item) => ({
-          product: item.product?.toString(),
+          product: item.product?.toString()!,
           variantId: item.variantId ? item.variantId?.toString() : null,
           quantity: item.quantity,
         })),
@@ -1035,7 +1097,7 @@ export const deleteInvoiceService = async (
     await Transaction.deleteMany({ invoice: id }, { session });
     await restoreStockForInvoice(
       invoice.items.map((item) => ({
-        product: item.product?.toString(),
+        product: item.product?.toString()!,
         variantId: item.variantId ? item.variantId?.toString() : null,
         quantity: item.quantity,
       })),

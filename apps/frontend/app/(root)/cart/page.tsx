@@ -12,7 +12,6 @@ import {
   type CreateInvoiceSchemaType,
 } from "@repo/common/schemas/invoice";
 import {
-  InvoiceType,
   PaymentMethod,
   PaymentType,
 } from "@repo/common/enums/invoice";
@@ -78,10 +77,7 @@ import {
 } from "@/components/ui/select";
 
 const checkoutFormSchema = invoiceSchema
-  .omit({
-    items: true,
-    type: true,
-  })
+  .omit({ items: true })
   .superRefine((data, ctx) => {
     if (data.paymentType === PaymentType.ONLINE) {
       if (!data.transaction.paymentMethod) {
@@ -454,7 +450,6 @@ export default function CartPage() {
     if (cartItems.length === 0) return;
     const payload: CreateInvoiceSchemaType = {
       ...values,
-      type: InvoiceType.ONLINE,
       items: cartItems.map((item) => ({
         product: item.productId,
         variantId: item.variantId ?? undefined,

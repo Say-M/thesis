@@ -8,8 +8,8 @@ export enum InvoiceStatus {
 }
 
 export enum InvoiceType {
-  ONLINE = "Online",
-  OFFLINE = "Offline",
+  AUTOMATIC = "Automatic",
+  MANUAL = "Manual",
 }
 
 export enum TransactionStatus {
