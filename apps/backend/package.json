@@ -1,0 +1,18 @@
+{
+  "name": "backend",
+  "scripts": {
+    "dev": "bun run --hot src/index.ts",
+    "seed": "bun run src/seed.ts"
+  },
+  "dependencies": {
+    "@langchain/core": "^1.1.40",
+    "@langchain/openai": "^0.6.9",
+    "hono": "^4.12.14",
+    "langchain": "^0.3.33",
+    "mongoose": "^9.4.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
