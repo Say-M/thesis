@@ -6,6 +6,7 @@ import { ReviewStatus } from "../enums/review";
 
 export type ProductSearchInput = {
   query?: string;
+  keywords?: string[];
   categoryName?: string;
   subcategoryName?: string;
   minPrice?: number;
@@ -19,12 +20,22 @@ export async function productSearch(input: ProductSearchInput) {
 
   const filter: Record<string, unknown> = { status: true };
 
-  if (input.query?.trim()) {
-    const q = input.query.trim();
-    filter.$or = [
-      { name: { $regex: q, $options: "i" } },
-      { description: { $regex: q, $options: "i" } },
-    ];
+  // Accept both a single `query` and an array of `keywords`. Every term is
+  // OR-matched (case-insensitive) against name and description, so a broad set
+  // of synonyms (e.g. "oily", "oil control", "sebum", "matte") widens recall.
+  const terms = Array.from(
+    new Set(
+      [input.query, ...(input.keywords ?? [])]
+        .map((t) => (typeof t === "string" ? t.trim() : ""))
+        .filter(Boolean),
+    ),
+  );
+
+  if (terms.length) {
+    filter.$or = terms.flatMap((t) => {
+      const rx = { $regex: escapeRegex(t), $options: "i" };
+      return [{ name: rx }, { description: rx }];
+    });
   }
 
   if (typeof input.minPrice === "number" || typeof input.maxPrice === "number") {

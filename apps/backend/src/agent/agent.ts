@@ -19,9 +19,20 @@ export type AgentRunOutput = {
 const productSearchTool = new DynamicStructuredTool({
   name: "product_search",
   description:
-    "Search products by keyword and filters. Use for skincare/acne requests, category browsing, budget constraints, and latest products.",
+    "Search skincare products by keywords and filters. Prefer the `keywords` array and pass MANY related synonyms/expansions of the user's need so recall is high. " +
+    "Every keyword is OR-matched against product name and description. " +
+    "Examples: for oily skin pass [\"oily\",\"oil control\",\"oil-free\",\"sebum\",\"mattifying\",\"matte\",\"gel\"]; " +
+    "for acne pass [\"acne\",\"blemish\",\"salicylic\",\"benzoyl\",\"spot\",\"breakout\",\"BHA\"]; " +
+    "for dry skin pass [\"dry\",\"hydrating\",\"moisturizing\",\"hyaluronic\",\"ceramide\",\"barrier\"]. " +
+    "Use categoryName/subcategoryName for browsing, minPrice/maxPrice for budget, and latest for newest products.",
   schema: z.object({
     query: z.string().optional(),
+    keywords: z
+      .array(z.string())
+      .optional()
+      .describe(
+        "Many related keywords/synonyms expanding the user's need. Prefer this over `query`.",
+      ),
     categoryName: z.string().optional(),
     subcategoryName: z.string().optional(),
     minPrice: z.number().optional(),
@@ -94,12 +105,16 @@ export async function createExecutor() {
 
 export function buildSystemPrompt() {
   return [
-    "You are an ecommerce shopping assistant.",
+    "You are an ecommerce shopping assistant for a skincare catalog.",
     "You can search products, compare products, and summarize reviews using tools.",
     "Stay strictly within this platform scope: shopping help only (product discovery, comparison, and review-based guidance).",
     "If the user asks for anything outside this scope, politely refuse and redirect them to shopping-related requests.",
+    "When searching, ALWAYS use product_search with a rich `keywords` array: expand the user's need into many related terms and synonyms so you find all relevant products.",
+    "For example, 'oily skin' -> ['oily','oil control','oil-free','sebum','mattifying','matte','gel']; 'acne' -> ['acne','blemish','breakout','spot','salicylic','BHA','benzoyl']; 'dry' -> ['dry','hydrating','moisturizing','hyaluronic','ceramide','barrier']; 'anti-aging' -> ['wrinkle','anti-aging','retinol','firming','collagen'].",
+    "Map skin type/condition/severity from any provided diagnosis into keywords too.",
+    "If a search returns no products, retry with a broader keyword set or drop the query and browse by category before telling the user nothing was found.",
     "When you recommend products, be concise and include product slugs/ids when available.",
-    "If you need more info (budget, size, skin type), ask 1-2 clarifying questions.",
+    "If you need more info (budget, skin type), ask 1-2 clarifying questions.",
     "Do not invent products; use tools when you need product data.",
   ].join("\n");
 }
